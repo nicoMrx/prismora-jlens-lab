@@ -1,0 +1,33 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://prismora.local/schemas/backend-capabilities-v1.schema.json",
+  "title": "Prismora BackendCapabilities v1",
+  "type": "object",
+  "required": ["schema", "backend_id", "available", "readouts", "interventions", "limits"],
+  "properties": {
+    "schema": {"const": "prismora.backend-capabilities/v1"},
+    "backend_id": {"type": "string"},
+    "available": {"type": "boolean"},
+    "mock": {"type": "boolean", "default": false},
+    "readouts": {"type": "array", "items": {"type": "string"}, "uniqueItems": true},
+    "interventions": {"type": "array", "items": {"type": "string"}, "uniqueItems": true},
+    "forced_tokens": {"type": "boolean", "default": false},
+    "fit_lens": {"type": "boolean", "default": false},
+    "supports_chat": {"type": "boolean", "default": true},
+    "supports_completion": {"type": "boolean", "default": true},
+    "models": {"type": "array", "items": {"type": "string"}, "default": []},
+    "limits": {
+      "type": "object",
+      "required": ["max_new_tokens", "max_top_k"],
+      "properties": {
+        "max_new_tokens": {"type": "integer", "minimum": 0},
+        "max_top_k": {"type": "integer", "minimum": 1},
+        "max_input_tokens": {"type": ["integer", "null"], "minimum": 1},
+        "max_batch_runs": {"type": ["integer", "null"], "minimum": 1}
+      },
+      "additionalProperties": true
+    },
+    "notes": {"type": "array", "items": {"type": "string"}, "default": []}
+  },
+  "additionalProperties": true
+}

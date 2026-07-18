@@ -1,0 +1,22 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://prismora.local/schemas/claim-record-v1.schema.json",
+  "title": "Prismora ClaimRecord v1",
+  "type": "object",
+  "required": ["schema", "claim_id", "experiment_id", "statement", "level", "status", "evidence_run_ids", "limitations", "created_at"],
+  "properties": {
+    "schema": {"const": "prismora.claim/v1"},
+    "claim_id": {"type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{2,119}$"},
+    "experiment_id": {"type": "string", "minLength": 3},
+    "statement": {"type": "string", "minLength": 3, "maxLength": 10000},
+    "level": {"type": "string", "enum": ["observation", "replication", "robustness", "prediction", "causality", "generalization"]},
+    "status": {"type": "string", "enum": ["draft", "supported", "mixed", "refuted", "withdrawn"]},
+    "evidence_run_ids": {"type": "array", "items": {"type": "string"}, "uniqueItems": true},
+    "limitations": {"type": "array", "items": {"type": "string"}},
+    "created_at": {"type": "string", "format": "date-time"},
+    "updated_at": {"type": ["string", "null"], "format": "date-time"},
+    "author": {"type": "string", "default": "NicoMrx / Prismora"},
+    "metadata": {"type": "object", "additionalProperties": true, "default": {}}
+  },
+  "additionalProperties": false
+}

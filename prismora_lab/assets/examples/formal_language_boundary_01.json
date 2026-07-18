@@ -1,0 +1,231 @@
+{
+  "schema": "prismora.experiment/v2",
+  "experiment_id": "formal-language-boundary-01",
+  "title": "Naked versus language-dressed formal problems",
+  "description": "Separates formal notation from surrounding natural language to test when model-specific lexical read-outs appear.",
+  "tags": [
+    "formal-language",
+    "mathematics",
+    "chemistry",
+    "multilingual"
+  ],
+  "hypothesis": {
+    "primary": "Late semantic specialization persists for naked formal problems, while its lexical language profile changes when natural-language instructions are added.",
+    "falsifiers": [
+      "Naked and dressed conditions are indistinguishable at all eligible depths.",
+      "Any apparent language profile is explained entirely by prompt-copy tokens."
+    ],
+    "exploratory": [
+      "Compare equations with chemical formulas.",
+      "Measure simplified-Chinese, Japanese-specific and Latin-script families separately."
+    ]
+  },
+  "preregistration": {
+    "status": "draft",
+    "locked_at": null,
+    "spec_sha256": null,
+    "amendments": []
+  },
+  "models": [
+    {
+      "alias": "M01",
+      "model_id": "qwen3.6-27b",
+      "backend": "neuronpedia",
+      "blind_alias": "M01",
+      "organization": "Qwen",
+      "origin_region": "China",
+      "model_type": "instruct",
+      "revision": null,
+      "tokenizer_revision": null,
+      "lens_id": "Neuronpedia public J-Lens",
+      "lens_revision": null,
+      "precision": null,
+      "quantization": null,
+      "metadata": {
+        "origin_is_metadata_not_causal_explanation": true
+      }
+    },
+    {
+      "alias": "M02",
+      "model_id": "gpt-oss-20b",
+      "backend": "neuronpedia",
+      "blind_alias": "M02",
+      "organization": "OpenAI",
+      "origin_region": "United States",
+      "model_type": "reasoning",
+      "revision": null,
+      "tokenizer_revision": null,
+      "lens_id": "Neuronpedia public J-Lens",
+      "lens_revision": null,
+      "precision": null,
+      "quantization": null,
+      "metadata": {
+        "origin_is_metadata_not_causal_explanation": true
+      }
+    }
+  ],
+  "prompts": [
+    {
+      "prompt_id": "equation_naked",
+      "prompt": "x^2 - 5x + 6 = 0",
+      "metadata": {
+        "domain": "math",
+        "dress": "naked",
+        "language": "formal"
+      }
+    },
+    {
+      "prompt_id": "equation_en",
+      "chat": [
+        {
+          "role": "user",
+          "content": "Solve x^2 - 5x + 6 = 0. Show the reasoning."
+        }
+      ],
+      "metadata": {
+        "domain": "math",
+        "dress": "natural",
+        "language": "en"
+      }
+    },
+    {
+      "prompt_id": "equation_fr",
+      "chat": [
+        {
+          "role": "user",
+          "content": "Résous x^2 - 5x + 6 = 0. Montre le raisonnement."
+        }
+      ],
+      "metadata": {
+        "domain": "math",
+        "dress": "natural",
+        "language": "fr"
+      }
+    },
+    {
+      "prompt_id": "equation_ja",
+      "chat": [
+        {
+          "role": "user",
+          "content": "x^2 - 5x + 6 = 0 を解き、推論を示してください。"
+        }
+      ],
+      "metadata": {
+        "domain": "math",
+        "dress": "natural",
+        "language": "ja"
+      }
+    },
+    {
+      "prompt_id": "chemistry_naked",
+      "prompt": "2H₂ + O₂ → ?",
+      "metadata": {
+        "domain": "chemistry",
+        "dress": "naked",
+        "language": "formal"
+      }
+    },
+    {
+      "prompt_id": "chemistry_en",
+      "chat": [
+        {
+          "role": "user",
+          "content": "Complete and explain this reaction: 2H₂ + O₂ → ?"
+        }
+      ],
+      "metadata": {
+        "domain": "chemistry",
+        "dress": "natural",
+        "language": "en"
+      }
+    },
+    {
+      "prompt_id": "chemistry_fr",
+      "chat": [
+        {
+          "role": "user",
+          "content": "Complète et explique cette réaction : 2H₂ + O₂ → ?"
+        }
+      ],
+      "metadata": {
+        "domain": "chemistry",
+        "dress": "natural",
+        "language": "fr"
+      }
+    },
+    {
+      "prompt_id": "chemistry_ja",
+      "chat": [
+        {
+          "role": "user",
+          "content": "次の反応を完成させて説明してください：2H₂ + O₂ → ?"
+        }
+      ],
+      "metadata": {
+        "domain": "chemistry",
+        "dress": "natural",
+        "language": "ja"
+      }
+    }
+  ],
+  "matrix": {
+    "factors": {},
+    "bindings": {},
+    "repeats": 3
+  },
+  "generation": {
+    "temperature": 0,
+    "max_new_tokens": 128,
+    "seed": null,
+    "prepend_bos": true,
+    "enable_thinking": false,
+    "frequency_penalty": 0
+  },
+  "readout": {
+    "types": [
+      "JACOBIAN_LENS",
+      "LOGIT_LENS"
+    ],
+    "top_k": 8,
+    "filter_nonword_tokens": true,
+    "exclude_first_n_positions": 16
+  },
+  "intervention": null,
+  "analysis": {
+    "primary_metric": "formal_to_natural_lexical_boundary",
+    "secondary_metrics": [
+      "script_profile_by_depth",
+      "prompt_copy_adjusted_enrichment",
+      "cross_language_family_jaccard"
+    ],
+    "exclusions": [
+      "The first 16 positions from primary inference",
+      "Tokens copied verbatim from the prompt when testing language-independent content"
+    ],
+    "compare_absolute_and_relative_depth": true,
+    "semantic_families": {
+      "math_method": [
+        "formula",
+        "factor",
+        "discriminant",
+        "公式",
+        "分解"
+      ],
+      "chemistry": [
+        "water",
+        "combustion",
+        "reaction",
+        "水",
+        "反応"
+      ]
+    },
+    "generated_positions_only": false,
+    "presence_min_probability": 0.01,
+    "notes": "Unicode script is not language identity. Japanese-specific kana and simplified-Chinese discriminants should be reported separately."
+  },
+  "stopping_rule": "Complete the full naked/dressed matrix on both models.",
+  "metadata": {
+    "author": "NicoMrx / Prismora",
+    "analysis_blinded_by_default": true
+  }
+}

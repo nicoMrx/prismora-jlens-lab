@@ -1,0 +1,160 @@
+{
+  "schema": "prismora.experiment/v2",
+  "experiment_id": "causal-strategy-worker-template",
+  "title": "Template: causal strategy swap on a pinned GPU worker",
+  "description": "EDIT BEFORE USE. Tests whether swapping a method read-out changes the executed algebraic procedure rather than only a surface word.",
+  "tags": [
+    "template",
+    "worker",
+    "causal",
+    "strategy"
+  ],
+  "hypothesis": {
+    "primary": "A targeted strategy-direction intervention changes the executed procedure with task-level controls, not merely method vocabulary.",
+    "falsifiers": [
+      "Only the method word changes while algebraic operations remain unchanged.",
+      "Random same-norm directions produce an equal or larger effect.",
+      "The intervention degrades fluency without a selective procedure change."
+    ],
+    "exploratory": [
+      "Map the causal commitment point C across layers and strengths."
+    ]
+  },
+  "preregistration": {
+    "status": "draft",
+    "locked_at": null,
+    "spec_sha256": null,
+    "amendments": []
+  },
+  "models": [
+    {
+      "alias": "W01",
+      "model_id": "replace-with-exact-open-weight-model",
+      "backend": "worker",
+      "blind_alias": "W01",
+      "organization": "Replace with exact organization",
+      "origin_region": "Unknown",
+      "model_type": "instruct",
+      "revision": "pin-weight-commit-or-content-hash",
+      "tokenizer_revision": "pin-tokenizer-commit-or-hash",
+      "lens_id": "replace-with-pinned-local-lens",
+      "lens_revision": "pin-lens-checkpoint-sha256",
+      "precision": "bf16",
+      "quantization": null,
+      "metadata": {
+        "origin_is_metadata_not_causal_explanation": true
+      }
+    }
+  ],
+  "prompts": [
+    {
+      "prompt_id": "factorizable_operations_only",
+      "chat": [
+        {
+          "role": "user",
+          "content": "Solve x^2 - 5x + 6 = 0. Show only algebraic transformations and roots. Never name the method."
+        }
+      ],
+      "metadata": {
+        "edit_required": true,
+        "expected_unsteered_strategy": "factoring"
+      }
+    }
+  ],
+  "matrix": {
+    "factors": {
+      "strength": [
+        0.25,
+        0.5,
+        1.0,
+        2.0
+      ]
+    },
+    "bindings": {
+      "strength": "intervention.strength"
+    },
+    "repeats": 3
+  },
+  "generation": {
+    "temperature": 0,
+    "max_new_tokens": 128,
+    "seed": 1,
+    "prepend_bos": true,
+    "enable_thinking": false,
+    "frequency_penalty": 0
+  },
+  "readout": {
+    "types": [
+      "JACOBIAN_LENS",
+      "LOGIT_LENS"
+    ],
+    "top_k": 8,
+    "filter_nonword_tokens": true,
+    "exclude_first_n_positions": 16
+  },
+  "intervention": {
+    "mode": "swap",
+    "source_tokens": [
+      {
+        "token": " factor",
+        "type": "JACOBIAN_LENS"
+      }
+    ],
+    "target_token": {
+      "token": " formula",
+      "type": "JACOBIAN_LENS"
+    },
+    "layers": [
+      30,
+      31,
+      32,
+      33,
+      34,
+      35,
+      36,
+      37,
+      38,
+      39,
+      40
+    ],
+    "strength": 1.0,
+    "apply_to_generated_tokens": true
+  },
+  "analysis": {
+    "primary_metric": "executed_strategy_change",
+    "secondary_metrics": [
+      "discriminant_steps",
+      "factorization_steps",
+      "solution_correctness",
+      "fluency",
+      "random_direction_control"
+    ],
+    "exclusions": [
+      "Runs before replacing all placeholder revisions and layers",
+      "Claims based only on the appearance of a method word"
+    ],
+    "compare_absolute_and_relative_depth": true,
+    "semantic_families": {
+      "formula_operations": [
+        "discriminant",
+        "sqrt",
+        "-b",
+        "2a"
+      ],
+      "factoring_operations": [
+        "factor",
+        "product",
+        "zero product"
+      ]
+    },
+    "generated_positions_only": true,
+    "presence_min_probability": 0.01,
+    "notes": "Add no-intervention, ablation, reverse-swap, semantic-neighbor and random same-norm control experiments before locking. Layer numbers are placeholders."
+  },
+  "stopping_rule": "Do not execute until placeholders and controls are replaced, validated and locked.",
+  "metadata": {
+    "author": "NicoMrx / Prismora",
+    "template": true,
+    "edit_required": true
+  }
+}

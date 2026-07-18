@@ -1,0 +1,518 @@
+{
+  "schema": "prismora.release-build/v1",
+  "name": "Prismora J-Lens Lab",
+  "version": "0.2.0",
+  "build_date": "2026-07-14",
+  "automated_tests": "20 passed",
+  "anthropic_jlens_commit": "581d398613e5602a5af361e1c34d3a92ea82ba8e",
+  "live_neuronpedia_validated": false,
+  "cuda_runtime_numerically_validated": false,
+  "files": [
+    {
+      "path": ".env.example",
+      "bytes": 1134,
+      "sha256": "9b6d253eab94f3731222267a6d1bb47459fe62e45d4872146454bf49be17300c"
+    },
+    {
+      "path": ".env.gpu.example",
+      "bytes": 649,
+      "sha256": "1d1d9faccaad3707e8127708a525d97c8a11a2f7c833d7caf10f13b1d63c6969"
+    },
+    {
+      "path": ".gitignore",
+      "bytes": 91,
+      "sha256": "a0d73ef7ea7412f8588d8ac82b22fb77094aca747e375cd1edc3f8a33cdede73"
+    },
+    {
+      "path": "ARCHITECTURE.md",
+      "bytes": 2574,
+      "sha256": "7caa0553280f82ed8b8893cafc04ead6188f88a59e09726d7a13ae5513dbb5a0"
+    },
+    {
+      "path": "CAMPAIGN_CATALOG.md",
+      "bytes": 2087,
+      "sha256": "4d95d41a964f5a5dd0146ebdad9ba4365ca849081ded2cc444bf7c36404dda6f"
+    },
+    {
+      "path": "CHANGELOG.md",
+      "bytes": 1250,
+      "sha256": "7c8218d928c472c8861d2b8602de21987eb837188a2ce35494d2924bf6510bf0"
+    },
+    {
+      "path": "CITATION.cff",
+      "bytes": 252,
+      "sha256": "ed50b1c19e66a0612b199519285139fbbe803a7671df054b3d353bc5b2796463"
+    },
+    {
+      "path": "CLOUD_GPU_GUIDE.md",
+      "bytes": 3340,
+      "sha256": "72f9d1a0646a286b42099e2adcc583d3f4453bbe94adf290042e186068539e99"
+    },
+    {
+      "path": "DEMARRAGE_RAPIDE_FR.md",
+      "bytes": 2918,
+      "sha256": "55d9e6dde296f2a1b6af527aeef6e3e8142edb3c7a8153a4a1ef475f1e9ab75b"
+    },
+    {
+      "path": "Dockerfile",
+      "bytes": 235,
+      "sha256": "a2486fa6cbec580d7cc12003f737c780407703ce0c461cf2094a6096095ae77c"
+    },
+    {
+      "path": "Dockerfile.gpu.reference",
+      "bytes": 791,
+      "sha256": "9539f05725f9588745c8a41e2fc9fbefc8f3148d7d41f99dd2e500f0dec1f8be"
+    },
+    {
+      "path": "FIRST_REAL_RUN_CHECKLIST_FR.md",
+      "bytes": 1627,
+      "sha256": "b79c4a4fe88216edc24380050e68a739acf0261b4ba1a2f6c607ec35bc8d7011"
+    },
+    {
+      "path": "GPU_RUNTIME_REFERENCE.md",
+      "bytes": 2295,
+      "sha256": "d138fc745c7831273dac30273e97eb1ce360cd3d67934dce21c09f910e71bf5e"
+    },
+    {
+      "path": "KNOWN_LIMITATIONS.md",
+      "bytes": 2363,
+      "sha256": "73f31c777272e7e08e2b9c6a6626b8c4948e0367702ca2188e7f3cd419313868"
+    },
+    {
+      "path": "LICENSE",
+      "bytes": 633,
+      "sha256": "b77c4acf60bcd7ab74109c9962502c7488616148b80b1bc5ed860d163dc55844"
+    },
+    {
+      "path": "MANIFEST.in",
+      "bytes": 558,
+      "sha256": "41816aaee2b28da5953632c5a527329d6fd5944c320d6ac6096ee0b4a32b1e8c"
+    },
+    {
+      "path": "Makefile",
+      "bytes": 249,
+      "sha256": "c47321d9d082203ee2bb84f3460ce3928919133a3a3a811e3b5267c69fd927db"
+    },
+    {
+      "path": "README.md",
+      "bytes": 9995,
+      "sha256": "580d04fd65603216b988e7ce6166a7e82f4f3c02da9ce7f3bfb13ba80c792ed8"
+    },
+    {
+      "path": "RELEASE_NOTES_FR.md",
+      "bytes": 2231,
+      "sha256": "da7912fa965000085a6ec3ba9f04d90d8db4cfc5fce5a8a0017928b087650774"
+    },
+    {
+      "path": "SECURITY.md",
+      "bytes": 1037,
+      "sha256": "cb2111be9e602828c65e94d7e2f044231187913e0222fe1fd3530ab3e946c836"
+    },
+    {
+      "path": "TEST_REPORT.md",
+      "bytes": 2010,
+      "sha256": "69faa9a2d76d3939718763c3a0c91df3afc26e60b6664d2d2ab74ed174df91db"
+    },
+    {
+      "path": "docker-compose.gpu.reference.yml",
+      "bytes": 1775,
+      "sha256": "b4f69b5f5606eb979c43be7416d5790ab7f8e225b625c99b5ed14cc0920fae85"
+    },
+    {
+      "path": "docker-compose.yml",
+      "bytes": 750,
+      "sha256": "09f4471a8fe6d11c845085b3f1f989024df5ad02518ee069ee1348f42537cbfd"
+    },
+    {
+      "path": "examples/causal_strategy_worker_template.json",
+      "bytes": 4187,
+      "sha256": "8d3785803c46184f31a40d08f0b534a391725d59c3e924f0269529ae69804e35"
+    },
+    {
+      "path": "examples/early_layer_background_01.json",
+      "bytes": 4899,
+      "sha256": "283daffc25ce96e3d09c817d304de7ebf04db7fd69aeaf6373f2ebc23cf57add"
+    },
+    {
+      "path": "examples/filter_nonword_bootstrap.json",
+      "bytes": 2189,
+      "sha256": "ce0b2d45887f749c6d12b3a66f89569f1a6f8989c8de79d72f958ee63b2f1081"
+    },
+    {
+      "path": "examples/formal_language_boundary_01.json",
+      "bytes": 5915,
+      "sha256": "8f646b322f2ea3af4067c23c3aab7021514efe9c863622c216a9001e8536c3a6"
+    },
+    {
+      "path": "examples/meta_capture_01.json",
+      "bytes": 5258,
+      "sha256": "9c8670c11b5b1a8d2850d5b81d0d3685bbc0c3ee4c7008b077075cf79cec8e83"
+    },
+    {
+      "path": "examples/model-registry.json",
+      "bytes": 2248,
+      "sha256": "ba77d58317d957d7b702241b39f5aa38099167ba27f350da9e040d3d082b9913"
+    },
+    {
+      "path": "examples/strategy_quadratic_01.json",
+      "bytes": 4738,
+      "sha256": "f182e3f76d61606fd9c4109f84f9205d7d86ddf83a22291dba55e6b4441eeeb3"
+    },
+    {
+      "path": "examples/strategy_quadratic_mock.json",
+      "bytes": 2186,
+      "sha256": "59aef553aa1d758b4ae159c2d05aa4ff884ee837aa8694e1f338d2e218516afe"
+    },
+    {
+      "path": "examples/world_competition_01.json",
+      "bytes": 3210,
+      "sha256": "6edf017ebfd12337e3d268fcd02e572ec65ba3bf58247c66d06a6ac6e898e001"
+    },
+    {
+      "path": "prismora_lab/__init__.py",
+      "bytes": 50,
+      "sha256": "7271e6248fa92b74d4d3be1492ce7aa9e1d1e882e900f7b9a5e120173ebd01b9"
+    },
+    {
+      "path": "prismora_lab/analysis/__init__.py",
+      "bytes": 32,
+      "sha256": "4a7ca6aadd0fcc5f2fe48e219b0c1defac171dbeff1797d16aeee309d6b69dcb"
+    },
+    {
+      "path": "prismora_lab/analysis/baseline.py",
+      "bytes": 3904,
+      "sha256": "be18de4e02a882183d1caf8a9e1089984c01cce6d628c424a4be8e4926900b9e"
+    },
+    {
+      "path": "prismora_lab/analysis/compare.py",
+      "bytes": 11363,
+      "sha256": "2ef187a4eeed2d745df0735db61a29efde8f04ecc40cf151261cecd332398a48"
+    },
+    {
+      "path": "prismora_lab/api/__init__.py",
+      "bytes": 29,
+      "sha256": "bec0915cc7b1c69718be6d8449263eb0e9aa5e9ac0f97bd8d3a391c5553c8c6a"
+    },
+    {
+      "path": "prismora_lab/api/app.py",
+      "bytes": 21443,
+      "sha256": "3c69c314e7807001ecbdc26e89fd3c4c85fbf9321238a1990ec7f14233f36bb7"
+    },
+    {
+      "path": "prismora_lab/assets/examples/causal_strategy_worker_template.json",
+      "bytes": 4187,
+      "sha256": "8d3785803c46184f31a40d08f0b534a391725d59c3e924f0269529ae69804e35"
+    },
+    {
+      "path": "prismora_lab/assets/examples/early_layer_background_01.json",
+      "bytes": 4899,
+      "sha256": "283daffc25ce96e3d09c817d304de7ebf04db7fd69aeaf6373f2ebc23cf57add"
+    },
+    {
+      "path": "prismora_lab/assets/examples/filter_nonword_bootstrap.json",
+      "bytes": 2189,
+      "sha256": "ce0b2d45887f749c6d12b3a66f89569f1a6f8989c8de79d72f958ee63b2f1081"
+    },
+    {
+      "path": "prismora_lab/assets/examples/formal_language_boundary_01.json",
+      "bytes": 5915,
+      "sha256": "8f646b322f2ea3af4067c23c3aab7021514efe9c863622c216a9001e8536c3a6"
+    },
+    {
+      "path": "prismora_lab/assets/examples/meta_capture_01.json",
+      "bytes": 5258,
+      "sha256": "9c8670c11b5b1a8d2850d5b81d0d3685bbc0c3ee4c7008b077075cf79cec8e83"
+    },
+    {
+      "path": "prismora_lab/assets/examples/model-registry.json",
+      "bytes": 2248,
+      "sha256": "ba77d58317d957d7b702241b39f5aa38099167ba27f350da9e040d3d082b9913"
+    },
+    {
+      "path": "prismora_lab/assets/examples/strategy_quadratic_01.json",
+      "bytes": 4738,
+      "sha256": "f182e3f76d61606fd9c4109f84f9205d7d86ddf83a22291dba55e6b4441eeeb3"
+    },
+    {
+      "path": "prismora_lab/assets/examples/strategy_quadratic_mock.json",
+      "bytes": 2186,
+      "sha256": "59aef553aa1d758b4ae159c2d05aa4ff884ee837aa8694e1f338d2e218516afe"
+    },
+    {
+      "path": "prismora_lab/assets/examples/world_competition_01.json",
+      "bytes": 3210,
+      "sha256": "6edf017ebfd12337e3d268fcd02e572ec65ba3bf58247c66d06a6ac6e898e001"
+    },
+    {
+      "path": "prismora_lab/assets/schemas/backend-capabilities-v1.schema.json",
+      "bytes": 1534,
+      "sha256": "3edb4cabb92e3c571b922d76aee589cb07c18cea6e4fc3a8b80c043a30ae7ef0"
+    },
+    {
+      "path": "prismora_lab/assets/schemas/claim-record-v1.schema.json",
+      "bytes": 1316,
+      "sha256": "7395fbf77dbb49fcd987d8eebd795b88b08f340e611762490e303cda6356c5f7"
+    },
+    {
+      "path": "prismora_lab/assets/schemas/experiment-spec-v2.schema.json",
+      "bytes": 9373,
+      "sha256": "2d8ffce4ee3f421d648a546c3cc8c8a20d9968182427a9feb1ec571dd42aae9c"
+    },
+    {
+      "path": "prismora_lab/assets/schemas/run-artifact-v2.schema.json",
+      "bytes": 6543,
+      "sha256": "5e3736100be224ebb54b658c8e85f85decf695e807501ef19ec3a509f5c51a59"
+    },
+    {
+      "path": "prismora_lab/assets/web/app.js",
+      "bytes": 34116,
+      "sha256": "d597e0c8e3f573e34d5fac223961af4bc8aff8a1aea7a8f18e2e9547f0e2c31f"
+    },
+    {
+      "path": "prismora_lab/assets/web/index.html",
+      "bytes": 16365,
+      "sha256": "780357bbf942683e75064c0b42fd8689d64ead43378b7b1ce34191949f46f80f"
+    },
+    {
+      "path": "prismora_lab/assets/web/styles.css",
+      "bytes": 9083,
+      "sha256": "85bd9ae90499bce8e71fd3166d6cee375383c303c125dfb35791db56f81d6911"
+    },
+    {
+      "path": "prismora_lab/backends/__init__.py",
+      "bytes": 26,
+      "sha256": "958ea168d314536cdee17053435dd88ac454fd152391ff87da996b085e1b1d30"
+    },
+    {
+      "path": "prismora_lab/backends/base.py",
+      "bytes": 1020,
+      "sha256": "e3ae3b3d5a7b910dc28d273af9d615bae26619307a14fa090c85564423414016"
+    },
+    {
+      "path": "prismora_lab/backends/mock.py",
+      "bytes": 6847,
+      "sha256": "50cd0b34acb08f93767a2bfcf62422ec13a87f6b2cb43d6e9127ba1c5daf2c6e"
+    },
+    {
+      "path": "prismora_lab/backends/neuronpedia.py",
+      "bytes": 7666,
+      "sha256": "3afa0b793c227446d0dc52ec15a95da01c62b911b1fbc852d02c7772d5edf86b"
+    },
+    {
+      "path": "prismora_lab/backends/worker_http.py",
+      "bytes": 4627,
+      "sha256": "05b49d802e5f479c59163ccc857197f0142b67c941efcbd7612a4495032bb4d5"
+    },
+    {
+      "path": "prismora_lab/canonical.py",
+      "bytes": 1749,
+      "sha256": "a734ec9a20a1de27a86ba9024fca8cd0191ffe370107b1da2138921c1b816458"
+    },
+    {
+      "path": "prismora_lab/cli.py",
+      "bytes": 6875,
+      "sha256": "1891ef7a5b2fb11ad257820a028cbbdc764bd17453fbef6ee3a399e14a05e77b"
+    },
+    {
+      "path": "prismora_lab/cockpit.py",
+      "bytes": 3516,
+      "sha256": "582b9bfa294093494ce1c45b71b4bac19c8dd1ce22436e447803e2f5420288e3"
+    },
+    {
+      "path": "prismora_lab/config.py",
+      "bytes": 1780,
+      "sha256": "6ce25765e5d86a0cb09ff3707244fdc3a1b77fce28408fb5455fae8d1ab19c18"
+    },
+    {
+      "path": "prismora_lab/legacy.py",
+      "bytes": 17121,
+      "sha256": "17c5594a3cd6e0437d6937e2fdb73efc1d40539807e8a626177cfe501adfa049"
+    },
+    {
+      "path": "prismora_lab/matrix.py",
+      "bytes": 5425,
+      "sha256": "e62df91d0a49ac840f99cbfc333cc094da1d397ae62bd19a1e53e48ae8f82008"
+    },
+    {
+      "path": "prismora_lab/normalize.py",
+      "bytes": 5886,
+      "sha256": "345a6690e3000a2da076266c8d1a4e53129a2eff50cddd10fa79cf054d177ed8"
+    },
+    {
+      "path": "prismora_lab/preregistration.py",
+      "bytes": 1291,
+      "sha256": "b39f93c4c149ba0e3e31a5d0ae1ce517f44d6962306ea41fc01b51f5a306e0cc"
+    },
+    {
+      "path": "prismora_lab/protocol_tools.py",
+      "bytes": 3581,
+      "sha256": "91339e41e843a56300928776b12ea580deb2142d9a7b5c72afba83b6b64f8a3d"
+    },
+    {
+      "path": "prismora_lab/schema.py",
+      "bytes": 2009,
+      "sha256": "49ce5f0eaa48941a1bdce9b32a450d769a2b681c22a599725eb811fda5f26373"
+    },
+    {
+      "path": "prismora_lab/store.py",
+      "bytes": 10640,
+      "sha256": "66140b64d10e9b2890687f5a258cbfa5bccd03e0a0f6916aee86fa6e29f50eff"
+    },
+    {
+      "path": "prismora_lab/timeutil.py",
+      "bytes": 177,
+      "sha256": "795b3eff74360bf1216baa0f72fd574fe6869f74bfea4a5f53f88f6f05994ce4"
+    },
+    {
+      "path": "prismora_worker/__init__.py",
+      "bytes": 52,
+      "sha256": "e0fbb555802980c55c843aff46a44d7572f13b8213338ebe610662e4d257b529"
+    },
+    {
+      "path": "prismora_worker/app.py",
+      "bytes": 2505,
+      "sha256": "3ea4e2675e7aab4a07aabf60c9352faea6b8414de4dcc714af4158e0f298861f"
+    },
+    {
+      "path": "prismora_worker/hf_jlens_runtime.py",
+      "bytes": 21490,
+      "sha256": "7d6aedaf93d58f67ab64c735e1b4a74ff449258e7777921d9279955e0f349da5"
+    },
+    {
+      "path": "prismora_worker/preflight.py",
+      "bytes": 4795,
+      "sha256": "6dbef0ad3bf82d9153ed0fd0c5ebc5b0c0affe224045f853142e0de83f145d94"
+    },
+    {
+      "path": "prismora_worker/runtime.py",
+      "bytes": 2521,
+      "sha256": "d2ac30f9c8cc7615919f7d7de550197c9eb002f5cda025e8bae926108a8c2913"
+    },
+    {
+      "path": "prismora_worker/runtime_template.py",
+      "bytes": 2379,
+      "sha256": "99edb1a0b169069cf88e57403b7b1c4c3dd43c6c0613610ba594a99877a8e38b"
+    },
+    {
+      "path": "pyproject.toml",
+      "bytes": 1121,
+      "sha256": "d340d23e7bd9235d1fa3e77eb2bceb8f19486bb22d03d690720d070874b4fff6"
+    },
+    {
+      "path": "requirements-dev.txt",
+      "bytes": 58,
+      "sha256": "325f86f7fb7f1f5a4a0b487f7c20e9f431d9e6dd3674b22048eacf474166936f"
+    },
+    {
+      "path": "requirements-gpu.txt",
+      "bytes": 407,
+      "sha256": "d45f0808bf0ce1dbb3bcc7d05ff7adde417ea5ad27d3317b7b8f0c810a771aff"
+    },
+    {
+      "path": "requirements.txt",
+      "bytes": 93,
+      "sha256": "ef174d60f80cc4b9212708b8643f36cc1620d255dc949226f325983d92752f2e"
+    },
+    {
+      "path": "schemas/backend-capabilities-v1.schema.json",
+      "bytes": 1534,
+      "sha256": "3edb4cabb92e3c571b922d76aee589cb07c18cea6e4fc3a8b80c043a30ae7ef0"
+    },
+    {
+      "path": "schemas/claim-record-v1.schema.json",
+      "bytes": 1316,
+      "sha256": "7395fbf77dbb49fcd987d8eebd795b88b08f340e611762490e303cda6356c5f7"
+    },
+    {
+      "path": "schemas/experiment-spec-v2.schema.json",
+      "bytes": 9373,
+      "sha256": "2d8ffce4ee3f421d648a546c3cc8c8a20d9968182427a9feb1ec571dd42aae9c"
+    },
+    {
+      "path": "schemas/run-artifact-v2.schema.json",
+      "bytes": 6543,
+      "sha256": "5e3736100be224ebb54b658c8e85f85decf695e807501ef19ec3a509f5c51a59"
+    },
+    {
+      "path": "scripts/smoke_test.sh",
+      "bytes": 317,
+      "sha256": "81910b818e68da9f5719b5b57259f240a8373f5380c44120187374ca1507f78a"
+    },
+    {
+      "path": "scripts/start.sh",
+      "bytes": 69,
+      "sha256": "53f2c9b52f7df3acc50263faad4c44e8dd127347d4cbc709ebdaec9c7f21463a"
+    },
+    {
+      "path": "tests/test_api.py",
+      "bytes": 2932,
+      "sha256": "99611bd1495b2098dc04699ca56683dc3fdc3ccee0e4988cb47d9e23c4acfbec"
+    },
+    {
+      "path": "tests/test_bridge_compare.py",
+      "bytes": 2247,
+      "sha256": "3f2387a85a6262c0ad6b9395820cc1be1b43d6b56fbf16391cf0c093fef61a1c"
+    },
+    {
+      "path": "tests/test_hashing.py",
+      "bytes": 376,
+      "sha256": "5af5d81bc87c74b997bedfe1e8d9a20405108e3a86b3517408c621f5ee8748be"
+    },
+    {
+      "path": "tests/test_hf_jlens_runtime.py",
+      "bytes": 2039,
+      "sha256": "d364e2a3cdf16ca1b4ca6337dd9a805d38d050d6d2f10536b1bd24a5d67f2e30"
+    },
+    {
+      "path": "tests/test_legacy_import.py",
+      "bytes": 3435,
+      "sha256": "e471b6bbf86b05d7f95ed793961b619820356aba0032a08520eff178c5665bbf"
+    },
+    {
+      "path": "tests/test_matrix.py",
+      "bytes": 1108,
+      "sha256": "dd8ec1881c41b734f5311517aaaf7ce6bfc2979136718867efc9602143e2550c"
+    },
+    {
+      "path": "tests/test_neuronpedia_adapter.py",
+      "bytes": 2362,
+      "sha256": "cb48ad4394fa68cebf9af943703f2b76691ee6f1f35ac4f7d27f7a94d7aced13"
+    },
+    {
+      "path": "tests/test_normalize.py",
+      "bytes": 4861,
+      "sha256": "5b54c55e71c9b8c3c79c0d48069b3f780e5cd8ba40fbbe78cbb9a856f3ffb8df"
+    },
+    {
+      "path": "tests/test_schemas.py",
+      "bytes": 709,
+      "sha256": "61a5a338b08dbfe715627b78461d7b7b64dfceabf63b075f79206aa3bd7fb2c7"
+    },
+    {
+      "path": "tests/test_worker.py",
+      "bytes": 891,
+      "sha256": "366a2a1294846215ec49b480c5193bf7a1072c6af03fe074510975ce291c9905"
+    },
+    {
+      "path": "tests/test_worker_preflight.py",
+      "bytes": 740,
+      "sha256": "20ca82ede9b6b4fd41de431e9596b58f00eea7aa5481ed508e4ed3ebabbe8506"
+    },
+    {
+      "path": "web/app.js",
+      "bytes": 34116,
+      "sha256": "d597e0c8e3f573e34d5fac223961af4bc8aff8a1aea7a8f18e2e9547f0e2c31f"
+    },
+    {
+      "path": "web/index.html",
+      "bytes": 16365,
+      "sha256": "780357bbf942683e75064c0b42fd8689d64ead43378b7b1ce34191949f46f80f"
+    },
+    {
+      "path": "web/styles.css",
+      "bytes": 9083,
+      "sha256": "85bd9ae90499bce8e71fd3166d6cee375383c303c125dfb35791db56f81d6911"
+    }
+  ],
+  "note": "BUILD_MANIFEST.json intentionally omits its own hash."
+}

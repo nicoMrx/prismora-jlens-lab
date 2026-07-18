@@ -1,0 +1,51 @@
+services:
+  lab:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    command: ["python", "-m", "prismora_lab.cli", "serve", "--host", "0.0.0.0", "--port", "8000"]
+    ports:
+      - "127.0.0.1:8000:8000"
+    environment:
+      PRISMORA_DATA_DIR: /data
+      PRISMORA_WORKER_URL: http://worker:8100
+      PRISMORA_WORKER_TOKEN: ${PRISMORA_WORKER_TOKEN}
+      NEURONPEDIA_API_KEY: ${NEURONPEDIA_API_KEY:-}
+    volumes:
+      - prismora-data:/data
+    depends_on:
+      - worker
+
+  worker:
+    build:
+      context: .
+      dockerfile: Dockerfile.gpu.reference
+      args:
+        BASE_IMAGE: ${PRISMORA_GPU_BASE_IMAGE:?Set PRISMORA_GPU_BASE_IMAGE to a pinned CUDA/PyTorch image}
+    environment:
+      PRISMORA_WORKER_TOKEN: ${PRISMORA_WORKER_TOKEN}
+      PRISMORA_WORKER_RUNTIME: prismora_worker.hf_jlens_runtime:create_runtime
+      PRISMORA_HF_MODEL_ID: ${PRISMORA_HF_MODEL_ID}
+      PRISMORA_HF_MODEL_REVISION: ${PRISMORA_HF_MODEL_REVISION}
+      PRISMORA_HF_TOKENIZER_REVISION: ${PRISMORA_HF_TOKENIZER_REVISION}
+      PRISMORA_JLENS_NAME_OR_PATH: ${PRISMORA_JLENS_NAME_OR_PATH}
+      PRISMORA_JLENS_FILENAME: ${PRISMORA_JLENS_FILENAME}
+      PRISMORA_JLENS_REVISION: ${PRISMORA_JLENS_REVISION}
+      PRISMORA_HF_DTYPE: ${PRISMORA_HF_DTYPE:-bfloat16}
+      PRISMORA_HF_DEVICE_MAP: ${PRISMORA_HF_DEVICE_MAP:-auto}
+      PRISMORA_HF_MAX_INPUT_TOKENS: ${PRISMORA_HF_MAX_INPUT_TOKENS:-512}
+      PRISMORA_HF_MAX_NEW_TOKENS: ${PRISMORA_HF_MAX_NEW_TOKENS:-256}
+      PRISMORA_HF_MAX_TOP_K: ${PRISMORA_HF_MAX_TOP_K:-8}
+    volumes:
+      - hf-cache:/root/.cache/huggingface
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+
+volumes:
+  prismora-data:
+  hf-cache:

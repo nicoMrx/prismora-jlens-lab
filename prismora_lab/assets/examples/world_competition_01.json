@@ -1,0 +1,70 @@
+{
+  "schema": "prismora.experiment/v2",
+  "experiment_id": "world-competition-01",
+  "title": "Competing interpretations in ambiguous identifiers",
+  "description": "Tracks whether alternative semantic worlds appear, disappear or remain readable before a surface interpretation is selected.",
+  "tags": ["world-drift", "ambiguity", "genealogy"],
+  "hypothesis": {
+    "primary": "Ambiguous prompts transiently support multiple interpretation families before one becomes dominant.",
+    "falsifiers": [
+      "Only the final interpretation is readable at every eligible depth.",
+      "Candidate losing worlds are no more frequent than the preregistered early-layer reference distribution."
+    ],
+    "exploratory": ["Identify the last layer at which a losing interpretation remains readable."]
+  },
+  "preregistration": {"status": "draft", "locked_at": null, "spec_sha256": null, "amendments": []},
+  "models": [
+    {
+      "alias": "M01",
+      "model_id": "qwen3.6-27b",
+      "backend": "neuronpedia",
+      "blind_alias": "M01",
+      "organization": "Qwen",
+      "origin_region": "China",
+      "model_type": "instruct",
+      "revision": null,
+      "tokenizer_revision": null,
+      "lens_id": "Neuronpedia public J-Lens",
+      "lens_revision": null,
+      "precision": null,
+      "quantization": null,
+      "metadata": {}
+    }
+  ],
+  "prompts": [
+    {
+      "prompt_id": "ambiguous",
+      "chat": [{"role": "user", "content": "I found a product labeled Aurora 12B. Explain what it is and how I should maintain it."}],
+      "metadata": {"context": "ambiguous"}
+    },
+    {
+      "prompt_id": "software",
+      "chat": [{"role": "user", "content": "I found an AI model release labeled Aurora 12B. Explain what it is and how I should maintain its deployment."}],
+      "metadata": {"context": "software disambiguation"}
+    },
+    {
+      "prompt_id": "machine",
+      "chat": [{"role": "user", "content": "I found an industrial machine labeled Aurora 12B. Explain what it is and how I should maintain the equipment."}],
+      "metadata": {"context": "machine disambiguation"}
+    }
+  ],
+  "matrix": {"factors": {}, "bindings": {}, "repeats": 3},
+  "generation": {"temperature": 0, "max_new_tokens": 128, "seed": null, "prepend_bos": true, "enable_thinking": false, "frequency_penalty": 0},
+  "readout": {"types": ["JACOBIAN_LENS", "LOGIT_LENS"], "top_k": 8, "filter_nonword_tokens": true, "exclude_first_n_positions": 16},
+  "intervention": null,
+  "analysis": {
+    "primary_metric": "competing_world_family_trajectory",
+    "secondary_metrics": ["world_onset", "world_extinction_layer", "late_dominance"],
+    "exclusions": ["Byte-identical duplicate results beyond the first observation"],
+    "compare_absolute_and_relative_depth": true,
+    "semantic_families": {
+      "software": ["model", "AI", "deployment", "weights", "software"],
+      "machine": ["machine", "engine", "maintenance", "equipment", "motor"]
+    },
+    "generated_positions_only": true,
+    "presence_min_probability": 0.01,
+    "notes": "This protocol observes readability only; it does not establish causal competition."
+  },
+  "stopping_rule": "Complete all conditions and retain null results.",
+  "metadata": {}
+}

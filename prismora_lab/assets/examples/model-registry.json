@@ -1,0 +1,75 @@
+{
+  "schema": "prismora.model-registry/v1",
+  "models": [
+    {
+      "alias": "EU01",
+      "model_id": "mistralai/Mistral-7B-Instruct-v0.3",
+      "backend": "worker",
+      "organization": "Mistral AI",
+      "origin_region": "Europe",
+      "model_type": "instruct",
+      "revision": null,
+      "tokenizer_revision": null,
+      "lens_id": "fit-or-supply-a-matching-local-jlens",
+      "lens_revision": null,
+      "precision": "bf16",
+      "quantization": null,
+      "metadata": {
+        "candidate": true,
+        "requires_pinned_revisions": true,
+        "requires_matching_lens": true,
+        "note": "Registry candidate only; the v0.2 reference worker applies but does not fit lenses."
+      }
+    },
+    {
+      "alias": "CN01_LOCAL",
+      "model_id": "Qwen/Qwen3.5-4B",
+      "backend": "worker",
+      "organization": "Qwen / Alibaba Cloud",
+      "origin_region": "China",
+      "model_type": "instruct",
+      "revision": null,
+      "tokenizer_revision": null,
+      "lens_id": "neuronpedia/jacobian-lens:qwen3.5-4b",
+      "lens_revision": "qwen-n1000",
+      "precision": "bf16",
+      "quantization": null,
+      "metadata": {
+        "candidate": true,
+        "requires_pinned_revisions": true,
+        "reference_runtime_example": true
+      }
+    },
+    {
+      "alias": "CN01_PUBLIC",
+      "model_id": "qwen3.6-27b",
+      "backend": "neuronpedia",
+      "organization": "Qwen / Alibaba Cloud",
+      "origin_region": "China",
+      "model_type": "instruct",
+      "revision": null,
+      "tokenizer_revision": null,
+      "lens_id": "Neuronpedia public J-Lens",
+      "lens_revision": null,
+      "precision": null,
+      "quantization": null,
+      "metadata": {}
+    },
+    {
+      "alias": "US01_PUBLIC",
+      "model_id": "gpt-oss-20b",
+      "backend": "neuronpedia",
+      "organization": "OpenAI",
+      "origin_region": "United States",
+      "model_type": "reasoning",
+      "revision": null,
+      "tokenizer_revision": null,
+      "lens_id": "Neuronpedia public J-Lens",
+      "lens_revision": null,
+      "precision": null,
+      "quantization": null,
+      "metadata": {}
+    }
+  ],
+  "warning": "Origin is recorded as metadata. It is never treated as a causal explanation without matched controls."
+}

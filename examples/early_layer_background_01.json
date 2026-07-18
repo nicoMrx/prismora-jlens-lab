@@ -1,0 +1,186 @@
+{
+  "schema": "prismora.experiment/v2",
+  "experiment_id": "early-layer-background-01",
+  "title": "Prompt-insensitive early-layer background calibration",
+  "description": "Builds a reference distribution across unrelated tasks before interpreting early-layer read-outs as task content.",
+  "tags": [
+    "calibration",
+    "early-layers",
+    "background",
+    "cross-model"
+  ],
+  "hypothesis": {
+    "primary": "Early-layer top read-outs are more stable across unrelated prompts than late-layer read-outs, with a model-specific background distribution.",
+    "falsifiers": [
+      "Early-layer distributions vary by task as strongly as late-layer distributions.",
+      "The apparent background disappears under exact-token replays or filter controls."
+    ],
+    "exploratory": [
+      "Compare Jacobian and Logit background concentration.",
+      "Estimate the depth where task enrichment exceeds background."
+    ]
+  },
+  "preregistration": {
+    "status": "draft",
+    "locked_at": null,
+    "spec_sha256": null,
+    "amendments": []
+  },
+  "models": [
+    {
+      "alias": "M01",
+      "model_id": "qwen3.6-27b",
+      "backend": "neuronpedia",
+      "blind_alias": "M01",
+      "organization": "Qwen",
+      "origin_region": "China",
+      "model_type": "instruct",
+      "revision": null,
+      "tokenizer_revision": null,
+      "lens_id": "Neuronpedia public J-Lens",
+      "lens_revision": null,
+      "precision": null,
+      "quantization": null,
+      "metadata": {
+        "origin_is_metadata_not_causal_explanation": true
+      }
+    },
+    {
+      "alias": "M02",
+      "model_id": "gpt-oss-20b",
+      "backend": "neuronpedia",
+      "blind_alias": "M02",
+      "organization": "OpenAI",
+      "origin_region": "United States",
+      "model_type": "reasoning",
+      "revision": null,
+      "tokenizer_revision": null,
+      "lens_id": "Neuronpedia public J-Lens",
+      "lens_revision": null,
+      "precision": null,
+      "quantization": null,
+      "metadata": {
+        "origin_is_metadata_not_causal_explanation": true
+      }
+    }
+  ],
+  "prompts": [
+    {
+      "prompt_id": "fact",
+      "chat": [
+        {
+          "role": "user",
+          "content": "What is the capital of Portugal? Answer briefly."
+        }
+      ],
+      "metadata": {
+        "task": "fact"
+      }
+    },
+    {
+      "prompt_id": "biology",
+      "chat": [
+        {
+          "role": "user",
+          "content": "Explain photosynthesis in two concise paragraphs."
+        }
+      ],
+      "metadata": {
+        "task": "biology"
+      }
+    },
+    {
+      "prompt_id": "fiction",
+      "chat": [
+        {
+          "role": "user",
+          "content": "Write a short story about a lighthouse that keeps a diary."
+        }
+      ],
+      "metadata": {
+        "task": "fiction"
+      }
+    },
+    {
+      "prompt_id": "code",
+      "chat": [
+        {
+          "role": "user",
+          "content": "Write a Python function that returns the median of a non-empty list."
+        }
+      ],
+      "metadata": {
+        "task": "code"
+      }
+    },
+    {
+      "prompt_id": "math",
+      "chat": [
+        {
+          "role": "user",
+          "content": "Solve x^2 - 5x + 6 = 0 and explain each step."
+        }
+      ],
+      "metadata": {
+        "task": "math"
+      }
+    },
+    {
+      "prompt_id": "translation",
+      "chat": [
+        {
+          "role": "user",
+          "content": "Translate “The river crosses the old city” into Japanese."
+        }
+      ],
+      "metadata": {
+        "task": "translation"
+      }
+    }
+  ],
+  "matrix": {
+    "factors": {},
+    "bindings": {},
+    "repeats": 3
+  },
+  "generation": {
+    "temperature": 0,
+    "max_new_tokens": 96,
+    "seed": null,
+    "prepend_bos": true,
+    "enable_thinking": false,
+    "frequency_penalty": 0
+  },
+  "readout": {
+    "types": [
+      "JACOBIAN_LENS",
+      "LOGIT_LENS"
+    ],
+    "top_k": 8,
+    "filter_nonword_tokens": true,
+    "exclude_first_n_positions": 16
+  },
+  "intervention": null,
+  "analysis": {
+    "primary_metric": "early_layer_prompt_insensitivity",
+    "secondary_metrics": [
+      "top1_concentration_by_layer",
+      "cross_prompt_jaccard",
+      "task_enrichment_onset",
+      "jacobian_logit_divergence"
+    ],
+    "exclusions": [
+      "Byte-identical duplicate results beyond the first executable condition observation"
+    ],
+    "compare_absolute_and_relative_depth": true,
+    "semantic_families": {},
+    "generated_positions_only": false,
+    "presence_min_probability": 0.01,
+    "notes": "Reference distributions must be stratified by model, lens, filter, template and position type. Do not label them pretraining fossils without independent evidence."
+  },
+  "stopping_rule": "Complete all unrelated tasks for both models, including null or model-specific results.",
+  "metadata": {
+    "author": "NicoMrx / Prismora",
+    "analysis_blinded_by_default": true
+  }
+}

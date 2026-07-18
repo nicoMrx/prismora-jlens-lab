@@ -1,0 +1,142 @@
+{
+  "schema": "prismora.experiment/v2",
+  "experiment_id": "strategy-quadratic-01",
+  "title": "Pre-verbal strategy readouts in minimal algebraic pairs",
+  "description": "Observation phase for the commitment-gap program. Constants 5, 6 and 7 change the preferred solution procedure while prompt structure remains closely matched.",
+  "tags": ["strategy", "mathematics", "minimal-pairs", "j-lens"],
+  "hypothesis": {
+    "primary": "Method-specific readouts group by the algebraic procedure actually executed before method-specific surface vocabulary appears.",
+    "falsifiers": [
+      "Readouts group primarily by lexical prompt similarity rather than by executed procedure.",
+      "Method classification falls to chance when method words are forbidden or used as distractors.",
+      "The apparent signal begins only after the model has already emitted method-specific words."
+    ],
+    "exploratory": [
+      "Estimate readability onset R and verbalization onset V.",
+      "Compare Jacobian/Logit disagreement near the strategy transition."
+    ]
+  },
+  "preregistration": {
+    "status": "draft",
+    "locked_at": null,
+    "spec_sha256": null,
+    "amendments": []
+  },
+  "models": [
+    {
+      "alias": "M01",
+      "model_id": "qwen3.6-27b",
+      "backend": "neuronpedia",
+      "blind_alias": "M01",
+      "organization": "Qwen",
+      "origin_region": "China",
+      "model_type": "instruct",
+      "revision": null,
+      "tokenizer_revision": null,
+      "lens_id": "Neuronpedia public J-Lens",
+      "lens_revision": null,
+      "precision": null,
+      "quantization": null,
+      "metadata": {"origin_is_metadata_not_causal_explanation": true}
+    },
+    {
+      "alias": "M02",
+      "model_id": "gpt-oss-20b",
+      "backend": "neuronpedia",
+      "blind_alias": "M02",
+      "organization": "OpenAI",
+      "origin_region": "United States",
+      "model_type": "reasoning",
+      "revision": null,
+      "tokenizer_revision": null,
+      "lens_id": "Neuronpedia public J-Lens",
+      "lens_revision": null,
+      "precision": null,
+      "quantization": null,
+      "metadata": {"origin_is_metadata_not_causal_explanation": true}
+    }
+  ],
+  "prompts": [
+    {
+      "prompt_id": "plain",
+      "chat": [
+        {
+          "role": "user",
+          "content": "Solve x^2 - 5x + {{constant}} = 0. Explain the solution clearly."
+        }
+      ],
+      "metadata": {"condition": "ordinary explanation"}
+    },
+    {
+      "prompt_id": "operations_only",
+      "chat": [
+        {
+          "role": "user",
+          "content": "Solve x^2 - 5x + {{constant}} = 0. Show only algebraic transformations and the roots. Never name the method."
+        }
+      ],
+      "metadata": {"condition": "method words forbidden"}
+    },
+    {
+      "prompt_id": "lexical_decoy",
+      "chat": [
+        {
+          "role": "user",
+          "content": "The phrase 'quadratic formula' is a distractor in this instruction. Solve x^2 - 5x + {{constant}} = 0 using the simplest valid procedure, without discussing the distractor."
+        }
+      ],
+      "metadata": {"condition": "method phrase present as a decoy"}
+    }
+  ],
+  "matrix": {
+    "factors": {
+      "constant": [5, 6, 7]
+    },
+    "bindings": {},
+    "repeats": 3
+  },
+  "generation": {
+    "temperature": 0,
+    "max_new_tokens": 128,
+    "seed": null,
+    "prepend_bos": true,
+    "enable_thinking": false,
+    "frequency_penalty": 0
+  },
+  "readout": {
+    "types": ["JACOBIAN_LENS", "LOGIT_LENS"],
+    "top_k": 8,
+    "filter_nonword_tokens": true,
+    "exclude_first_n_positions": 16
+  },
+  "intervention": null,
+  "analysis": {
+    "primary_metric": "method_classification_before_surface",
+    "secondary_metrics": [
+      "readability_onset_R",
+      "verbalization_onset_V",
+      "top1_agreement_by_layer",
+      "mean_topk_jaccard",
+      "jacobian_logit_disagreement"
+    ],
+    "exclusions": [
+      "Runs that fail to solve the equation",
+      "Positions after the first method-specific surface token for the primary analysis",
+      "Byte-identical canonical results beyond the first stored observation"
+    ],
+    "compare_absolute_and_relative_depth": true,
+    "semantic_families": {
+      "formula": ["formula", "quadratic", "discriminant", "公式"],
+      "factoring": ["factor", "factoring", "product", "分解"]
+    },
+    "generated_positions_only": true,
+    "presence_min_probability": 0.01,
+    "notes": "The causal commitment point C is not claimed in this observation-only experiment."
+  },
+  "stopping_rule": "Complete the locked matrix. Publish positive, mixed or null results.",
+  "metadata": {
+    "author": "NicoMrx / Prismora",
+    "ai_assisted_tools": ["Pepper", "Opus", "Fable"],
+    "analysis_blinded_by_default": true
+  }
+}

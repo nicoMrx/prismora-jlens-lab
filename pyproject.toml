@@ -1,0 +1,45 @@
+[build-system]
+requires = ["setuptools>=75", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "prismora-jlens-lab"
+version = "0.2.0"
+description = "Backend-neutral experiment control plane and cockpit for J-Lens research."
+readme = "README.md"
+requires-python = ">=3.11"
+license = {text = "Apache-2.0"}
+authors = [{name = "NicoMrx / Prismora"}]
+dependencies = [
+  "fastapi>=0.115,<1",
+  "uvicorn[standard]>=0.30,<1",
+  "httpx>=0.27,<1",
+  "jsonschema>=4.23,<5",
+  "PyYAML>=6,<7"
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=8,<10", "pytest-asyncio>=0.24,<2"]
+
+[project.scripts]
+prismora-lab = "prismora_lab.cli:main"
+prismora-worker = "prismora_worker.app:main"
+prismora-worker-preflight = "prismora_worker.preflight:main"
+
+[tool.setuptools]
+include-package-data = true
+packages = [
+  "prismora_lab",
+  "prismora_lab.backends",
+  "prismora_lab.analysis",
+  "prismora_lab.api",
+  "prismora_worker"
+]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"
+pythonpath = ["."]
+
+[tool.setuptools.package-data]
+prismora_lab = ["assets/schemas/*.json", "assets/examples/*.json", "assets/web/*"]

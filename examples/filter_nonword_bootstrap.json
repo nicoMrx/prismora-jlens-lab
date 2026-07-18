@@ -1,0 +1,56 @@
+{
+  "schema": "prismora.experiment/v2",
+  "experiment_id": "filter-nonword-bootstrap",
+  "title": "Bootstrap run for exact-token filter calibration",
+  "description": "Run once, then use the interface action 'Create exact filter replay' to generate two inputTokenIds conditions over the identical sequence.",
+  "tags": ["calibration", "filter-nonword", "bootstrap"],
+  "hypothesis": {
+    "primary": "A source sequence can be captured with complete token IDs and replayed without generation.",
+    "falsifiers": ["The returned artifact lacks token IDs or cannot be replayed verbatim."],
+    "exploratory": []
+  },
+  "preregistration": {"status": "draft", "locked_at": null, "spec_sha256": null, "amendments": []},
+  "models": [
+    {
+      "alias": "M01",
+      "model_id": "qwen3.6-27b",
+      "backend": "neuronpedia",
+      "blind_alias": "M01",
+      "organization": "Qwen",
+      "origin_region": "China",
+      "model_type": "instruct",
+      "revision": null,
+      "tokenizer_revision": null,
+      "lens_id": "Neuronpedia public J-Lens",
+      "lens_revision": null,
+      "precision": null,
+      "quantization": null,
+      "metadata": {}
+    }
+  ],
+  "prompts": [
+    {
+      "prompt_id": "photosynthesis",
+      "chat": [
+        {"role": "user", "content": "Explain photosynthesis in two concise paragraphs."}
+      ],
+      "metadata": {}
+    }
+  ],
+  "matrix": {"factors": {}, "bindings": {}, "repeats": 1},
+  "generation": {"temperature": 0, "max_new_tokens": 96, "seed": null, "prepend_bos": true, "enable_thinking": false, "frequency_penalty": 0},
+  "readout": {"types": ["JACOBIAN_LENS", "LOGIT_LENS"], "top_k": 8, "filter_nonword_tokens": true, "exclude_first_n_positions": 16},
+  "intervention": null,
+  "analysis": {
+    "primary_metric": "token_sequence_capture",
+    "secondary_metrics": [],
+    "exclusions": [],
+    "compare_absolute_and_relative_depth": true,
+    "semantic_families": {},
+    "generated_positions_only": false,
+    "presence_min_probability": 0.01,
+    "notes": "This bootstrap is not the filter comparison itself. Generate a forced replay protocol from its stored run."
+  },
+  "stopping_rule": "One successful source run.",
+  "metadata": {}
+}

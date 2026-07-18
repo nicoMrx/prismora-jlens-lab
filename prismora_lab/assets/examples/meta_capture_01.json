@@ -1,0 +1,192 @@
+{
+  "schema": "prismora.experiment/v2",
+  "experiment_id": "meta-capture-01",
+  "title": "Prompt-induced meta-frame capture",
+  "description": "Tests whether an observation clause displaces the primary task or merely adds a local meta representation.",
+  "tags": [
+    "meta-frame",
+    "attention-priority",
+    "prompt-control"
+  ],
+  "hypothesis": {
+    "primary": "Explicit observation clauses increase a preregistered meta family and can reduce task-family dominance, with a graded effect by wording and placement.",
+    "falsifiers": [
+      "Meta-family enrichment is fully explained by copying words from the prompt.",
+      "Task-family trajectories remain unchanged across all matched conditions."
+    ],
+    "exploratory": [
+      "Compare clause placement and real-time wording.",
+      "Search for operation-level interpretive read-outs without treating them as subjective experience."
+    ]
+  },
+  "preregistration": {
+    "status": "draft",
+    "locked_at": null,
+    "spec_sha256": null,
+    "amendments": []
+  },
+  "models": [
+    {
+      "alias": "M01",
+      "model_id": "qwen3.6-27b",
+      "backend": "neuronpedia",
+      "blind_alias": "M01",
+      "organization": "Qwen",
+      "origin_region": "China",
+      "model_type": "instruct",
+      "revision": null,
+      "tokenizer_revision": null,
+      "lens_id": "Neuronpedia public J-Lens",
+      "lens_revision": null,
+      "precision": null,
+      "quantization": null,
+      "metadata": {
+        "origin_is_metadata_not_causal_explanation": true
+      }
+    },
+    {
+      "alias": "M02",
+      "model_id": "gpt-oss-20b",
+      "backend": "neuronpedia",
+      "blind_alias": "M02",
+      "organization": "OpenAI",
+      "origin_region": "United States",
+      "model_type": "reasoning",
+      "revision": null,
+      "tokenizer_revision": null,
+      "lens_id": "Neuronpedia public J-Lens",
+      "lens_revision": null,
+      "precision": null,
+      "quantization": null,
+      "metadata": {
+        "origin_is_metadata_not_causal_explanation": true
+      }
+    }
+  ],
+  "prompts": [
+    {
+      "prompt_id": "task_only",
+      "chat": [
+        {
+          "role": "user",
+          "content": "Explain photosynthesis in two concise paragraphs."
+        }
+      ],
+      "metadata": {
+        "condition": "task_only"
+      }
+    },
+    {
+      "prompt_id": "observation_after",
+      "chat": [
+        {
+          "role": "user",
+          "content": "Explain photosynthesis in two concise paragraphs. I am observing how your internal processing develops while you answer."
+        }
+      ],
+      "metadata": {
+        "condition": "observation_after"
+      }
+    },
+    {
+      "prompt_id": "realtime_after",
+      "chat": [
+        {
+          "role": "user",
+          "content": "Explain photosynthesis in two concise paragraphs. I am observing your internal processing in real time while you answer."
+        }
+      ],
+      "metadata": {
+        "condition": "realtime_after"
+      }
+    },
+    {
+      "prompt_id": "observation_before",
+      "chat": [
+        {
+          "role": "user",
+          "content": "I am observing how your internal processing develops while you answer. Explain photosynthesis in two concise paragraphs."
+        }
+      ],
+      "metadata": {
+        "condition": "observation_before"
+      }
+    },
+    {
+      "prompt_id": "system_monitor",
+      "chat": [
+        {
+          "role": "user",
+          "content": "An automated monitor records intermediate processing during this response. Explain photosynthesis in two concise paragraphs."
+        }
+      ],
+      "metadata": {
+        "condition": "automated_monitor"
+      }
+    }
+  ],
+  "matrix": {
+    "factors": {},
+    "bindings": {},
+    "repeats": 3
+  },
+  "generation": {
+    "temperature": 0,
+    "max_new_tokens": 128,
+    "seed": null,
+    "prepend_bos": true,
+    "enable_thinking": false,
+    "frequency_penalty": 0
+  },
+  "readout": {
+    "types": [
+      "JACOBIAN_LENS",
+      "LOGIT_LENS"
+    ],
+    "top_k": 8,
+    "filter_nonword_tokens": true,
+    "exclude_first_n_positions": 16
+  },
+  "intervention": null,
+  "analysis": {
+    "primary_metric": "task_to_meta_family_displacement",
+    "secondary_metrics": [
+      "meta_enrichment_onset",
+      "task_family_retention",
+      "placement_effect",
+      "jacobian_logit_disagreement"
+    ],
+    "exclusions": [
+      "Direct prompt-copy matches from the primary meta score unless enriched after the copied positions"
+    ],
+    "compare_absolute_and_relative_depth": true,
+    "semantic_families": {
+      "task": [
+        "photosynthesis",
+        "light",
+        "energy",
+        "chlorophyll",
+        "carbon",
+        "oxygen"
+      ],
+      "meta": [
+        "observe",
+        "observation",
+        "internal",
+        "process",
+        "monitor",
+        "real time",
+        "意识",
+        "观察"
+      ]
+    },
+    "generated_positions_only": false,
+    "presence_min_probability": 0.01,
+    "notes": "A prompt-induced meta frame is not evidence of surveillance perception, consciousness or subjective experience."
+  },
+  "stopping_rule": "Complete all matched clauses and retain null effects.",
+  "metadata": {
+    "author": "NicoMrx / Prismora",
+    "analysis_blinded_by_default": true
+  }
+}

@@ -1,0 +1,27 @@
+services:
+  lab:
+    build: .
+    command: ["python", "-m", "prismora_lab.cli", "serve", "--host", "0.0.0.0", "--port", "8000"]
+    ports:
+      - "127.0.0.1:8000:8000"
+    environment:
+      PRISMORA_DATA_DIR: /data
+      PRISMORA_WORKER_URL: http://worker:8100
+      NEURONPEDIA_API_KEY: ${NEURONPEDIA_API_KEY:-}
+      PRISMORA_WORKER_TOKEN: ${PRISMORA_WORKER_TOKEN:-}
+    volumes:
+      - prismora-data:/data
+    depends_on:
+      - worker
+
+  worker:
+    build: .
+    command: ["python", "-m", "prismora_worker.app", "--host", "0.0.0.0", "--port", "8100"]
+    expose:
+      - "8100"
+    environment:
+      PRISMORA_WORKER_RUNTIME: ${PRISMORA_WORKER_RUNTIME:-mock}
+      PRISMORA_WORKER_TOKEN: ${PRISMORA_WORKER_TOKEN:-}
+
+volumes:
+  prismora-data:

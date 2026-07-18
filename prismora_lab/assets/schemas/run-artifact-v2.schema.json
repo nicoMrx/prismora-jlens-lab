@@ -1,0 +1,320 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://prismora.local/schemas/run-artifact-v2.schema.json",
+  "title": "Prismora RunArtifact v2",
+  "type": "object",
+  "required": [
+    "schema",
+    "run_id",
+    "experiment_id",
+    "status",
+    "request",
+    "provenance",
+    "raw",
+    "result",
+    "quality"
+  ],
+  "properties": {
+    "schema": {
+      "const": "prismora.run/v2"
+    },
+    "run_id": {
+      "type": "string",
+      "minLength": 8,
+      "maxLength": 160
+    },
+    "experiment_id": {
+      "type": "string",
+      "minLength": 3,
+      "maxLength": 80
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "planned",
+        "running",
+        "ok",
+        "error",
+        "skipped"
+      ]
+    },
+    "request": {
+      "$ref": "#/$defs/request"
+    },
+    "provenance": {
+      "type": "object",
+      "required": [
+        "created_at",
+        "backend",
+        "request_sha256",
+        "raw_sha256",
+        "canonical_result_sha256",
+        "code_version"
+      ],
+      "properties": {
+        "created_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "backend": {
+          "type": "string"
+        },
+        "request_sha256": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        },
+        "raw_sha256": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        },
+        "canonical_result_sha256": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        },
+        "code_version": {
+          "type": "string"
+        },
+        "model_revision": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "tokenizer_revision": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "lens_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "lens_revision": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "environment": {
+          "type": "object",
+          "additionalProperties": true,
+          "default": {}
+        },
+        "execution_request_sha256": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        }
+      },
+      "additionalProperties": true
+    },
+    "raw": {
+      "type": "object",
+      "required": [
+        "relative_path",
+        "format",
+        "immutable"
+      ],
+      "properties": {
+        "relative_path": {
+          "type": "string",
+          "minLength": 1
+        },
+        "format": {
+          "type": "string",
+          "enum": [
+            "neuronpedia-buffered-json",
+            "prismora-worker-json",
+            "mock-json",
+            "imported-json"
+          ]
+        },
+        "immutable": {
+          "const": true
+        },
+        "byte_length": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "content_type": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "additionalProperties": false
+    },
+    "result": {
+      "type": "object",
+      "required": [
+        "meta",
+        "tokens",
+        "done"
+      ],
+      "properties": {
+        "meta": {
+          "type": "object",
+          "additionalProperties": true
+        },
+        "tokens": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": true
+          }
+        },
+        "done": {
+          "type": "object",
+          "additionalProperties": true
+        }
+      },
+      "additionalProperties": true
+    },
+    "quality": {
+      "type": "object",
+      "required": [
+        "independent_observation",
+        "duplicate_of",
+        "warnings"
+      ],
+      "properties": {
+        "independent_observation": {
+          "type": "boolean"
+        },
+        "duplicate_of": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "warnings": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "validation": {
+          "type": "string",
+          "enum": [
+            "passed",
+            "warning",
+            "failed"
+          ]
+        },
+        "prompt_copy_terms": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "default": []
+        }
+      },
+      "additionalProperties": true
+    },
+    "error": {
+      "type": [
+        "object",
+        "null"
+      ],
+      "additionalProperties": true
+    },
+    "derived": {
+      "type": "object",
+      "additionalProperties": true,
+      "default": {}
+    }
+  },
+  "additionalProperties": false,
+  "$defs": {
+    "request": {
+      "type": "object",
+      "required": [
+        "backend",
+        "model",
+        "prompt_id",
+        "factors",
+        "repeat",
+        "generation",
+        "readout"
+      ],
+      "properties": {
+        "backend": {
+          "type": "string"
+        },
+        "model": {
+          "type": "object",
+          "additionalProperties": true
+        },
+        "prompt_id": {
+          "type": "string"
+        },
+        "prompt": {
+          "type": "string"
+        },
+        "chat": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": true
+          }
+        },
+        "factors": {
+          "type": "object",
+          "additionalProperties": true
+        },
+        "repeat": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "generation": {
+          "type": "object",
+          "additionalProperties": true
+        },
+        "readout": {
+          "type": "object",
+          "additionalProperties": true
+        },
+        "intervention": {
+          "type": [
+            "object",
+            "null"
+          ],
+          "additionalProperties": true
+        }
+      },
+      "anyOf": [
+        {
+          "required": [
+            "prompt"
+          ],
+          "not": {
+            "required": [
+              "chat"
+            ]
+          }
+        },
+        {
+          "required": [
+            "chat"
+          ],
+          "not": {
+            "required": [
+              "prompt"
+            ]
+          }
+        },
+        {
+          "properties": {
+            "readout": {
+              "required": [
+                "input_token_ids"
+              ]
+            }
+          }
+        }
+      ],
+      "additionalProperties": true
+    }
+  }
+}

@@ -1,0 +1,20 @@
+# Build with an explicitly selected CUDA/PyTorch base image, for example:
+# docker build -f Dockerfile.gpu.reference \
+#   --build-arg BASE_IMAGE='<your-pinned-pytorch-cuda-image@sha256:...>' .
+ARG BASE_IMAGE
+FROM ${BASE_IMAGE}
+
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    PRISMORA_WORKER_RUNTIME=prismora_worker.hf_jlens_runtime:create_runtime
+WORKDIR /app
+
+# The reference jlens dependency is installed from a pinned Git commit.
+RUN apt-get update && apt-get install -y --no-install-recommends git ca-certificates \
+    && rm -rf /var/lib/apt/lists/*
+COPY . /app
+RUN python -m pip install --no-cache-dir . \
+    && python -m pip install --no-cache-dir -r requirements-gpu.txt
+
+EXPOSE 8100
+CMD ["python", "-m", "prismora_worker.app", "--host", "0.0.0.0", "--port", "8100"]

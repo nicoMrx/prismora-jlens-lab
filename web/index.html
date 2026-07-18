@@ -1,0 +1,374 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Prismora J-Lens Lab</title>
+  <link rel="stylesheet" href="/styles.css?v=0.2.1-visual" />
+</head>
+<body>
+  <header class="topbar">
+    <div>
+      <h1>Prismora J-Lens Lab <span class="version">v0.2.1-visuel</span></h1>
+      <p>One protocol · public API and private GPU workers · immutable evidence</p>
+    </div>
+    <div class="top-actions">
+      <span id="healthBadge" class="badge muted">checking…</span>
+      <button id="refreshAllBtn" class="secondary">Refresh</button>
+    </div>
+  </header>
+
+  <div class="security-note">
+    <strong>Local control plane:</strong> no user authentication is bundled. Keep it on localhost or protect it behind an authenticated reverse proxy.
+  </div>
+
+  <div class="shell">
+    <nav class="sidebar" aria-label="Laboratory sections">
+      <button class="nav-item active" data-panel="dashboard">Overview</button>
+      <button class="nav-item" data-panel="experiments">Experiments</button>
+      <button class="nav-item" data-panel="registry">Model registry</button>
+      <button class="nav-item" data-panel="campaign">Campaign builder</button>
+      <button class="nav-item" data-panel="fleet">GPU / API fleet</button>
+      <button class="nav-item" data-panel="runs">Runs</button>
+      <button class="nav-item" data-panel="inspector">Run inspector</button>
+      <button class="nav-item human-nav" data-panel="visualizer">Visualiseur humain</button>
+      <button class="nav-item" data-panel="baseline">Baseline lab</button>
+      <button class="nav-item" data-panel="causal">Causal lab</button>
+      <button class="nav-item" data-panel="compare">Comparison studio</button>
+      <button class="nav-item" data-panel="claims">Claim ledger</button>
+    </nav>
+
+    <main class="content">
+      <section id="panel-dashboard" class="panel-page active">
+        <div class="page-heading">
+          <div><h2>Overview</h2><p>The interface reports measurements and provenance; it does not assign cognitive labels.</p></div>
+        </div>
+        <div class="stat-grid">
+          <article class="stat-card"><span>Experiments</span><strong id="statExperiments">0</strong></article>
+          <article class="stat-card"><span>Stored runs</span><strong id="statRuns">0</strong></article>
+          <article class="stat-card"><span>Independent observations</span><strong id="statIndependent">0</strong></article>
+          <article class="stat-card"><span>Claims</span><strong id="statClaims">0</strong></article>
+        </div>
+        <div class="grid two">
+          <article class="card">
+            <h3>Fast start</h3>
+            <ol class="compact-list">
+              <li>Load the synthetic smoke-test experiment.</li>
+              <li>Save and lock the protocol.</li>
+              <li>Plan the matrix and execute three mock runs.</li>
+              <li>Inspect, compare and bundle the evidence.</li>
+            </ol>
+            <button class="primary" data-jump="experiments" id="quickStartBtn">Open experiment editor</button>
+          </article>
+          <article class="card">
+            <h3>Evidence rule</h3>
+            <p>A byte-identical canonical result under the same executable condition remains archived but is marked as non-independent. A locked protocol receives a SHA-256 identity. Exact backend response bytes are written once and never reserialized.</p>
+            <div id="backendMini" class="backend-mini"></div>
+          </article>
+        </div>
+        <div class="card">
+          <h3>Current milestone boundaries</h3>
+          <div class="boundary-grid">
+            <div><strong>Implemented</strong><p>Neuronpedia adapter, worker contract, matrix planning, preregistration lock, immutable storage, duplicate detection, cockpit, comparisons, filter replay, causal request builder, bundles.</p></div>
+            <div><strong>Not yet a scientific GPU runtime</strong><p>The bundled worker is deterministic synthetic data. Real open-weight execution requires a pinned model/J-Lens kernel behind the same worker API.</p></div>
+          </div>
+        </div>
+      </section>
+
+      <section id="panel-experiments" class="panel-page">
+        <div class="page-heading">
+          <div><h2>Experiments & preregistration</h2><p>Edit an ExperimentSpec v2. Locking makes the stored protocol immutable.</p></div>
+          <div class="toolbar-row">
+            <select id="exampleSelect" aria-label="Example protocol"></select>
+            <button id="loadExampleBtn" class="secondary">Load example</button>
+          </div>
+        </div>
+        <div class="card">
+          <div class="toolbar-row wrap">
+            <button id="validateSpecBtn">Validate</button>
+            <button id="saveSpecBtn" class="primary">Save draft</button>
+            <button id="lockSpecBtn" class="danger-outline">Lock protocol</button>
+            <button id="planSpecBtn">Plan matrix</button>
+            <button id="bundleBtn">Download evidence bundle</button>
+          </div>
+          <textarea id="specEditor" class="code-editor tall" spellcheck="false" aria-label="Experiment specification JSON"></textarea>
+          <div id="specStatus" class="status-line">Load an example or paste an ExperimentSpec v2.</div>
+        </div>
+      </section>
+
+      <section id="panel-registry" class="panel-page">
+        <div class="page-heading"><div><h2>Model registry</h2><p>Record exact revisions, tokenizer, lens, precision and origin. Origin is metadata, never an automatic causal explanation.</p></div></div>
+        <div class="card">
+          <div class="toolbar-row">
+            <button id="loadRegistryExampleBtn">Load registry example</button>
+            <button id="refreshRegistryBtn">Refresh stored registry</button>
+            <button id="saveRegistryBtn" class="primary">Save registry</button>
+          </div>
+          <textarea id="registryEditor" class="code-editor tall" spellcheck="false"></textarea>
+          <div id="registryStatus" class="status-line"></div>
+        </div>
+      </section>
+
+      <section id="panel-campaign" class="panel-page">
+        <div class="page-heading"><div><h2>Campaign builder</h2><p>Expand model × prompt × factor × repeat into deterministic run identities before execution.</p></div></div>
+        <div class="card">
+          <div class="toolbar-row wrap">
+            <label>Experiment <select id="campaignExperimentSelect"></select></label>
+            <button id="refreshPlanBtn">Build plan</button>
+            <label>Run limit <input id="runLimitInput" type="number" min="1" max="8" value="3" /></label>
+            <button id="executePlanBtn" class="primary">Execute next runs</button>
+          </div>
+          <div id="planSummary" class="summary-box">No plan loaded.</div>
+          <div class="table-wrap"><table id="planTable"><thead><tr><th></th><th>Run</th><th>Backend</th><th>Model</th><th>Prompt</th><th>Factors</th><th>Repeat</th></tr></thead><tbody></tbody></table></div>
+          <div id="campaignStatus" class="status-line"></div>
+        </div>
+      </section>
+
+      <section id="panel-fleet" class="panel-page">
+        <div class="page-heading"><div><h2>GPU / API fleet</h2><p>Capabilities are declared by each backend. Unsupported controls must remain disabled.</p></div><button id="refreshFleetBtn">Refresh capabilities</button></div>
+        <div id="fleetGrid" class="grid three"></div>
+      </section>
+
+      <section id="panel-runs" class="panel-page">
+        <div class="page-heading"><div><h2>Run archive</h2><p>Every successful observation links human request identity, executable-condition identity, exact raw identity and normalized result identity.</p></div><button id="refreshRunsBtn">Refresh runs</button></div>
+        <div class="card">
+          <div class="toolbar-row"><label>Experiment filter <select id="runsExperimentFilter"><option value="">All</option></select></label></div>
+          <div class="table-wrap"><table id="runsTable"><thead><tr><th>Run</th><th>Experiment</th><th>Backend</th><th>Model</th><th>Prompt</th><th>Independent</th><th>Tokens</th><th>Created</th><th></th></tr></thead><tbody></tbody></table></div>
+        </div>
+      </section>
+
+      <section id="panel-inspector" class="panel-page">
+        <div class="page-heading"><div><h2>Run inspector</h2><p>Timeline, layer-by-position heatmap and top-k readouts. No semantic verdict is generated by the UI.</p></div></div>
+        <div class="card">
+          <div class="toolbar-row wrap">
+            <label>Run <select id="inspectRunSelect"></select></label>
+            <button id="loadRunBtn" class="primary">Load</button>
+            <label>Lens <select id="inspectLensSelect"></select></label>
+            <label>Layer <input id="inspectLayerInput" type="number" min="0" value="0" /></label>
+            <label><input id="generatedOnlyCheckbox" type="checkbox" checked /> generated only</label>
+            <button id="downloadRawBtn">Download exact raw</button>
+            <button id="downloadCockpitBtn">Download cockpit.json</button>
+          </div>
+          <div id="runMeta" class="meta-grid"></div>
+          <div class="canvas-shell"><canvas id="heatmapCanvas" width="1200" height="480"></canvas></div>
+          <div id="heatmapLegend" class="legend-row"></div>
+          <div id="tokenTimeline" class="timeline"></div>
+          <div class="grid two inspector-bottom">
+            <div>
+              <h3>Selected token / layer</h3>
+              <div id="cursorDetails" class="summary-box">Load a run.</div>
+              <div id="topKTables"></div>
+            </div>
+            <div>
+              <h3>Quality & provenance</h3>
+              <pre id="qualityDetails" class="json-view"></pre>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="panel-visualizer" class="panel-page">
+        <div class="page-heading">
+          <div>
+            <h2>Visualiseur humain</h2>
+            <p>Comparer deux runs sans lire les JSON : réponses produites, frontière de divergence, trajectoire couche par couche et top-k côte à côte. Le raw reste la preuve ; cette vue sert à le contrôler.</p>
+          </div>
+          <span class="badge ok">Contrôle visuel</span>
+        </div>
+
+        <div class="card human-source-card">
+          <h3>1. Choisir les deux observations</h3>
+          <div class="visual-source-grid">
+            <label>Observation A
+              <select id="visualRunA"></select>
+            </label>
+            <label>Observation B
+              <select id="visualRunB"></select>
+            </label>
+            <button id="visualSwapRunsBtn" class="secondary" title="Échanger A et B">Échanger A ↔ B</button>
+            <button id="visualCompareStoredBtn" class="primary">Comparer les runs archivés</button>
+          </div>
+          <details class="local-probe-details">
+            <summary>Afficher directement un ancien dossier de probe non importé</summary>
+            <p>Sélectionne le dossier décompressé contenant les fichiers <code>_request_exact.json</code> et <code>_response_pretty.json</code>. Les fichiers sont lus localement par ton navigateur et ne quittent pas ton Mac.</p>
+            <div class="toolbar-row wrap">
+              <input id="visualProbeFiles" type="file" accept=".json,.raw,application/json" multiple webkitdirectory directory />
+              <button id="visualLoadProbeBtn">Lire le dossier</button>
+              <label>Probe A <select id="visualLocalA"></select></label>
+              <label>Probe B <select id="visualLocalB"></select></label>
+              <button id="visualCompareLocalBtn" class="primary">Comparer les fichiers locaux</button>
+            </div>
+            <div id="visualProbeStatus" class="status-line"></div>
+          </details>
+          <div id="visualStatus" class="status-line">Choisis deux runs puis clique sur « Comparer ».</div>
+        </div>
+
+        <div class="card visual-controls-card">
+          <h3>2. Choisir ce que tu regardes</h3>
+          <div class="toolbar-row wrap">
+            <label>Lentille <select id="visualLensSelect"></select></label>
+            <label>Positions
+              <select id="visualScopeSelect">
+                <option value="prompt">Prompt fixe</option>
+                <option value="generated">Réponse générée</option>
+                <option value="all">Prompt + réponse</option>
+              </select>
+            </label>
+            <label>Mesure de la carte
+              <select id="visualMetricSelect">
+                <option value="strict">Top-k ou probabilités différents</option>
+                <option value="top1">Top-1 différent</option>
+                <option value="jaccard">Écart du top-k</option>
+              </select>
+            </label>
+            <button id="visualRedrawBtn">Actualiser la vue</button>
+          </div>
+        </div>
+
+        <div id="visualSummaryGrid" class="human-summary-grid"></div>
+
+        <div class="grid two human-output-grid">
+          <article class="card human-run-card run-a">
+            <header><span class="run-letter">A</span><strong id="visualLabelA">—</strong></header>
+            <div id="visualInterventionA" class="intervention-line">—</div>
+            <h3>Réponse produite</h3>
+            <pre id="visualCompletionA" class="completion-view">Charge deux observations.</pre>
+          </article>
+          <article class="card human-run-card run-b">
+            <header><span class="run-letter">B</span><strong id="visualLabelB">—</strong></header>
+            <div id="visualInterventionB" class="intervention-line">—</div>
+            <h3>Réponse produite</h3>
+            <pre id="visualCompletionB" class="completion-view">Charge deux observations.</pre>
+          </article>
+        </div>
+
+        <div class="card">
+          <div class="visual-section-heading">
+            <div><h3>3. Où les trajectoires se séparent-elles ?</h3><p>Chaque colonne est un token aligné, chaque ligne une couche réelle. Clique sur une cellule pour voir les candidats exacts.</p></div>
+            <div id="visualHeatLegend" class="visual-legend"></div>
+          </div>
+          <div class="canvas-shell human-profile-shell"><canvas id="visualProfileCanvas" width="1200" height="280"></canvas></div>
+          <div class="canvas-shell human-heatmap-shell"><canvas id="visualHeatmapCanvas" width="1200" height="560"></canvas></div>
+          <div id="visualTokenTimeline" class="visual-token-timeline"></div>
+        </div>
+
+        <div class="grid two human-detail-grid">
+          <article class="card">
+            <h3>Cellule sélectionnée</h3>
+            <div id="visualCellSummary" class="summary-box">Clique sur la carte.</div>
+            <div id="visualTopKSideBySide" class="visual-topk"></div>
+          </article>
+          <article class="card">
+            <h3>Trajectoire du token sélectionné</h3>
+            <p class="muted-copy">Le tableau montre, couche après couche, le premier candidat de A et de B. Les lignes marquées sont celles où ils diffèrent.</p>
+            <div class="table-wrap trajectory-wrap">
+              <table id="visualTrajectoryTable">
+                <thead><tr><th>Couche</th><th>Top-1 A</th><th>p A</th><th>Top-1 B</th><th>p B</th><th>État</th></tr></thead>
+                <tbody></tbody>
+              </table>
+            </div>
+          </article>
+        </div>
+
+        <div class="card human-conclusion-card">
+          <h3>4. Lecture factuelle</h3>
+          <div id="visualHumanReading" class="human-reading">Aucune comparaison chargée.</div>
+          <div class="control-rule"><strong>Règle :</strong> cette section décrit uniquement ce qui est mesuré. Elle ne transforme pas automatiquement une divergence en preuve de causalité, de biais, de censure ou de « pensée ».</div>
+        </div>
+      </section>
+
+      <section id="panel-baseline" class="panel-page">
+        <div class="page-heading"><div><h2>Baseline lab</h2><p>Create exact-token filter replays; compare identical sequences under different readout filters.</p></div></div>
+        <div class="grid three">
+          <div class="card">
+            <h3>Create exact filter replay</h3>
+            <label>Source run <select id="baselineSourceRun"></select></label>
+            <label>New experiment id <input id="baselineExperimentId" value="filter-replay-01" /></label>
+            <button id="createReplayBtn" class="primary">Create and save replay protocol</button>
+            <div id="baselineStatus" class="status-line"></div>
+          </div>
+          <div class="card">
+            <h3>Filter-effect comparison</h3>
+            <label>Run A <select id="filterRunA"></select></label>
+            <label>Run B <select id="filterRunB"></select></label>
+            <label>Lens <select id="filterLens"><option>JACOBIAN_LENS</option><option>LOGIT_LENS</option></select></label>
+            <button id="compareFilterBtn">Compare exact replays</button>
+            <pre id="filterComparisonOutput" class="json-view"></pre>
+          </div>
+          <div class="card">
+            <h3>Empirical top-1 reference</h3>
+            <label>Experiment <select id="baselineBuildExperiment"></select></label>
+            <label>Lens <select id="baselineBuildLens"><option>JACOBIAN_LENS</option><option>LOGIT_LENS</option></select></label>
+            <label>Positions <select id="baselineScope"><option value="all">all</option><option value="context">context</option><option value="generated">generated</option></select></label>
+            <button id="buildBaselineBtn">Build & store baseline</button>
+            <pre id="baselineOutput" class="json-view"></pre>
+          </div>
+        </div>
+      </section>
+
+      <section id="panel-causal" class="panel-page">
+        <div class="page-heading"><div><h2>Causal lab</h2><p>Build a controlled steer, swap or ablation. A changed word alone is not classified as a changed strategy.</p></div></div>
+        <div class="card">
+          <div class="form-grid">
+            <label>Source run <select id="causalSourceRun"></select></label>
+            <label>Label <input id="causalLabel" value="formula-to-factor" /></label>
+            <label>Mode <select id="causalMode"><option value="steer">steer</option><option value="swap">swap</option><option value="ablate">ablate</option></select></label>
+            <label>Source token <input id="causalSourceToken" value=" formula" /></label>
+            <label>Source lens <select id="causalSourceLens"><option>JACOBIAN_LENS</option><option>LOGIT_LENS</option></select></label>
+            <label>Target token (swap) <input id="causalTargetToken" value=" factor" /></label>
+            <label>Target lens <select id="causalTargetLens"><option>JACOBIAN_LENS</option><option>LOGIT_LENS</option></select></label>
+            <label>Layers, comma-separated <input id="causalLayers" placeholder="35,36,37" /></label>
+            <label>Strength <input id="causalStrength" type="number" step="0.1" value="1" /></label>
+            <label class="checkbox-label"><input id="causalGenerated" type="checkbox" /> apply to generated tokens</label>
+          </div>
+          <button id="executeInterventionBtn" class="danger-outline">Execute intervention</button>
+          <div id="causalStatus" class="status-line"></div>
+        </div>
+      </section>
+
+      <section id="panel-compare" class="panel-page">
+        <div class="page-heading"><div><h2>Comparison studio</h2><p>Absolute layers remain visible; relative depth is a coordinate, not an asserted equivalence.</p></div></div>
+        <div class="card">
+          <div class="toolbar-row wrap">
+            <label>Run A <select id="compareRunA"></select></label>
+            <label>Run B <select id="compareRunB"></select></label>
+            <label>Lens <select id="compareLens"><option>JACOBIAN_LENS</option><option>LOGIT_LENS</option></select></label>
+            <label>Mode <select id="compareMode"><option value="agreement">generated agreement</option><option value="bridge">strict public/private bridge</option></select></label>
+            <label>Probability |Δ| tolerance <input id="compareTolerance" type="number" min="0" step="0.0001" value="0.01" /></label>
+            <button id="compareRunsBtn" class="primary">Compare</button>
+          </div>
+          <div id="compareSummary" class="summary-box">Choose two runs.</div>
+          <div class="canvas-shell compact"><canvas id="compareCanvas" width="1200" height="320"></canvas></div>
+          <div class="table-wrap"><table id="compareTable"><thead><tr><th>Layer</th><th>Relative A</th><th>Relative B</th><th>Positions</th><th>Top-1 agreement</th><th>Top-k Jaccard</th></tr></thead><tbody></tbody></table></div>
+        </div>
+      </section>
+
+      <section id="panel-claims" class="panel-page">
+        <div class="page-heading"><div><h2>Claim ledger</h2><p>Separate observation, replication, robustness, prediction, causality and generalization.</p></div></div>
+        <div class="grid two">
+          <div class="card">
+            <div class="form-grid one">
+              <label>Claim id <input id="claimId" placeholder="strategy-readout-01" /></label>
+              <label>Experiment <select id="claimExperiment"></select></label>
+              <label>Level <select id="claimLevel"><option>observation</option><option>replication</option><option>robustness</option><option>prediction</option><option>causality</option><option>generalization</option></select></label>
+              <label>Status <select id="claimStatus"><option>draft</option><option>supported</option><option>mixed</option><option>refuted</option><option>withdrawn</option></select></label>
+              <label>Statement <textarea id="claimStatement"></textarea></label>
+              <label>Evidence run ids, comma-separated <input id="claimRuns" /></label>
+              <label>Limitations, one per line <textarea id="claimLimitations"></textarea></label>
+            </div>
+            <button id="saveClaimBtn" class="primary">Save claim</button>
+            <div id="claimStatusLine" class="status-line"></div>
+          </div>
+          <div class="card">
+            <button id="refreshClaimsBtn">Refresh ledger</button>
+            <div id="claimsList" class="claim-list"></div>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <div id="toast" role="status" aria-live="polite"></div>
+  <script src="/app.js?v=0.2.1-visual"></script>
+</body>
+</html>
