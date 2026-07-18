@@ -169,6 +169,25 @@ def create_app(
         except Exception as exc:
             raise _http_error(exc) from exc
 
+    @app.post("/api/demo/build-week/understand/compare")
+    async def compare_build_week_demo(payload: dict[str, Any] = Body(...)) -> dict[str, Any]:
+        try:
+            demo_dir = package_root / "demo" / "build_week_2026"
+            verified = verify_demo_manifest(demo_dir)
+            artifacts = {artifact["run_id"]: artifact for artifact in verified["artifacts"]}
+            for required in ("run_a", "run_b", "lens", "scope", "probability_abs_tolerance"):
+                if required not in payload:
+                    raise ValueError(f"Missing required comparison field: {required}")
+            return understand_compare(
+                artifacts[payload["run_a"]], artifacts[payload["run_b"]],
+                lens=payload["lens"], scope=payload["scope"], locale=payload.get("locale", "en"),
+                probability_abs_tolerance=float(payload["probability_abs_tolerance"]),
+            )
+        except KeyError as exc:
+            raise HTTPException(status_code=404, detail=f"Demo run not found: {exc}") from exc
+        except Exception as exc:
+            raise _http_error(exc) from exc
+
     @app.get("/api/experiments")
     async def list_experiments() -> dict[str, Any]:
         return {"experiments": context.store.list_experiments()}

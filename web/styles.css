@@ -186,3 +186,5 @@ canvas { display: block; }
 }
 
 .coverage-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:12px;margin:12px 0}.coverage-card{border:1px solid #2f7d55;border-radius:12px;padding:12px;display:grid;gap:4px}.coverage-card.warn{border-color:#b87912;background:#fff8e8}.understand-heading{display:flex;justify-content:space-between;gap:12px;align-items:center}.understand-trace{border:1px solid #d0d7de;border-radius:10px;margin:8px 0;padding:10px}.understand-trace.warning{border-color:#b87912}.understand-trace summary{cursor:pointer;font-weight:700}.understand-trace pre{white-space:pre-wrap}
+
+.understand-error{border:1px solid #b93a3a;background:#2b1111;color:#ffd8d8;border-radius:10px;padding:10px;margin:10px 0}.understand-error pre{white-space:pre-wrap;color:#ffd8d8}

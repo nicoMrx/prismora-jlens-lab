@@ -620,12 +620,14 @@
 
   function visualInterventionText(artifact) {
     const intervention = artifact?.request?.intervention;
-    if (!intervention || !intervention.mode || intervention.mode === 'none') return 'Sans intervention déclarée';
+    if (!intervention || ((!intervention.layers || !intervention.layers.length) && intervention.layer === undefined) || intervention.mode === 'none') return 'Sans intervention déclarée';
+    const layersList = intervention.layers || (intervention.layer === undefined ? [] : [intervention.layer]);
+    if (intervention.type === 'synthetic' || artifact?.request?.factors?.demo) return `Intervention synthétique de démonstration · couche(s) ${layersList.join(', ') || '—'}`;
     const sources = (intervention.source_tokens || []).map((item) => JSON.stringify(item.token)).join(', ') || '—';
     const target = intervention.target_token?.token ? ` → ${JSON.stringify(intervention.target_token.token)}` : '';
-    const layers = (intervention.layers || []).join(', ') || '—';
+    const layers = layersList.join(', ') || '—';
     const strength = intervention.strength === null || intervention.strength === undefined ? '' : ` · force ${intervention.strength}`;
-    return `${intervention.mode.toUpperCase()} · ${sources}${target} · couche(s) ${layers}${strength}`;
+    return `${(intervention.mode || intervention.type || 'intervention').toUpperCase()} · ${sources}${target} · couche(s) ${layers}${strength}`;
   }
 
   function visualCompletion(artifact) {
@@ -753,7 +755,8 @@
     const firstStrict = rows.find((row) => row.strictDifferenceRate > 0)?.layer ?? null;
     const firstTop1 = rows.find((row) => row.top1DifferenceRate > 0)?.layer ?? null;
     const maxRow = rows.filter((row) => row.strictDifferenceRate !== null).sort((x, y) => y.strictDifferenceRate - x.strictDifferenceRate)[0] || null;
-    const declared = [...new Set([...(a.request?.intervention?.layers || []), ...(b.request?.intervention?.layers || [])])].sort((x, y) => x - y);
+    const layersFor = (run) => { const i = run.request?.intervention || {}; return [...(i.layers || []), ...(i.layer === undefined ? [] : [i.layer])]; };
+    const declared = [...new Set([...layersFor(a), ...layersFor(b)])].sort((x, y) => x - y);
     return {
       a, b, lens, scope, layers, aligned, rows, firstStrict, firstTop1, maxRow,
       declaredLayers: declared,
@@ -826,13 +829,21 @@
       ctx.strokeStyle = '#1f2a3b'; ctx.beginPath(); ctx.moveTo(left, y); ctx.lineTo(left + width, y); ctx.stroke();
     });
     const drawLine = (selector, stroke) => {
-      ctx.strokeStyle = stroke; ctx.lineWidth = 2; ctx.beginPath();
+      const points = [];
       rows.forEach((row, index) => {
         const value = selector(row); if (value === null) return;
-        const x = left + (rows.length <= 1 ? 0 : index / (rows.length - 1)) * width;
-        const y = top + (1 - value) * height;
-        if (index === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
-      }); ctx.stroke();
+        points.push({ layer: row.layer, x: left + (rows.length <= 1 ? 0 : index / (rows.length - 1)) * width, y: top + (1 - value) * height });
+      });
+      ctx.strokeStyle = stroke; ctx.lineWidth = 2; ctx.beginPath();
+      let previousLayer = null; let hasActivePoint = false;
+      points.forEach((point) => {
+        const gap = previousLayer !== null && point.layer - previousLayer > 1;
+        if (!hasActivePoint || gap) ctx.moveTo(point.x, point.y); else ctx.lineTo(point.x, point.y);
+        previousLayer = point.layer; hasActivePoint = true;
+      });
+      ctx.stroke();
+      ctx.fillStyle = stroke;
+      points.forEach((point) => { ctx.beginPath(); ctx.arc(point.x, point.y, 3, 0, Math.PI * 2); ctx.fill(); });
     };
     drawLine((row) => row.strictDifferenceRate, '#f0b55a');
     drawLine((row) => row.top1DifferenceRate, '#86b8ff');
@@ -988,7 +999,7 @@
     const suggestedLayer = state.visualComparison.firstStrict ?? state.visualComparison.declaredLayers[0] ?? state.visualComparison.layers[0] ?? null;
     if (!state.visualComparison.layers.includes(state.visualSelectedLayer)) state.visualSelectedLayer = suggestedLayer;
     renderVisualComparison();
-    loadUnderstand().catch((error) => { state.understand = { sentences: [{ rule_id: 'api.error', template_id: 'api.error.v1', text: error.message, severity: 'warning', evidence: [] }] }; renderUnderstand(); });
+    loadUnderstand().catch((error) => { state.understand = null; renderUnderstand(); renderUnderstandError(error.message); });
     setStatus('visualStatus', `Comparaison chargée : ${visualArtifactLabel(state.visualA)} ↔ ${visualArtifactLabel(state.visualB)}.`, 'ok');
   }
 
@@ -998,7 +1009,9 @@
     const locale = $('understandLocale')?.value || 'en';
     const selectedScope = $('visualScopeSelect')?.value || 'prompt';
     const scope = selectedScope === 'generated' ? 'generated_ordinal' : (selectedScope === 'all' ? 'all' : 'prompt_fixed');
-    state.understand = await api('/api/understand/compare', { method: 'POST', body: JSON.stringify({ run_a: state.visualA.run_id, run_b: state.visualB.run_id, lens: $('visualLensSelect').value || 'JACOBIAN_LENS', scope, locale, probability_abs_tolerance: 0 }) });
+    clearUnderstandError();
+    const endpoint = (state.demoArtifacts || []).some((run) => run.run_id === state.visualA.run_id) ? '/api/demo/build-week/understand/compare' : '/api/understand/compare';
+    state.understand = await api(endpoint, { method: 'POST', body: JSON.stringify({ run_a: state.visualA.run_id, run_b: state.visualB.run_id, lens: $('visualLensSelect').value || 'JACOBIAN_LENS', scope, locale, probability_abs_tolerance: 0 }) });
     renderUnderstand();
   }
 
@@ -1017,11 +1030,23 @@
     sentences.forEach((sentence) => { const details = document.createElement('details'); details.className = `understand-trace ${sentence.severity || 'info'}`; const summary = document.createElement('summary'); summary.textContent = sentence.text; details.append(summary); const pre = document.createElement('pre'); pre.textContent = JSON.stringify({ rule_id: sentence.rule_id, template_id: sentence.template_id, evidence: sentence.evidence }, null, 2); const whyLabel = document.createElement('strong'); whyLabel.textContent = why; details.append(whyLabel, pre); box.append(details); });
   }
 
+  function clearUnderstandError() { const node = $('understandError'); if (node) { node.hidden = true; node.replaceChildren(); } }
+
+  function renderUnderstandError(message) {
+    const node = $('understandError'); if (!node) return;
+    const locale = $('understandLocale')?.value || 'en';
+    node.hidden = false; node.replaceChildren();
+    const title = document.createElement('strong'); title.textContent = locale === 'fr' ? 'Erreur Understand' : 'Understand error';
+    const detail = document.createElement('pre'); detail.textContent = String(message || 'Unknown error');
+    const retry = document.createElement('p'); retry.textContent = locale === 'fr' ? 'Réessaie ou recharge la démo vérifiée.' : 'Retry or reload the verified demo.';
+    node.append(title, detail, retry);
+  }
+
   async function loadStoredVisualComparison() {
     const runA = $('visualRunA').value; const runB = $('visualRunB').value;
     if (!runA || !runB) throw new Error('Choisis deux runs archivés.');
     if (runA === runB) throw new Error('A et B doivent être deux runs différents.');
-    state.understand = null; renderUnderstand();
+    state.understand = null; renderUnderstand(); clearUnderstandError();
     setStatus('visualStatus', 'Chargement des deux artifacts…');
     [state.visualA, state.visualB] = await Promise.all([
       api(`/api/runs/${encodeURIComponent(runA)}`),
@@ -1067,7 +1092,7 @@
 
 
   async function loadBuildWeekDemo() {
-    state.understand = null; renderUnderstand();
+    state.understand = null; renderUnderstand(); clearUnderstandError();
     const payload = await api('/api/demo/build-week');
     state.demoArtifacts = payload.artifacts || [];
     if (state.demoArtifacts.length < 2) throw new Error('Build Week demo artifacts are unavailable.');
@@ -1081,7 +1106,7 @@
 
   $('visualCompareStoredBtn').addEventListener('click', () => loadStoredVisualComparison().catch((error) => setStatus('visualStatus', error.message, 'error')));
   $('loadBuildWeekDemoBtn')?.addEventListener('click', () => loadBuildWeekDemo().catch((error) => setStatus('visualStatus', error.message, 'error')));
-  $('understandLocale')?.addEventListener('change', () => loadUnderstand().catch((error) => setStatus('visualStatus', error.message, 'error')));
+  $('understandLocale')?.addEventListener('change', () => { renderUnderstand(); if (!state.understand) renderUnderstandError($('understandError')?.textContent || ''); loadUnderstand().catch((error) => { state.understand = null; renderUnderstand(); renderUnderstandError(error.message); }); });
   $('visualSwapRunsBtn').addEventListener('click', () => { const a = $('visualRunA').value; $('visualRunA').value = $('visualRunB').value; $('visualRunB').value = a; });
   $('visualRedrawBtn').addEventListener('click', () => { try { recomputeVisualComparison(); } catch (error) { setStatus('visualStatus', error.message, 'error'); } });
   $('visualLensSelect').addEventListener('change', () => { if (state.visualA && state.visualB) { state.visualSelectedLayer = null; recomputeVisualComparison(); } });

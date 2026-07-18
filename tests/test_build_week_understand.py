@@ -91,6 +91,10 @@ def test_understand_api_endpoints(tmp_path):
     assert set(composite.json()['facts']['scopes']) == {'prompt_fixed', 'generated_ordinal'}
     demo_response = client.get('/api/demo/build-week')
     assert demo_response.status_code == 200 and len(demo_response.json()['artifacts']) == 4
+    demo_understand = client.post('/api/demo/build-week/understand/compare', json={'run_a':'demo-pair-a-control','run_b':'demo-pair-a-shift','lens':'JACOBIAN_LENS','scope':'all','locale':'fr','probability_abs_tolerance':0})
+    assert demo_understand.status_code == 200
+    demo_rules = {s['rule_id'] for s in demo_understand.json()['sentences']}
+    assert 'compare.scope.generated_ordinal' in demo_rules and 'compare.intervention.member' in demo_rules
     assert client.post('/api/understand/compare', json={'run_a':'demo-pair-a-control'}).status_code == 400
 
 
@@ -133,3 +137,14 @@ def test_demo_manifest_verification_rejects_modified_file(tmp_path):
     changed.write_text(changed.read_text() + '\n')
     with pytest.raises(ValueError, match='SHA-256 mismatch|byte mismatch'):
         verify_demo_manifest(target)
+
+
+def test_visualizer_static_regressions_for_demo_i18n_errors_and_sparse_chart():
+    app_js = (ROOT / 'web' / 'app.js').read_text()
+    html = (ROOT / 'web' / 'index.html').read_text()
+    assert '/api/demo/build-week/understand/compare' in app_js
+    assert 'understand-error' in html and 'rule_id' not in app_js.split('function renderUnderstandError', 1)[1].split('async function loadStoredVisualComparison', 1)[0]
+    assert "complete: 'complète'" in app_js and "transmitted: 'transmis'" in app_js
+    assert 'point.layer - previousLayer > 1' in app_js
+    assert 'Intervention synthétique de démonstration' in app_js
+    assert 'lab-v0.3.0-buildweek' in html
