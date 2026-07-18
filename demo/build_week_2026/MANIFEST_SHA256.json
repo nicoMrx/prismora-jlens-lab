@@ -3,35 +3,35 @@
   "items": [
     {
       "artifact_schema": "prismora.run/v2",
-      "bytes": 5572,
+      "bytes": 5613,
       "description": "Synthetic Build Week demo artifact",
       "origin": "synthetic",
       "path": "demo-pair-a-control.json",
-      "sha256": "e03e9e3e3df1c693ff107f43fca452e9b0efe4298f8833f2ed79cfefd8dd5179"
+      "sha256": "1964b04b99486f95b86b3b8b928fab39d64d13c4df9b4c3e0bed4be30acca5bf"
     },
     {
       "artifact_schema": "prismora.run/v2",
-      "bytes": 5618,
+      "bytes": 5678,
       "description": "Synthetic Build Week demo artifact",
       "origin": "synthetic",
       "path": "demo-pair-a-shift.json",
-      "sha256": "2c002072b294ccd3d0234e07b44921b8b928353bbf89225193d729f94e21f187"
+      "sha256": "2456bede89801a4463891c822d16f815fe3dc94286b144bbe778bd09052b1b4d"
     },
     {
       "artifact_schema": "prismora.run/v2",
-      "bytes": 5572,
+      "bytes": 5613,
       "description": "Synthetic Build Week demo artifact",
       "origin": "synthetic",
       "path": "demo-pair-b-control.json",
-      "sha256": "99750bab2c99e4256d7b2ed8d008453e967dfca00fc3c20f144e8ec295228a17"
+      "sha256": "99a9ad696876d7fbc5653592bcd6b36bf6767da63916e6ae56d76aa6323d2de7"
     },
     {
       "artifact_schema": "prismora.run/v2",
-      "bytes": 5660,
+      "bytes": 5700,
       "description": "Synthetic Build Week demo artifact",
       "origin": "synthetic",
       "path": "demo-pair-b-visible.json",
-      "sha256": "060cfe11bda5525f76aa7711b52ef4eb351380d7fd813ecd74d3a4ab326df862"
+      "sha256": "a6d2ac697cf15b46c0e8f4b4e803edc9555bc8aa0e38f6f5c78d5cde992abd6f"
     }
   ],
   "schema": "prismora.demo_manifest/v1"

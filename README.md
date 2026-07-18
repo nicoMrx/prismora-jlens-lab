@@ -256,7 +256,7 @@ python -m pip install -e ".[dev]"
 python -m uvicorn prismora_lab.api.app:create_app --factory --reload
 ```
 
-Open the local web app, import or execute mock runs, then use the Human Visualizer Understand card. Curated no-key/no-GPU sample data lives in `demo/build_week_2026/` with `MANIFEST_SHA256.json`; Pair A has identical generated surface with internal divergence at layer 40, and Pair B has a visible surface difference.
+Open the local web app, select the Human Visualizer, then click **Load Build Week demo**. The app verifies `demo/build_week_2026/MANIFEST_SHA256.json`, loads the four curated artifacts, selects Pair A automatically, and displays the Understand card plus visual comparison without manual JSON import. Pair A has identical generated surface with generated-token readout divergence at layer 40; Pair B has a visible surface difference. This is a three-action judge path after launch: open Human Visualizer, click Load Build Week demo, expand any Why?/Pourquoi ? trace.
 
 ### Known limitations
 

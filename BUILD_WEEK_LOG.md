@@ -4,7 +4,7 @@
 
 - Started primary Build Week vertical-slice implementation from baseline `dc86f63 chore: preserve pre-Build Week baseline v0.2.1` on the isolated `work` branch, corresponding to the configured `build-week-2026` base.
 - Preflight dependency installation succeeded and baseline test suite passed before application-code edits.
-- Commit `d5ff8a8 feat: add explicit context coverage to run artifacts` added Build Week planning documents, optional validated coverage schema, coverage derivation, and initial coverage/manifest tests.
-- Commit `7f8bc81 feat: add deterministic understand rules and traceable API` added deterministic Python comparison facts, bilingual Understand rules, and read-only API endpoints.
-- Commit `7216059 feat: add bilingual understand UI and curated demo` added the Human Visualizer Understand card, synchronized packaged web assets, and curated synthetic demo artifacts with SHA-256 manifest.
-- Commit `3add3f5 docs: document Build Week contribution and Codex workflow` updated README with Build Week boundaries, setup, demo path, limitations, and Codex/GPT-5.6 collaboration notes.
+- PR #1 public head commit before review fixes: `26304ae Build Week: add deterministic Understand engine, context coverage, UI, and demo`.
+- The previously listed smaller hashes were internal Codex task checkpoints from the implementation session, not stable public GitHub history. They are intentionally not presented as public commit references.
+- Follow-up review fixes corrected coverage token semantics, added the verified demo loader, supported plural intervention layers, prevented stale Understand output, localized coverage-card labels, and added explicit all-scope Understand behavior.
+- Codex task URL/session reference: obtain from the primary Codex thread UI and include it with the final `/feedback` record.

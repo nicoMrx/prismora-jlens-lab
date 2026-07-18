@@ -323,6 +323,14 @@
             "type": "string"
           },
           "default": []
+        },
+        "instrumented_generated_tokens": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "minimum": 0,
+          "description": "Generated positions with readout results; separate from transmitted context coverage."
         }
       },
       "additionalProperties": true

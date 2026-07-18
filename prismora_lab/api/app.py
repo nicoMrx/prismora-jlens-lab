@@ -20,6 +20,7 @@ from ..backends.worker_http import WorkerHTTPBackend
 from ..canonical import canonical_json_bytes, sha256_json
 from ..cockpit import to_cockpit_v1
 from ..config import Settings
+from ..demo import verify_demo_manifest
 from ..matrix import MatrixError, expand_experiment, plan_summary
 from ..normalize import RawShapeError, create_run_artifact
 from ..preregistration import lock_spec, verify_locked_spec
@@ -156,6 +157,17 @@ def create_app(
         if not path.exists() or path.suffix != ".json":
             raise HTTPException(status_code=404, detail="Example not found")
         return json.loads(path.read_text(encoding="utf-8"))
+
+    @app.get("/api/demo/build-week")
+    async def get_build_week_demo() -> dict[str, Any]:
+        try:
+            demo_dir = package_root / "demo" / "build_week_2026"
+            if not demo_dir.exists():
+                raise FileNotFoundError("Build Week demo directory not found")
+            payload = verify_demo_manifest(demo_dir)
+            return {"schema": "prismora.demo_loader/v1", **payload}
+        except Exception as exc:
+            raise _http_error(exc) from exc
 
     @app.get("/api/experiments")
     async def list_experiments() -> dict[str, Any]:

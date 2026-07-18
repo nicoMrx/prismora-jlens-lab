@@ -14,6 +14,7 @@
     visualB: null,
     visualComparison: null,
     understand: null,
+    demoArtifacts: [],
     visualSelectedColumn: 0,
     visualSelectedLayer: null,
     visualLocalSources: new Map(),
@@ -995,7 +996,8 @@
   async function loadUnderstand() {
     if (!state.visualA || !state.visualB) return;
     const locale = $('understandLocale')?.value || 'en';
-    const scope = ($('visualScopeSelect')?.value === 'generated') ? 'generated_ordinal' : 'prompt_fixed';
+    const selectedScope = $('visualScopeSelect')?.value || 'prompt';
+    const scope = selectedScope === 'generated' ? 'generated_ordinal' : (selectedScope === 'all' ? 'all' : 'prompt_fixed');
     state.understand = await api('/api/understand/compare', { method: 'POST', body: JSON.stringify({ run_a: state.visualA.run_id, run_b: state.visualB.run_id, lens: $('visualLensSelect').value || 'JACOBIAN_LENS', scope, locale, probability_abs_tolerance: 0 }) });
     renderUnderstand();
   }
@@ -1003,11 +1005,13 @@
   function renderUnderstand() {
     const cov = $('coverageCards'); const box = $('understandSentences'); if (!cov || !box) return;
     const locale = $('understandLocale')?.value || 'en'; const why = locale === 'fr' ? 'Pourquoi ?' : 'Why?';
+    const labels = locale === 'fr' ? { source: 'source', transmitted: 'transmis', instrumented: 'instrumentés', generated: 'générés instrumentés', layers: 'couches', unknown: 'inconnu', complete: 'complète', partial: 'partielle' } : { source: 'source', transmitted: 'transmitted', instrumented: 'instrumented', generated: 'instrumented generated', layers: 'layers', unknown: 'unknown', complete: 'complete', partial: 'partial' };
+    const statusLabel = (status) => labels[status] || labels.unknown;
     const cards = [state.visualA, state.visualB].filter(Boolean).map((run, idx) => {
-      const c = run.coverage || {}; const status = c.status || 'unknown';
-      return `<article class="coverage-card ${status !== 'complete' ? 'warn' : ''}"><strong>${idx === 0 ? 'A' : 'B'} · ${status}</strong><span>source ${c.source_tokens_total ?? 'unknown'}</span><span>transmitted ${c.transmitted_tokens ?? 'unknown'}</span><span>instrumented ${c.instrumented_tokens ?? 'unknown'}</span><span>layers ${(c.captured_layers || []).join(', ') || 'unknown'}</span></article>`;
+      const c = run.coverage || {}; const status = c.status || 'unknown'; const unknown = labels.unknown;
+      return `<article class="coverage-card ${status !== 'complete' ? 'warn' : ''}"><strong>${idx === 0 ? 'A' : 'B'} · ${statusLabel(status)}</strong><span>${labels.source} ${c.source_tokens_total ?? unknown}</span><span>${labels.transmitted} ${c.transmitted_tokens ?? unknown}</span><span>${labels.instrumented} ${c.instrumented_tokens ?? unknown}</span><span>${labels.generated} ${c.instrumented_generated_tokens ?? unknown}</span><span>${labels.layers} ${(c.captured_layers || []).join(', ') || unknown}</span></article>`;
     }).join('');
-    cov.innerHTML = cards || '<p class="muted-copy">No coverage loaded.</p>';
+    cov.innerHTML = cards || `<p class="muted-copy">${locale === 'fr' ? 'Aucune couverture chargée.' : 'No coverage loaded.'}</p>`;
     const sentences = state.understand?.sentences || [];
     box.replaceChildren();
     sentences.forEach((sentence) => { const details = document.createElement('details'); details.className = `understand-trace ${sentence.severity || 'info'}`; const summary = document.createElement('summary'); summary.textContent = sentence.text; details.append(summary); const pre = document.createElement('pre'); pre.textContent = JSON.stringify({ rule_id: sentence.rule_id, template_id: sentence.template_id, evidence: sentence.evidence }, null, 2); const whyLabel = document.createElement('strong'); whyLabel.textContent = why; details.append(whyLabel, pre); box.append(details); });
@@ -1017,6 +1021,7 @@
     const runA = $('visualRunA').value; const runB = $('visualRunB').value;
     if (!runA || !runB) throw new Error('Choisis deux runs archivés.');
     if (runA === runB) throw new Error('A et B doivent être deux runs différents.');
+    state.understand = null; renderUnderstand();
     setStatus('visualStatus', 'Chargement des deux artifacts…');
     [state.visualA, state.visualB] = await Promise.all([
       api(`/api/runs/${encodeURIComponent(runA)}`),
@@ -1060,7 +1065,22 @@
     setStatus('visualProbeStatus', `${rows.length} résultat(s) J-Lens lisible(s) trouvé(s) dans ${selected.length} fichier(s).`, rows.length >= 2 ? 'ok' : 'warn');
   }
 
+
+  async function loadBuildWeekDemo() {
+    state.understand = null; renderUnderstand();
+    const payload = await api('/api/demo/build-week');
+    state.demoArtifacts = payload.artifacts || [];
+    if (state.demoArtifacts.length < 2) throw new Error('Build Week demo artifacts are unavailable.');
+    state.visualA = state.demoArtifacts.find((run) => run.run_id === 'demo-pair-a-control') || state.demoArtifacts[0];
+    state.visualB = state.demoArtifacts.find((run) => run.run_id === 'demo-pair-a-shift') || state.demoArtifacts[1];
+    state.visualSelectedColumn = 0; state.visualSelectedLayer = null;
+    $('visualScopeSelect').value = 'all';
+    recomputeVisualComparison();
+    setStatus('visualStatus', 'Build Week demo loaded: Pair A selected.', 'ok');
+  }
+
   $('visualCompareStoredBtn').addEventListener('click', () => loadStoredVisualComparison().catch((error) => setStatus('visualStatus', error.message, 'error')));
+  $('loadBuildWeekDemoBtn')?.addEventListener('click', () => loadBuildWeekDemo().catch((error) => setStatus('visualStatus', error.message, 'error')));
   $('understandLocale')?.addEventListener('change', () => loadUnderstand().catch((error) => setStatus('visualStatus', error.message, 'error')));
   $('visualSwapRunsBtn').addEventListener('click', () => { const a = $('visualRunA').value; $('visualRunA').value = $('visualRunB').value; $('visualRunB').value = a; });
   $('visualRedrawBtn').addEventListener('click', () => { try { recomputeVisualComparison(); } catch (error) { setStatus('visualStatus', error.message, 'error'); } });

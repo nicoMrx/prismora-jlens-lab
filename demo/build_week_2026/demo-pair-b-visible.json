@@ -8,7 +8,8 @@
       41
     ],
     "context_window_limit": null,
-    "instrumented_tokens": 3,
+    "instrumented_generated_tokens": 1,
+    "instrumented_tokens": 2,
     "requested_layers": [
       0,
       1,
@@ -61,7 +62,9 @@
     },
     "generation": {},
     "intervention": {
-      "layer": 40,
+      "layers": [
+        40
+      ],
       "type": "synthetic"
     },
     "model": {
@@ -121,12 +124,12 @@
                 0.1
               ],
               [
-                0.6,
+                0.7,
                 0.2,
                 0.1
               ],
               [
-                0.6,
+                0.7,
                 0.2,
                 0.1
               ]
@@ -143,12 +146,12 @@
                 " demo"
               ],
               [
-                " different",
+                " same",
                 " path",
                 " demo"
               ],
               [
-                " different",
+                " same",
                 " path",
                 " demo"
               ]
@@ -177,12 +180,12 @@
                 0.1
               ],
               [
-                0.6,
+                0.7,
                 0.2,
                 0.1
               ],
               [
-                0.6,
+                0.7,
                 0.2,
                 0.1
               ]
@@ -199,12 +202,12 @@
                 " demo"
               ],
               [
-                " different",
+                " same",
                 " path",
                 " demo"
               ],
               [
-                " different",
+                " same",
                 " path",
                 " demo"
               ]

@@ -8,7 +8,8 @@
       41
     ],
     "context_window_limit": null,
-    "instrumented_tokens": 3,
+    "instrumented_generated_tokens": 1,
+    "instrumented_tokens": 2,
     "requested_layers": [
       0,
       1,
