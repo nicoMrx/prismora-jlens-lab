@@ -124,6 +124,14 @@ def test_all_scope_reports_generated_divergence_and_ordinal_warning():
     assert generated['first_strict_divergence']['layer'] == 40
     assert any('ordinal position only' in warning for warning in result['warnings'])
     assert any(sentence['rule_id'] == 'compare.scope.generated_ordinal' for sentence in result['sentences'])
+    fr = understand_compare(a, b, lens='JACOBIAN_LENS', scope='all', locale='fr', probability_abs_tolerance=0)
+    visible = ' '.join(sentence['text'] for sentence in fr['sentences'])
+    assert 'prompt tokens are aligned' not in visible
+    assert 'generated tokens are aligned' not in visible
+    assert 'semantic interpretation or causal proof' not in visible
+    assert 'top-1 dans' in visible
+    assert 'dans le contexte du prompt' in visible
+    assert 'les jetons générés sont alignés uniquement par rang ordinal' in visible
 
 
 def test_demo_manifest_verification_rejects_modified_file(tmp_path):
@@ -145,6 +153,7 @@ def test_visualizer_static_regressions_for_demo_i18n_errors_and_sparse_chart():
     assert '/api/demo/build-week/understand/compare' in app_js
     assert 'understand-error' in html and 'rule_id' not in app_js.split('function renderUnderstandError', 1)[1].split('async function loadStoredVisualComparison', 1)[0]
     assert "complete: 'complète'" in app_js and "transmitted: 'transmis'" in app_js
+    assert "Charger la démo Build Week" in app_js and "Langue" in app_js and "Résumé par règles, sans LLM" in app_js
     assert 'point.layer - previousLayer > 1' in app_js
     assert 'Intervention synthétique de démonstration' in app_js
     assert 'lab-v0.3.0-buildweek' in html

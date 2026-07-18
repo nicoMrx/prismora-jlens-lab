@@ -14,7 +14,7 @@ TEXT = {
         "quality.independent.v1": "This run is recorded as an independent observation.",
         "quality.duplicate.v1": "This run duplicates {duplicate_of} and is not independent evidence.",
         "quality.synthetic.v1": "This is synthetic/mock demo data, not model-cognition evidence.",
-        "compare.scope.v1": "Scope {scope_label}: {scope_warning}",
+        "compare.scope.v1": "Scope: {scope_label}; {scope_warning}.",
         "compare.surface.same.v1": "The generated surface is identical for this pair.",
         "compare.surface.different.v1": "The generated surface is different for this pair.",
         "compare.top1.v1": "The first top-1 divergence in {scope_label} is at layer {layer}, position {position}.",
@@ -36,7 +36,7 @@ TEXT = {
         "quality.independent.v1": "Ce run est enregistré comme observation indépendante.",
         "quality.duplicate.v1": "Ce run duplique {duplicate_of} et ne constitue pas une preuve indépendante.",
         "quality.synthetic.v1": "Ce sont des données synthétiques/mock de démonstration, pas une preuve de cognition du modèle.",
-        "compare.scope.v1": "Portée {scope_label} : {scope_warning}",
+        "compare.scope.v1": "Portée : {scope_label} ; {scope_warning}.",
         "compare.surface.same.v1": "La surface générée est identique pour cette paire.",
         "compare.surface.different.v1": "La surface générée est différente pour cette paire.",
         "compare.top1.v1": "La première divergence top-1 dans {scope_label} est à la couche {layer}, position {position}.",
@@ -45,12 +45,12 @@ TEXT = {
         "compare.strict.none.v1": "Aucune divergence stricte top-k/probabilité n’est mesurable dans {scope_label}.",
         "compare.intervention.member.v1": "La première couche de divergence mesurée {layer} appartient aux couches d’intervention déclarées {declared_layers}.",
         "compare.intervention.differs.v1": "La première couche de divergence mesurée {layer} n’appartient pas aux couches d’intervention déclarées {declared_layers}.",
-        "compare.caution.v1": "Une divergence de readout seule n’est pas une interprétation sémantique ni une preuve causale.",
+        "compare.caution.v1": "Une divergence de lecture seule n’est pas une interprétation sémantique ni une preuve causale.",
         "locale.fallback.v1": "La langue demandée {requested_locale} n’est pas prise en charge ; l’anglais est utilisé.",
     },
 }
-SCOPE_LABEL = {"en": {"prompt_fixed":"prompt context","generated_ordinal":"generated response","all":"prompt context and generated response"}, "fr": {"prompt_fixed":"contexte du prompt","generated_ordinal":"réponse générée","all":"contexte du prompt et réponse générée"}}
-SCOPE_WARNING = {"prompt_fixed":"prompt tokens are aligned by position and token ID", "generated_ordinal":"generated tokens are aligned by ordinal position only; no semantic alignment is attempted", "all":"prompt and generated positions are reported as separate scopes"}
+SCOPE_LABEL = {"en": {"prompt_fixed":"prompt context","generated_ordinal":"generated response","all":"prompt context and generated response"}, "fr": {"prompt_fixed":"le contexte du prompt","generated_ordinal":"la réponse générée","all":"le contexte du prompt et la réponse générée"}}
+SCOPE_WARNING = {"en": {"prompt_fixed":"prompt tokens are aligned by position and token ID", "generated_ordinal":"generated tokens are aligned by ordinal position only; no semantic alignment is attempted", "all":"prompt and generated positions are reported as separate scopes"}, "fr": {"prompt_fixed":"les jetons du prompt sont alignés par position et identifiant de jeton", "generated_ordinal":"les jetons générés sont alignés uniquement par rang ordinal ; aucun alignement sémantique n’est effectué", "all":"les positions du prompt et de la réponse générée sont rapportées comme deux portées séparées"}}
 
 def _pick(locale: str) -> str: return locale if locale in TEXT else "en"
 def _ev(path: str, value: Any) -> dict[str, Any]: return {"path": path, "value": value}
@@ -87,7 +87,7 @@ def understand_run(artifact: dict[str, Any], locale: str = "en") -> dict[str, An
 
 def _scope_sentences(loc: str, facts: dict[str, Any], scope: str) -> list[dict[str, Any]]:
     label = SCOPE_LABEL[loc][scope]
-    out = [_sent(loc, f"compare.scope.{scope}", "compare.scope.v1", "warning" if scope == "generated_ordinal" else "info", [_ev("scope_label", label), _ev("scope_warning", SCOPE_WARNING[scope])])]
+    out = [_sent(loc, f"compare.scope.{scope}", "compare.scope.v1", "warning" if scope == "generated_ordinal" else "info", [_ev("scope_label", label), _ev("scope_warning", SCOPE_WARNING[loc][scope])])]
     fs = facts["first_strict_divergence"]; ft = facts["first_top1_divergence"]
     out.append(_sent(loc, "compare.strict" if fs else "compare.strict.none", "compare.strict.v1" if fs else "compare.strict.none.v1", "warning" if fs else "info", [_ev("scope_label", label), _ev("layer", fs.get("layer") if fs else None), _ev("position", fs.get("position") if fs else None)]))
     out.append(_sent(loc, "compare.top1" if ft else "compare.top1.none", "compare.top1.v1" if ft else "compare.top1.none.v1", "warning" if ft else "info", [_ev("scope_label", label), _ev("layer", ft.get("layer") if ft else None), _ev("position", ft.get("position") if ft else None)]))

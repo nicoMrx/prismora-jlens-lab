@@ -227,8 +227,8 @@
         </div>
 
         <div class="card understand-card">
-          <div class="understand-heading"><h3>Understand</h3><span class="badge ok">Rule-based, no LLM summary</span></div>
-          <label>Language <select id="understandLocale"><option value="en">EN</option><option value="fr">FR</option></select></label>
+          <div class="understand-heading"><h3>Understand</h3><span id="understandRuleBadge" class="badge ok">Rule-based, no LLM summary</span></div>
+          <label><span id="understandLanguageLabel">Language</span> <select id="understandLocale"><option value="en">EN</option><option value="fr">FR</option></select></label>
           <div id="coverageCards" class="coverage-grid"></div>
           <div id="understandError" class="understand-error" hidden></div>
           <div id="understandSentences" class="understand-sentences">Load a comparison to see deterministic facts.</div>

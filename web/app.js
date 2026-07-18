@@ -1015,9 +1015,20 @@
     renderUnderstand();
   }
 
+
+  function updateUnderstandStaticLabels() {
+    const locale = $('understandLocale')?.value || 'en';
+    const copy = locale === 'fr'
+      ? { demo: 'Charger la démo Build Week', language: 'Langue', badge: 'Résumé par règles, sans LLM' }
+      : { demo: 'Load Build Week demo', language: 'Language', badge: 'Rule-based, no LLM summary' };
+    if ($('loadBuildWeekDemoBtn')) $('loadBuildWeekDemoBtn').textContent = copy.demo;
+    if ($('understandLanguageLabel')) $('understandLanguageLabel').textContent = copy.language;
+    if ($('understandRuleBadge')) $('understandRuleBadge').textContent = copy.badge;
+  }
+
   function renderUnderstand() {
     const cov = $('coverageCards'); const box = $('understandSentences'); if (!cov || !box) return;
-    const locale = $('understandLocale')?.value || 'en'; const why = locale === 'fr' ? 'Pourquoi ?' : 'Why?';
+    const locale = $('understandLocale')?.value || 'en'; updateUnderstandStaticLabels(); const why = locale === 'fr' ? 'Pourquoi ?' : 'Why?';
     const labels = locale === 'fr' ? { source: 'source', transmitted: 'transmis', instrumented: 'instrumentés', generated: 'générés instrumentés', layers: 'couches', unknown: 'inconnu', complete: 'complète', partial: 'partielle' } : { source: 'source', transmitted: 'transmitted', instrumented: 'instrumented', generated: 'instrumented generated', layers: 'layers', unknown: 'unknown', complete: 'complete', partial: 'partial' };
     const statusLabel = (status) => labels[status] || labels.unknown;
     const cards = [state.visualA, state.visualB].filter(Boolean).map((run, idx) => {
@@ -1106,7 +1117,7 @@
 
   $('visualCompareStoredBtn').addEventListener('click', () => loadStoredVisualComparison().catch((error) => setStatus('visualStatus', error.message, 'error')));
   $('loadBuildWeekDemoBtn')?.addEventListener('click', () => loadBuildWeekDemo().catch((error) => setStatus('visualStatus', error.message, 'error')));
-  $('understandLocale')?.addEventListener('change', () => { renderUnderstand(); if (!state.understand) renderUnderstandError($('understandError')?.textContent || ''); loadUnderstand().catch((error) => { state.understand = null; renderUnderstand(); renderUnderstandError(error.message); }); });
+  $('understandLocale')?.addEventListener('change', () => { updateUnderstandStaticLabels(); renderUnderstand(); if (!state.understand) renderUnderstandError($('understandError')?.textContent || ''); loadUnderstand().catch((error) => { state.understand = null; renderUnderstand(); renderUnderstandError(error.message); }); });
   $('visualSwapRunsBtn').addEventListener('click', () => { const a = $('visualRunA').value; $('visualRunA').value = $('visualRunB').value; $('visualRunB').value = a; });
   $('visualRedrawBtn').addEventListener('click', () => { try { recomputeVisualComparison(); } catch (error) { setStatus('visualStatus', error.message, 'error'); } });
   $('visualLensSelect').addEventListener('change', () => { if (state.visualA && state.visualB) { state.visualSelectedLayer = null; recomputeVisualComparison(); } });
