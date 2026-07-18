@@ -235,3 +235,29 @@ The strongest unfinished engineering steps are: validating the supplied pinned
 readout runtime on CUDA; performing a public/private bridge test with identical
 weights, tokenizer, lens, token IDs and precision; and implementing causal hooks
 whose outcome is measured at the task level rather than by a changed word alone.
+
+
+## Build Week 2026 submission layer
+
+### Pre-existing project vs Build Week contribution
+
+Prismora is an existing independent research project. The Build Week submission layer was implemented during the event with Codex and GPT-5.6. Pre-existing work includes ExperimentSpec v2, RunArtifact v2, the mock/Neuronpedia/worker contracts, immutable raw storage, campaign tools, Run Inspector, Comparison Studio, Claim Ledger, bridge checks, and the A/B Human Visualizer v0.2.1. Build Week adds explicit context coverage, deterministic Understand narratives with rule/evidence traces, bilingual EN/FR submission UI, and curated synthetic demo artifacts.
+
+### Codex and GPT-5.6 workflow
+
+Codex accelerated implementation by editing schemas, Python comparison facts, API endpoints, web assets, tests, and documentation in one auditable Git history. GPT-5.6/Codex contributed implementation support; the human product and scientific decisions were the boundary between evidence and interpretation, the refusal to infer unknown coverage, bilingual submission-path requirements, and the explicit caution that readout divergence is not semantic or causal proof. Runtime inference does not call GPT-5.6 unless a separate backend is explicitly configured.
+
+### Local judge demo
+
+Supported platform: local Python 3.11+ environment on macOS, Linux, or compatible containers.
+
+```bash
+python -m pip install -e ".[dev]"
+python -m uvicorn prismora_lab.api.app:create_app --factory --reload
+```
+
+Open the local web app, import or execute mock runs, then use the Human Visualizer Understand card. Curated no-key/no-GPU sample data lives in `demo/build_week_2026/` with `MANIFEST_SHA256.json`; Pair A has identical generated surface with internal divergence at layer 40, and Pair B has a visible surface difference.
+
+### Known limitations
+
+Understand is rule-based and intentionally narrow: it reports measured coverage and readout facts, not cognition, bias, censorship, consciousness, or causality. Public bridge comparisons still use decoded top-k token strings where candidate token IDs are unavailable. Generated-token comparison is ordinal only and is labeled as such. Remember to obtain `/feedback` from the primary Codex thread for the Build Week submission.

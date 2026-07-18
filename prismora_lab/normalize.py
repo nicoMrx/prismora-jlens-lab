@@ -6,6 +6,7 @@ from typing import Any
 
 from . import __version__
 from .canonical import sha256_json
+from .coverage import derive_coverage
 from .schema import validate
 from .store import LabStore
 from .timeutil import utc_now_iso
@@ -144,6 +145,7 @@ def create_run_artifact(
             "tokens": copy.deepcopy(raw["tokens"]),
             "done": copy.deepcopy(raw["done"]),
         },
+        "coverage": derive_coverage(request, raw, backend_environment),
         "quality": {
             "independent_observation": duplicate_of is None,
             "duplicate_of": duplicate_of,

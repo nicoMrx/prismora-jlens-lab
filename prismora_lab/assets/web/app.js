@@ -13,6 +13,7 @@
     visualA: null,
     visualB: null,
     visualComparison: null,
+    understand: null,
     visualSelectedColumn: 0,
     visualSelectedLayer: null,
     visualLocalSources: new Map(),
@@ -969,7 +970,7 @@
 
   function renderVisualComparison() {
     if (!state.visualComparison) return;
-    renderVisualSummary(); renderVisualOutputs(); renderVisualProfile(); renderVisualHeatmap(); renderVisualTimeline(); renderVisualCell(); renderVisualHumanReading();
+    renderVisualSummary(); renderVisualOutputs(); renderVisualProfile(); renderVisualHeatmap(); renderVisualTimeline(); renderVisualCell(); renderVisualHumanReading(); renderUnderstand();
   }
 
   function recomputeVisualComparison() {
@@ -986,7 +987,30 @@
     const suggestedLayer = state.visualComparison.firstStrict ?? state.visualComparison.declaredLayers[0] ?? state.visualComparison.layers[0] ?? null;
     if (!state.visualComparison.layers.includes(state.visualSelectedLayer)) state.visualSelectedLayer = suggestedLayer;
     renderVisualComparison();
+    loadUnderstand().catch((error) => { state.understand = { sentences: [{ rule_id: 'api.error', template_id: 'api.error.v1', text: error.message, severity: 'warning', evidence: [] }] }; renderUnderstand(); });
     setStatus('visualStatus', `Comparaison chargée : ${visualArtifactLabel(state.visualA)} ↔ ${visualArtifactLabel(state.visualB)}.`, 'ok');
+  }
+
+
+  async function loadUnderstand() {
+    if (!state.visualA || !state.visualB) return;
+    const locale = $('understandLocale')?.value || 'en';
+    const scope = ($('visualScopeSelect')?.value === 'generated') ? 'generated_ordinal' : 'prompt_fixed';
+    state.understand = await api('/api/understand/compare', { method: 'POST', body: JSON.stringify({ run_a: state.visualA.run_id, run_b: state.visualB.run_id, lens: $('visualLensSelect').value || 'JACOBIAN_LENS', scope, locale, probability_abs_tolerance: 0 }) });
+    renderUnderstand();
+  }
+
+  function renderUnderstand() {
+    const cov = $('coverageCards'); const box = $('understandSentences'); if (!cov || !box) return;
+    const locale = $('understandLocale')?.value || 'en'; const why = locale === 'fr' ? 'Pourquoi ?' : 'Why?';
+    const cards = [state.visualA, state.visualB].filter(Boolean).map((run, idx) => {
+      const c = run.coverage || {}; const status = c.status || 'unknown';
+      return `<article class="coverage-card ${status !== 'complete' ? 'warn' : ''}"><strong>${idx === 0 ? 'A' : 'B'} · ${status}</strong><span>source ${c.source_tokens_total ?? 'unknown'}</span><span>transmitted ${c.transmitted_tokens ?? 'unknown'}</span><span>instrumented ${c.instrumented_tokens ?? 'unknown'}</span><span>layers ${(c.captured_layers || []).join(', ') || 'unknown'}</span></article>`;
+    }).join('');
+    cov.innerHTML = cards || '<p class="muted-copy">No coverage loaded.</p>';
+    const sentences = state.understand?.sentences || [];
+    box.replaceChildren();
+    sentences.forEach((sentence) => { const details = document.createElement('details'); details.className = `understand-trace ${sentence.severity || 'info'}`; const summary = document.createElement('summary'); summary.textContent = sentence.text; details.append(summary); const pre = document.createElement('pre'); pre.textContent = JSON.stringify({ rule_id: sentence.rule_id, template_id: sentence.template_id, evidence: sentence.evidence }, null, 2); const whyLabel = document.createElement('strong'); whyLabel.textContent = why; details.append(whyLabel, pre); box.append(details); });
   }
 
   async function loadStoredVisualComparison() {
@@ -1037,6 +1061,7 @@
   }
 
   $('visualCompareStoredBtn').addEventListener('click', () => loadStoredVisualComparison().catch((error) => setStatus('visualStatus', error.message, 'error')));
+  $('understandLocale')?.addEventListener('change', () => loadUnderstand().catch((error) => setStatus('visualStatus', error.message, 'error')));
   $('visualSwapRunsBtn').addEventListener('click', () => { const a = $('visualRunA').value; $('visualRunA').value = $('visualRunB').value; $('visualRunB').value = a; });
   $('visualRedrawBtn').addEventListener('click', () => { try { recomputeVisualComparison(); } catch (error) { setStatus('visualStatus', error.message, 'error'); } });
   $('visualLensSelect').addEventListener('change', () => { if (state.visualA && state.visualB) { state.visualSelectedLayer = null; recomputeVisualComparison(); } });

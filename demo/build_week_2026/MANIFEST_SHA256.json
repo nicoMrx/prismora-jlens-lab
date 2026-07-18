@@ -1,0 +1,38 @@
+{
+  "created_at": "2026-07-18T00:00:00Z",
+  "items": [
+    {
+      "artifact_schema": "prismora.run/v2",
+      "bytes": 5572,
+      "description": "Synthetic Build Week demo artifact",
+      "origin": "synthetic",
+      "path": "demo-pair-a-control.json",
+      "sha256": "e03e9e3e3df1c693ff107f43fca452e9b0efe4298f8833f2ed79cfefd8dd5179"
+    },
+    {
+      "artifact_schema": "prismora.run/v2",
+      "bytes": 5618,
+      "description": "Synthetic Build Week demo artifact",
+      "origin": "synthetic",
+      "path": "demo-pair-a-shift.json",
+      "sha256": "2c002072b294ccd3d0234e07b44921b8b928353bbf89225193d729f94e21f187"
+    },
+    {
+      "artifact_schema": "prismora.run/v2",
+      "bytes": 5572,
+      "description": "Synthetic Build Week demo artifact",
+      "origin": "synthetic",
+      "path": "demo-pair-b-control.json",
+      "sha256": "99750bab2c99e4256d7b2ed8d008453e967dfca00fc3c20f144e8ec295228a17"
+    },
+    {
+      "artifact_schema": "prismora.run/v2",
+      "bytes": 5660,
+      "description": "Synthetic Build Week demo artifact",
+      "origin": "synthetic",
+      "path": "demo-pair-b-visible.json",
+      "sha256": "060cfe11bda5525f76aa7711b52ef4eb351380d7fd813ecd74d3a4ab326df862"
+    }
+  ],
+  "schema": "prismora.demo_manifest/v1"
+}
