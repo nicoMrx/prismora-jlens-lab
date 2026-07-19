@@ -8,3 +8,7 @@
 - The previously listed smaller hashes were internal Codex task checkpoints from the implementation session, not stable public GitHub history. They are intentionally not presented as public commit references.
 - Follow-up review fixes corrected coverage token semantics, added the verified demo loader, supported plural intervention layers, prevented stale Understand output, localized coverage-card labels, and added explicit all-scope Understand behavior.
 - Codex task URL/session reference: obtain from the primary Codex thread UI and include it with the final `/feedback` record.
+
+## 2026-07-19
+
+- After NicoMrx's manual acceptance tests, Pepper performed repository-management actions outside Codex: repaired PR #1's description, resolved outdated review threads, merged PR #1 into `build-week-2026`, and created `ux/progressive-interface` from the merged Build Week state. These actions did not implement application code.
