@@ -152,8 +152,32 @@ def test_visualizer_static_regressions_for_demo_i18n_errors_and_sparse_chart():
     html = (ROOT / 'web' / 'index.html').read_text()
     assert '/api/demo/build-week/understand/compare' in app_js
     assert 'understand-error' in html and 'rule_id' not in app_js.split('function renderUnderstandError', 1)[1].split('async function loadStoredVisualComparison', 1)[0]
-    assert "complete: 'complète'" in app_js and "transmitted: 'transmis'" in app_js
+    assert "coverage.complete': 'complète'" in app_js and "coverage.transmitted': 'transmis'" in app_js
     assert "Charger la démo Build Week" in app_js and "Langue" in app_js and "Résumé par règles, sans LLM" in app_js
     assert 'point.layer - previousLayer > 1' in app_js
     assert 'Intervention synthétique de démonstration' in app_js
     assert 'lab-v0.3.0-buildweek' in html
+    assert 'globalLocaleSelect' in html and 'understandLocale' not in html
+    assert 'const I18N' in app_js and 'function t(key' in app_js and 'prismora.locale' in app_js
+    assert 'understandRequestSeq' in app_js and 'requestedLocale !== state.locale' in app_js
+    assert 'Unknown error' not in app_js
+
+
+def test_global_i18n_catalogue_completeness_and_navigation_glossary():
+    app_js = (ROOT / 'web' / 'app.js').read_text()
+    for key in ['nav.dashboard', 'nav.experiments', 'nav.registry', 'nav.campaign', 'nav.fleet', 'nav.runs', 'nav.inspector', 'nav.visualizer', 'nav.baseline', 'nav.causal', 'nav.compare', 'nav.claims']:
+        assert key in app_js
+    for text in ['Aperçu', 'Expériences', 'Registre des modèles', 'Créateur de campagne', 'Parc GPU / API', 'Exécutions', 'Inspecteur d’exécution', 'Visualiseur humain', 'Laboratoire de référence', 'Laboratoire causal', 'Studio de comparaison', 'Registre des affirmations']:
+        assert text in app_js
+    for text in ['Overview', 'Experiments', 'Model registry', 'Campaign builder', 'GPU / API fleet', 'Runs', 'Run inspector', 'Human Visualizer', 'Baseline lab', 'Causal lab', 'Comparison studio', 'Claim ledger']:
+        assert text in app_js
+    assert 'data-i18n="app.language"' in (ROOT / 'web' / 'index.html').read_text()
+
+
+def test_empty_state_locale_switch_source_guard():
+    app_js = (ROOT / 'web' / 'app.js').read_text()
+    handler = app_js.split("$('globalLocaleSelect')?.addEventListener", 1)[1].split("$('visualSwapRunsBtn')", 1)[0]
+    assert 'state.visualA && state.visualB' in handler
+    assert 'clearUnderstandError()' in handler
+    assert 'textContent' not in handler
+    assert 'loadUnderstand().catch' in handler

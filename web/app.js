@@ -18,7 +18,47 @@
     visualSelectedColumn: 0,
     visualSelectedLayer: null,
     visualLocalSources: new Map(),
+    locale: localStorage.getItem('prismora.locale') === 'fr' ? 'fr' : 'en',
+    understandError: null,
+    understandRequestSeq: 0,
   };
+
+
+  const I18N = {
+    en: {
+      'app.title': 'Prismora J-Lens Lab', 'app.subtitle': 'One protocol · public API and private GPU workers · immutable evidence', 'app.language': 'Language', 'app.refresh': 'Refresh', 'app.checking': 'checking…', 'app.offline': 'offline',
+      'nav.dashboard': 'Overview', 'nav.experiments': 'Experiments', 'nav.registry': 'Model registry', 'nav.campaign': 'Campaign builder', 'nav.fleet': 'GPU / API fleet', 'nav.runs': 'Runs', 'nav.inspector': 'Run inspector', 'nav.visualizer': 'Human Visualizer', 'nav.baseline': 'Baseline lab', 'nav.causal': 'Causal lab', 'nav.compare': 'Comparison studio', 'nav.claims': 'Claim ledger',
+      'understand.badge': 'Rule-based, no LLM summary', 'understand.demo': 'Load Build Week demo', 'understand.empty': 'Load a comparison to see deterministic facts.', 'understand.errorTitle': 'Understand error', 'understand.retry': 'Retry or reload the verified demo.',
+      'coverage.source': 'source', 'coverage.transmitted': 'transmitted', 'coverage.instrumented': 'instrumented', 'coverage.generated': 'instrumented generated', 'coverage.layers': 'layers', 'coverage.unknown': 'unknown', 'coverage.complete': 'complete', 'coverage.partial': 'partial',
+      'status.demoLoaded': 'Build Week demo loaded: Pair A selected.', 'status.loadingArtifacts': 'Loading both artifacts…', 'error.noRuns': 'Choose two archived runs.', 'error.sameRuns': 'A and B must be two different runs.'
+    },
+    fr: {
+      'app.title': 'Prismora J-Lens Lab', 'app.subtitle': 'Un protocole · API publique et workers GPU privés · preuves immuables', 'app.language': 'Langue', 'app.refresh': 'Actualiser', 'app.checking': 'vérification…', 'app.offline': 'hors ligne',
+      'nav.dashboard': 'Aperçu', 'nav.experiments': 'Expériences', 'nav.registry': 'Registre des modèles', 'nav.campaign': 'Créateur de campagne', 'nav.fleet': 'Parc GPU / API', 'nav.runs': 'Exécutions', 'nav.inspector': 'Inspecteur d’exécution', 'nav.visualizer': 'Visualiseur humain', 'nav.baseline': 'Laboratoire de référence', 'nav.causal': 'Laboratoire causal', 'nav.compare': 'Studio de comparaison', 'nav.claims': 'Registre des affirmations',
+      'understand.badge': 'Résumé par règles, sans LLM', 'understand.demo': 'Charger la démo Build Week', 'understand.empty': 'Charge une comparaison pour voir les faits déterministes.', 'understand.errorTitle': 'Erreur Understand', 'understand.retry': 'Réessaie ou recharge la démo vérifiée.',
+      'coverage.source': 'source', 'coverage.transmitted': 'transmis', 'coverage.instrumented': 'instrumentés', 'coverage.generated': 'générés instrumentés', 'coverage.layers': 'couches', 'coverage.unknown': 'inconnu', 'coverage.complete': 'complète', 'coverage.partial': 'partielle',
+      'status.demoLoaded': 'Démo Build Week chargée : paire A sélectionnée.', 'status.loadingArtifacts': 'Chargement des deux artifacts…', 'error.noRuns': 'Choisis deux exécutions archivées.', 'error.sameRuns': 'A et B doivent être deux exécutions différentes.'
+    }
+  };
+  const STATIC_I18N_BINDINGS = {
+    'button[data-panel="dashboard"]': 'nav.dashboard', 'button[data-panel="experiments"]': 'nav.experiments', 'button[data-panel="registry"]': 'nav.registry', 'button[data-panel="campaign"]': 'nav.campaign', 'button[data-panel="fleet"]': 'nav.fleet', 'button[data-panel="runs"]': 'nav.runs', 'button[data-panel="inspector"]': 'nav.inspector', 'button[data-panel="visualizer"]': 'nav.visualizer', 'button[data-panel="baseline"]': 'nav.baseline', 'button[data-panel="causal"]': 'nav.causal', 'button[data-panel="compare"]': 'nav.compare', 'button[data-panel="claims"]': 'nav.claims'
+  };
+  function t(key, params = {}) {
+    const template = (I18N[state.locale] && I18N[state.locale][key]) || I18N.en[key] || key;
+    return template.replace(/\{(\w+)\}/g, (_, name) => String(params[name] ?? ''));
+  }
+  function applyI18n() {
+    document.documentElement.lang = state.locale;
+    document.title = t('app.title');
+    if ($('globalLocaleSelect')) $('globalLocaleSelect').value = state.locale;
+    document.querySelector('.topbar p').textContent = t('app.subtitle');
+    document.querySelectorAll('[data-i18n]').forEach((node) => { node.textContent = t(node.dataset.i18n); });
+    Object.entries(STATIC_I18N_BINDINGS).forEach(([selector, key]) => { const node = document.querySelector(selector); if (node) node.textContent = t(key); });
+    if ($('loadBuildWeekDemoBtn')) $('loadBuildWeekDemoBtn').textContent = t('understand.demo');
+    if ($('understandRuleBadge')) $('understandRuleBadge').textContent = t('understand.badge');
+    if ($('understandSentences') && !state.understand) $('understandSentences').textContent = t('understand.empty');
+    renderUnderstandError();
+  }
 
   async function api(path, options = {}) {
     const response = await fetch(path, {
@@ -98,7 +138,7 @@
       $('healthBadge').textContent = `control plane ${health.version}`;
       $('healthBadge').className = 'badge ok';
     } catch (error) {
-      $('healthBadge').textContent = 'offline';
+      $('healthBadge').textContent = t('app.offline');
       $('healthBadge').className = 'badge warn';
     }
   }
@@ -999,66 +1039,60 @@
     const suggestedLayer = state.visualComparison.firstStrict ?? state.visualComparison.declaredLayers[0] ?? state.visualComparison.layers[0] ?? null;
     if (!state.visualComparison.layers.includes(state.visualSelectedLayer)) state.visualSelectedLayer = suggestedLayer;
     renderVisualComparison();
-    loadUnderstand().catch((error) => { state.understand = null; renderUnderstand(); renderUnderstandError(error.message); });
+    loadUnderstand().catch((error) => { state.understand = null; state.understandError = { code: 'understand.request_failed', technicalDetail: error.message }; renderUnderstand(); renderUnderstandError(); });
     setStatus('visualStatus', `Comparaison chargée : ${visualArtifactLabel(state.visualA)} ↔ ${visualArtifactLabel(state.visualB)}.`, 'ok');
   }
 
 
   async function loadUnderstand() {
     if (!state.visualA || !state.visualB) return;
-    const locale = $('understandLocale')?.value || 'en';
+    const locale = state.locale;
     const selectedScope = $('visualScopeSelect')?.value || 'prompt';
     const scope = selectedScope === 'generated' ? 'generated_ordinal' : (selectedScope === 'all' ? 'all' : 'prompt_fixed');
     clearUnderstandError();
     const endpoint = (state.demoArtifacts || []).some((run) => run.run_id === state.visualA.run_id) ? '/api/demo/build-week/understand/compare' : '/api/understand/compare';
-    state.understand = await api(endpoint, { method: 'POST', body: JSON.stringify({ run_a: state.visualA.run_id, run_b: state.visualB.run_id, lens: $('visualLensSelect').value || 'JACOBIAN_LENS', scope, locale, probability_abs_tolerance: 0 }) });
+    const seq = ++state.understandRequestSeq;
+    const requestedLocale = state.locale;
+    const result = await api(endpoint, { method: 'POST', body: JSON.stringify({ run_a: state.visualA.run_id, run_b: state.visualB.run_id, lens: $('visualLensSelect').value || 'JACOBIAN_LENS', scope, locale: requestedLocale, probability_abs_tolerance: 0 }) });
+    if (seq !== state.understandRequestSeq || requestedLocale !== state.locale) return;
+    state.understand = result; state.understandError = null;
     renderUnderstand();
   }
 
 
-  function updateUnderstandStaticLabels() {
-    const locale = $('understandLocale')?.value || 'en';
-    const copy = locale === 'fr'
-      ? { demo: 'Charger la démo Build Week', language: 'Langue', badge: 'Résumé par règles, sans LLM' }
-      : { demo: 'Load Build Week demo', language: 'Language', badge: 'Rule-based, no LLM summary' };
-    if ($('loadBuildWeekDemoBtn')) $('loadBuildWeekDemoBtn').textContent = copy.demo;
-    if ($('understandLanguageLabel')) $('understandLanguageLabel').textContent = copy.language;
-    if ($('understandRuleBadge')) $('understandRuleBadge').textContent = copy.badge;
-  }
-
   function renderUnderstand() {
     const cov = $('coverageCards'); const box = $('understandSentences'); if (!cov || !box) return;
-    const locale = $('understandLocale')?.value || 'en'; updateUnderstandStaticLabels(); const why = locale === 'fr' ? 'Pourquoi ?' : 'Why?';
-    const labels = locale === 'fr' ? { source: 'source', transmitted: 'transmis', instrumented: 'instrumentés', generated: 'générés instrumentés', layers: 'couches', unknown: 'inconnu', complete: 'complète', partial: 'partielle' } : { source: 'source', transmitted: 'transmitted', instrumented: 'instrumented', generated: 'instrumented generated', layers: 'layers', unknown: 'unknown', complete: 'complete', partial: 'partial' };
+    const locale = state.locale; const why = locale === 'fr' ? 'Pourquoi ?' : 'Why?';
+    const labels = { source: t('coverage.source'), transmitted: t('coverage.transmitted'), instrumented: t('coverage.instrumented'), generated: t('coverage.generated'), layers: t('coverage.layers'), unknown: t('coverage.unknown'), complete: t('coverage.complete'), partial: t('coverage.partial') };
     const statusLabel = (status) => labels[status] || labels.unknown;
     const cards = [state.visualA, state.visualB].filter(Boolean).map((run, idx) => {
       const c = run.coverage || {}; const status = c.status || 'unknown'; const unknown = labels.unknown;
       return `<article class="coverage-card ${status !== 'complete' ? 'warn' : ''}"><strong>${idx === 0 ? 'A' : 'B'} · ${statusLabel(status)}</strong><span>${labels.source} ${c.source_tokens_total ?? unknown}</span><span>${labels.transmitted} ${c.transmitted_tokens ?? unknown}</span><span>${labels.instrumented} ${c.instrumented_tokens ?? unknown}</span><span>${labels.generated} ${c.instrumented_generated_tokens ?? unknown}</span><span>${labels.layers} ${(c.captured_layers || []).join(', ') || unknown}</span></article>`;
     }).join('');
-    cov.innerHTML = cards || `<p class="muted-copy">${locale === 'fr' ? 'Aucune couverture chargée.' : 'No coverage loaded.'}</p>`;
+    cov.innerHTML = cards || `<p class="muted-copy">${t('understand.empty')}</p>`;
     const sentences = state.understand?.sentences || [];
     box.replaceChildren();
     sentences.forEach((sentence) => { const details = document.createElement('details'); details.className = `understand-trace ${sentence.severity || 'info'}`; const summary = document.createElement('summary'); summary.textContent = sentence.text; details.append(summary); const pre = document.createElement('pre'); pre.textContent = JSON.stringify({ rule_id: sentence.rule_id, template_id: sentence.template_id, evidence: sentence.evidence }, null, 2); const whyLabel = document.createElement('strong'); whyLabel.textContent = why; details.append(whyLabel, pre); box.append(details); });
   }
 
-  function clearUnderstandError() { const node = $('understandError'); if (node) { node.hidden = true; node.replaceChildren(); } }
+  function clearUnderstandError() { state.understandError = null; const node = $('understandError'); if (node) { node.hidden = true; node.replaceChildren(); } }
 
-  function renderUnderstandError(message) {
+  function renderUnderstandError(error = state.understandError) {
     const node = $('understandError'); if (!node) return;
-    const locale = $('understandLocale')?.value || 'en';
+    if (!error) { node.hidden = true; node.replaceChildren(); return; }
     node.hidden = false; node.replaceChildren();
-    const title = document.createElement('strong'); title.textContent = locale === 'fr' ? 'Erreur Understand' : 'Understand error';
-    const detail = document.createElement('pre'); detail.textContent = String(message || 'Unknown error');
-    const retry = document.createElement('p'); retry.textContent = locale === 'fr' ? 'Réessaie ou recharge la démo vérifiée.' : 'Retry or reload the verified demo.';
+    const title = document.createElement('strong'); title.textContent = t('understand.errorTitle');
+    const detail = document.createElement('pre'); detail.textContent = String(error.technicalDetail || error.message || error.code || '');
+    const retry = document.createElement('p'); retry.textContent = t('understand.retry');
     node.append(title, detail, retry);
   }
 
   async function loadStoredVisualComparison() {
     const runA = $('visualRunA').value; const runB = $('visualRunB').value;
-    if (!runA || !runB) throw new Error('Choisis deux runs archivés.');
-    if (runA === runB) throw new Error('A et B doivent être deux runs différents.');
+    if (!runA || !runB) throw new Error(t('error.noRuns'));
+    if (runA === runB) throw new Error(t('error.sameRuns'));
     state.understand = null; renderUnderstand(); clearUnderstandError();
-    setStatus('visualStatus', 'Chargement des deux artifacts…');
+    setStatus('visualStatus', t('status.loadingArtifacts'));
     [state.visualA, state.visualB] = await Promise.all([
       api(`/api/runs/${encodeURIComponent(runA)}`),
       api(`/api/runs/${encodeURIComponent(runB)}`),
@@ -1112,12 +1146,12 @@
     state.visualSelectedColumn = 0; state.visualSelectedLayer = null;
     $('visualScopeSelect').value = 'all';
     recomputeVisualComparison();
-    setStatus('visualStatus', 'Build Week demo loaded: Pair A selected.', 'ok');
+    setStatus('visualStatus', t('status.demoLoaded'), 'ok');
   }
 
   $('visualCompareStoredBtn').addEventListener('click', () => loadStoredVisualComparison().catch((error) => setStatus('visualStatus', error.message, 'error')));
   $('loadBuildWeekDemoBtn')?.addEventListener('click', () => loadBuildWeekDemo().catch((error) => setStatus('visualStatus', error.message, 'error')));
-  $('understandLocale')?.addEventListener('change', () => { updateUnderstandStaticLabels(); renderUnderstand(); if (!state.understand) renderUnderstandError($('understandError')?.textContent || ''); loadUnderstand().catch((error) => { state.understand = null; renderUnderstand(); renderUnderstandError(error.message); }); });
+  $('globalLocaleSelect')?.addEventListener('change', () => { state.locale = $('globalLocaleSelect').value === 'fr' ? 'fr' : 'en'; localStorage.setItem('prismora.locale', state.locale); state.understandRequestSeq += 1; clearUnderstandError(); applyI18n(); renderUnderstand(); if (state.visualA && state.visualB) loadUnderstand().catch((error) => { state.understand = null; state.understandError = { code: 'understand.request_failed', technicalDetail: error.message }; renderUnderstand(); renderUnderstandError(); }); });
   $('visualSwapRunsBtn').addEventListener('click', () => { const a = $('visualRunA').value; $('visualRunA').value = $('visualRunB').value; $('visualRunB').value = a; });
   $('visualRedrawBtn').addEventListener('click', () => { try { recomputeVisualComparison(); } catch (error) { setStatus('visualStatus', error.message, 'error'); } });
   $('visualLensSelect').addEventListener('change', () => { if (state.visualA && state.visualB) { state.visualSelectedLayer = null; recomputeVisualComparison(); } });
