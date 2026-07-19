@@ -11,7 +11,8 @@ from fastapi.responses import FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 
 from ..analysis.baseline import build_top1_reference_distribution
-from ..analysis.compare import bridge_equivalence, readout_filter_effect, top1_agreement_by_layer
+from ..analysis.compare import bridge_equivalence, readout_filter_effect, strict_comparison_facts, top1_agreement_by_layer
+from ..analysis.understand import understand_compare, understand_run
 from ..backends.base import BackendError, ExecutionBackend
 from ..backends.mock import MockBackend
 from ..backends.neuronpedia import NeuronpediaBackend
@@ -19,6 +20,7 @@ from ..backends.worker_http import WorkerHTTPBackend
 from ..canonical import canonical_json_bytes, sha256_json
 from ..cockpit import to_cockpit_v1
 from ..config import Settings
+from ..demo import verify_demo_manifest
 from ..matrix import MatrixError, expand_experiment, plan_summary
 from ..normalize import RawShapeError, create_run_artifact
 from ..preregistration import lock_spec, verify_locked_spec
@@ -156,6 +158,36 @@ def create_app(
             raise HTTPException(status_code=404, detail="Example not found")
         return json.loads(path.read_text(encoding="utf-8"))
 
+    @app.get("/api/demo/build-week")
+    async def get_build_week_demo() -> dict[str, Any]:
+        try:
+            demo_dir = package_root / "demo" / "build_week_2026"
+            if not demo_dir.exists():
+                raise FileNotFoundError("Build Week demo directory not found")
+            payload = verify_demo_manifest(demo_dir)
+            return {"schema": "prismora.demo_loader/v1", **payload}
+        except Exception as exc:
+            raise _http_error(exc) from exc
+
+    @app.post("/api/demo/build-week/understand/compare")
+    async def compare_build_week_demo(payload: dict[str, Any] = Body(...)) -> dict[str, Any]:
+        try:
+            demo_dir = package_root / "demo" / "build_week_2026"
+            verified = verify_demo_manifest(demo_dir)
+            artifacts = {artifact["run_id"]: artifact for artifact in verified["artifacts"]}
+            for required in ("run_a", "run_b", "lens", "scope", "probability_abs_tolerance"):
+                if required not in payload:
+                    raise ValueError(f"Missing required comparison field: {required}")
+            return understand_compare(
+                artifacts[payload["run_a"]], artifacts[payload["run_b"]],
+                lens=payload["lens"], scope=payload["scope"], locale=payload.get("locale", "en"),
+                probability_abs_tolerance=float(payload["probability_abs_tolerance"]),
+            )
+        except KeyError as exc:
+            raise HTTPException(status_code=404, detail=f"Demo run not found: {exc}") from exc
+        except Exception as exc:
+            raise _http_error(exc) from exc
+
     @app.get("/api/experiments")
     async def list_experiments() -> dict[str, Any]:
         return {"experiments": context.store.list_experiments()}
@@ -242,6 +274,13 @@ def create_app(
     async def get_cockpit(run_id: str, experiment_id: str | None = Query(default=None)) -> dict[str, Any]:
         try:
             return to_cockpit_v1(context.store.get_run(run_id, experiment_id))
+        except Exception as exc:
+            raise _http_error(exc) from exc
+
+    @app.get("/api/runs/{run_id}/understand")
+    async def get_understand(run_id: str, experiment_id: str | None = Query(default=None), locale: str = Query(default="en")) -> dict[str, Any]:
+        try:
+            return understand_run(context.store.get_run(run_id, experiment_id), locale=locale)
         except Exception as exc:
             raise _http_error(exc) from exc
 
@@ -424,6 +463,22 @@ def create_app(
             path = context.store.save_derived(experiment_id, "baselines", baseline["baseline_id"], baseline)
             baseline["stored_relative_path"] = str(path.relative_to(context.store.root))
             return baseline
+        except Exception as exc:
+            raise _http_error(exc) from exc
+
+    @app.post("/api/understand/compare")
+    async def understand_compare_runs(payload: dict[str, Any] = Body(...)) -> dict[str, Any]:
+        try:
+            for required in ("run_a", "run_b", "lens", "scope", "probability_abs_tolerance"):
+                if required not in payload:
+                    raise ValueError(f"Missing required comparison field: {required}")
+            run_a = context.store.get_run(payload["run_a"])
+            run_b = context.store.get_run(payload["run_b"])
+            return understand_compare(
+                run_a, run_b, lens=payload["lens"], scope=payload["scope"],
+                locale=payload.get("locale", "en"),
+                probability_abs_tolerance=float(payload["probability_abs_tolerance"]),
+            )
         except Exception as exc:
             raise _http_error(exc) from exc
 

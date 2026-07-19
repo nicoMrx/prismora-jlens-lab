@@ -257,3 +257,70 @@ def bridge_equivalence(
         "layers": rows,
         "warnings": warnings,
     }
+
+
+def strict_comparison_facts(
+    a: dict[str, Any],
+    b: dict[str, Any],
+    lens: str,
+    *,
+    scope: str = "prompt_fixed",
+    probability_abs_tolerance: float = 0.0,
+) -> dict[str, Any]:
+    """Deterministic readout facts for Understand and API consumers."""
+    if probability_abs_tolerance < 0:
+        raise ValueError("probability_abs_tolerance must be non-negative")
+    if scope not in {"prompt_fixed", "generated_ordinal"}:
+        raise ValueError("scope must be prompt_fixed or generated_ordinal")
+    tokens_a = a["result"]["tokens"]
+    tokens_b = b["result"]["tokens"]
+    if scope == "prompt_fixed":
+        seq_a = [t for t in tokens_a if not t.get("is_generated")]
+        by_pos_b = {t.get("position"): t for t in tokens_b if not t.get("is_generated")}
+        pairs = [(ta, by_pos_b.get(ta.get("position"))) for ta in seq_a]
+    else:
+        ga = [t for t in tokens_a if t.get("is_generated")]
+        gb = [t for t in tokens_b if t.get("is_generated")]
+        pairs = list(zip(ga, gb, strict=False))
+    layers_a = list(a["result"].get("meta", {}).get("layers_by_type", {}).get(lens, []))
+    layers_b = list(b["result"].get("meta", {}).get("layers_by_type", {}).get(lens, []))
+    ia = {layer: idx for idx, layer in enumerate(layers_a)}
+    ib = {layer: idx for idx, layer in enumerate(layers_b)}
+    shared = sorted(set(ia) & set(ib))
+    warnings: list[str] = []
+    if scope == "generated_ordinal":
+        warnings.append("Generated tokens are aligned by ordinal position only; no semantic alignment is attempted.")
+    first_strict = None
+    first_top1 = None
+    rows = []
+    missing = []
+    for layer in shared:
+        cells = strict_div = top1_div = 0
+        for ordinal, (ta, tb) in enumerate(pairs):
+            if tb is None or (scope == "prompt_fixed" and ta.get("id") != tb.get("id")):
+                missing.append({"layer": layer, "position": ta.get("position"), "reason": "missing_or_token_id_mismatch"})
+                continue
+            ra = _result_for_lens(ta, lens); rb = _result_for_lens(tb, lens)
+            try:
+                ca = ra["top_tokens"][ia[layer]]; cb = rb["top_tokens"][ib[layer]]  # type: ignore[index]
+                pa = ra.get("top_probs", [])[ia[layer]]; pb = rb.get("top_probs", [])[ib[layer]]  # type: ignore[union-attr]
+            except Exception:
+                missing.append({"layer": layer, "position": ta.get("position", ordinal), "reason": "missing_or_malformed_cell"})
+                continue
+            if not ca or not cb:
+                missing.append({"layer": layer, "position": ta.get("position", ordinal), "reason": "empty_topk"})
+                continue
+            cells += 1
+            top1_changed = ca[0] != cb[0]
+            prob_changed = any(abs(float(x)-float(y)) > probability_abs_tolerance for x,y in zip(pa, pb, strict=False)) or len(pa) != len(pb)
+            strict_changed = top1_changed or ca != cb or prob_changed
+            top1_div += int(top1_changed); strict_div += int(strict_changed)
+            cell = {"layer": layer, "position": ta.get("position", ordinal), "token_id": ta.get("id")}
+            if strict_changed and first_strict is None: first_strict = cell
+            if top1_changed and first_top1 is None: first_top1 = cell
+        rows.append({"layer": layer, "cells": cells, "strict_divergence_rate": strict_div/cells if cells else None, "top1_divergence_rate": top1_div/cells if cells else None})
+    if missing:
+        warnings.append(f"{len(missing)} aligned layer-position cells were missing or malformed.")
+    ga = [t.get("id") for t in tokens_a if t.get("is_generated")]
+    gb = [t.get("id") for t in tokens_b if t.get("is_generated")]
+    return {"schema":"prismora.compare_facts/v1","run_a":a["run_id"],"run_b":b["run_id"],"lens":lens,"scope":scope,"probability_abs_tolerance":probability_abs_tolerance,"generated_token_ids_identical":ga==gb,"generated_text_a":a["result"].get("done",{}).get("completion"),"generated_text_b":b["result"].get("done",{}).get("completion"),"shared_layers":shared,"first_strict_divergence":first_strict,"first_top1_divergence":first_top1,"per_layer":rows,"missing_cells":missing,"warnings":warnings}
