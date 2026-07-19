@@ -69,3 +69,57 @@ def test_dynamic_content_is_not_destructively_replaced_by_static_i18n():
     assert "document.querySelectorAll('[data-i18n]')" in app
     assert "if (!state.visualComparison)" in app
     assert "readerOutput" not in app.split("function applyI18n()", 1)[1].split("async function api", 1)[0]
+
+
+def _demo_artifact():
+    import json
+    return json.loads((ROOT / "demo" / "build_week_2026" / "demo-pair-a-control.json").read_text())
+
+
+def _generated_tokens(artifact):
+    return [tok for tok in artifact["result"]["tokens"] if tok.get("is_generated") or tok.get("generated") or tok.get("role") == "generated"]
+
+
+def _demo_top_candidates(artifact, token, layer):
+    layers = artifact["result"]["meta"]["layers_by_type"]["JACOBIAN_LENS"]
+    index = layers.index(layer)
+    result = token["results"][0]
+    return list(zip(result["top_tokens"][index], result["top_probs"][index]))[:8]
+
+
+def test_verified_demo_reader_has_real_candidates_and_trajectory_values():
+    artifact = _demo_artifact()
+    token = _generated_tokens(artifact)[0]
+    layers = artifact["result"]["meta"]["layers_by_type"]["JACOBIAN_LENS"]
+    valid = [layer for layer in layers if _demo_top_candidates(artifact, token, layer)]
+    assert valid
+    selected_layer = valid[-1]
+    top = _demo_top_candidates(artifact, token, selected_layer)
+    assert top and top[0][0]
+    candidate = top[0][0]
+    trajectory = [prob for layer in layers for tok, prob in _demo_top_candidates(artifact, token, layer) if tok == candidate]
+    assert trajectory and all(isinstance(prob, float) for prob in trajectory)
+
+
+def test_level_buttons_navigate_to_level_defaults():
+    app = read(WEB / "app.js")
+    assert "defaultPanelForLevel(level)" in app
+    assert "'explore' ? 'visualizer'" in app
+    assert "'control' ? 'dashboard'" in app
+    assert "navigate(defaultPanelForLevel(state.level))" in app
+
+
+def test_french_reader_visualizer_catalogue_uses_token_not_jeton():
+    app = read(WEB / "app.js")
+    french_catalogue = app.split("fr: {", 1)[1].split("}\n  };", 1)[0]
+    assert "'nav.reader': 'Lire'" in french_catalogue
+    assert "'reader.understand': 'Comprendre'" in french_catalogue
+    assert "jeton" not in french_catalogue.lower()
+
+
+def test_light_theme_neutralizes_legacy_reader_backgrounds():
+    styles = read(WEB / "styles.css")
+    assert ':root[data-theme="light"]' in styles
+    assert ".reader-conversation,.reader-jlens-card,.reader-understand" in styles
+    assert "background:var(--panel)" in styles
+    assert "input,select,textarea" in styles and "color:var(--text)" in styles

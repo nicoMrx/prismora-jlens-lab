@@ -44,13 +44,29 @@
 
     <main class="content">
       
-      <section id="panel-reader" class="panel-page">
-        <div class="page-heading"><div><h2 data-i18n="reader.title">Read</h2><p data-i18n="reader.description">Conversation-first reading of real J-Lens artifacts. Raw artifacts remain authoritative.</p></div><span class="badge ok" data-i18n="reader.demoBadge">Verified Build Week demo</span></div>
-        <div class="reader-grid">
-          <article class="card reader-card"><div class="toolbar-row wrap"><button id="readerLoadDemoBtn" class="primary" data-i18n="reader.loadDemo">Load verified demo</button><button data-jump="visualizer" class="secondary" data-i18n="reader.openExplorer">Open evidence in Explorer</button><span id="readerSourceBadge" class="badge muted">—</span></div><h3 data-i18n="reader.prompt">Prompt / request</h3><pre id="readerPrompt" class="reader-text">—</pre><h3 data-i18n="reader.output">Generated output</h3><pre id="readerOutput" class="reader-text generated-output">—</pre><div id="readerTokens" class="reader-token-list" aria-label="Generated tokens"></div></article>
-          <aside class="card reader-card"><h3 data-i18n="reader.model">Model and provenance</h3><div id="readerModelMeta" class="meta-grid compact"></div><h3 data-i18n="reader.layers">Captured layers</h3><div id="readerLayerRail" class="layer-rail"></div><h3 data-i18n="reader.selected">Selected token / layer</h3><div id="readerSelection" class="summary-box">—</div><h3 data-i18n="reader.top8">Actual top-8 candidates</h3><div id="readerTop8" class="top8-list"></div><h3 data-i18n="reader.trajectory">Candidate trajectory</h3><div id="readerTrajectory" class="trajectory-mini"></div></aside>
+      <section id="panel-reader" class="panel-page reader-page">
+        <div class="reader-hero">
+          <div class="reader-hero-copy">
+            <p class="eyebrow" data-i18n="reader.eyebrow">Conversation · verified synthetic demo</p>
+            <h2 data-i18n="reader.heroTitle">Read what happens beneath the answer</h2>
+            <p data-i18n="reader.heroSubtitle">Follow one generated answer token through measured J-Lens layers without hiding raw evidence.</p>
+            <div class="toolbar-row wrap"><button id="readerLoadDemoBtn" class="primary" data-i18n="reader.loadDemo">Load verified demo</button><button data-jump="visualizer" class="secondary" data-i18n="reader.openExplorer">Open complete evidence in Explorer</button></div>
+          </div>
+          <div class="reader-hero-mark" aria-hidden="true"></div>
+          <aside class="reader-provenance" aria-live="polite"><h3 data-i18n="reader.modelSource">Model / source</h3><div id="readerModelMeta"></div></aside>
         </div>
-        <div class="card"><div class="understand-heading"><h3 data-i18n="reader.understand">Compact Understand</h3><span class="badge" data-i18n="understand.badge">Rule-based, no LLM summary</span></div><div id="readerUnderstand" class="human-reading"></div></div>
+        <article class="reader-conversation" aria-labelledby="readerConversationTitle">
+          <h3 id="readerConversationTitle" data-i18n="reader.conversation">Conversation</h3>
+          <div class="message user-message"><span class="message-role" data-i18n="reader.user">Request</span><pre id="readerPrompt" class="message-text">—</pre></div>
+          <div class="message model-message"><span class="message-role" data-i18n="reader.modelAnswer">Model answer</span><pre id="readerOutput" class="message-text generated-output">—</pre><div id="readerTokens" class="reader-token-list" aria-label="Generated tokens"></div><p class="reader-help" data-i18n="reader.tokenHelp">Select a response token to inspect its measured candidates.</p></div>
+        </article>
+        <article class="reader-jlens-card" aria-labelledby="readerLensTitle">
+          <div class="reader-card-head"><div><p class="eyebrow" data-i18n="reader.jlensEyebrow">J-Lens measured readout</p><h3 id="readerLensTitle"><span data-i18n="reader.selectedToken">Selected token</span> <span id="readerSelectedTokenTitle" class="mono">—</span></h3></div><div class="reader-badges"><span id="readerLensBadge" class="badge">JACOBIAN_LENS</span><span id="readerLayerCount" class="badge muted">—</span></div></div>
+          <div id="readerLayerRail" class="layer-rail" aria-label="Measured layers"></div>
+          <div id="readerSelection" class="summary-box">—</div>
+          <div class="reader-measure-grid"><section><h4 data-i18n="reader.top8">Actual top-8 candidates</h4><div id="readerTop8" class="top8-list"></div></section><section><h4 data-i18n="reader.trajectory">Candidate trajectory</h4><div id="readerTrajectory" class="trajectory-mini"></div></section></div>
+        </article>
+        <article class="reader-understand card"><div class="understand-heading"><h3 data-i18n="reader.understand">Understand compact</h3><span class="badge" data-i18n="understand.badge">Rule-based, no LLM summary</span></div><div id="readerUnderstand" class="human-reading"></div><button data-jump="visualizer" class="secondary reader-evidence-link" data-i18n="reader.completeEvidence">Open complete Explorer evidence</button></article>
       </section>
 
       <section id="panel-dashboard" class="panel-page active">
