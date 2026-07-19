@@ -26,18 +26,20 @@
 
   const I18N = {
     en: {
-      'app.title': 'Prismora J-Lens Lab', 'app.subtitle': 'One protocol · public API and private GPU workers · immutable evidence', 'app.language': 'Language', 'app.refresh': 'Refresh', 'app.checking': 'checking…', 'app.offline': 'offline',
+      'app.title': 'Prismora J-Lens Lab', 'shell.securityLead': 'Local control plane:', 'shell.securityText': 'no user authentication is bundled. Keep it on localhost or protect it behind an authenticated reverse proxy.', 'app.subtitle': 'One protocol · public API and private GPU workers · immutable evidence', 'app.language': 'Language', 'app.refresh': 'Refresh', 'app.checking': 'checking…', 'app.offline': 'offline',
       'nav.dashboard': 'Overview', 'nav.experiments': 'Experiments', 'nav.registry': 'Model registry', 'nav.campaign': 'Campaign builder', 'nav.fleet': 'GPU / API fleet', 'nav.runs': 'Runs', 'nav.inspector': 'Run inspector', 'nav.visualizer': 'Human Visualizer', 'nav.baseline': 'Baseline lab', 'nav.causal': 'Causal lab', 'nav.compare': 'Comparison studio', 'nav.claims': 'Claim ledger',
       'understand.badge': 'Rule-based, no LLM summary', 'understand.demo': 'Load Build Week demo', 'understand.empty': 'Load a comparison to see deterministic facts.', 'understand.errorTitle': 'Understand error', 'understand.retry': 'Retry or reload the verified demo.',
       'coverage.source': 'source', 'coverage.transmitted': 'transmitted', 'coverage.instrumented': 'instrumented', 'coverage.generated': 'instrumented generated', 'coverage.layers': 'layers', 'coverage.unknown': 'unknown', 'coverage.complete': 'complete', 'coverage.partial': 'partial',
-      'status.demoLoaded': 'Build Week demo loaded: Pair A selected.', 'status.loadingArtifacts': 'Loading both artifacts…', 'error.noRuns': 'Choose two archived runs.', 'error.sameRuns': 'A and B must be two different runs.'
+      'status.demoLoaded': 'Build Week demo loaded: Pair A selected.', 'status.loadingArtifacts': 'Loading both artifacts…', 'status.comparisonLoaded': 'Comparison loaded: {a} ↔ {b}.', 'status.probeResults': '{count} readable J-Lens result(s) found in {files} file(s).', 'local.unimportedWarning': 'Local file displayed without import into the Prismora archive.', 'error.noRuns': 'Choose two archived runs.', 'error.sameRuns': 'A and B must be two different runs.', 'error.noLens': 'No common lens between A and B.', 'error.demoUnavailable': 'Build Week demo artifacts are unavailable.', 'error.localLoadFirst': 'Load a folder, then choose two local results.', 'error.localDifferent': 'A and B must be different.',
+      'visual.title': 'Human Visualizer', 'visual.description': 'Compare two runs without reading JSON: generated outputs, divergence boundary, layer-by-layer trajectory and side-by-side top-k. Raw data remains the evidence; this view helps inspect it.', 'visual.badge': 'Visual check', 'visual.choose': '1. Choose the two observations', 'visual.obsA': 'Observation A', 'visual.obsB': 'Observation B', 'visual.swap': 'Swap A ↔ B', 'visual.compareArchived': 'Compare archived runs', 'visual.probeSummary': 'Show an old unimported probe folder directly', 'visual.probeHelp': 'Select the decompressed folder containing _request_exact.json and _response_pretty.json files. Files are read locally by your browser and do not leave your machine.', 'visual.loadProbe': 'Read folder', 'visual.compareLocal': 'Compare local files', 'visual.statusEmpty': 'Choose two runs, then click Compare.', 'visual.controls': '2. Choose what you inspect', 'visual.lens': 'Lens', 'visual.positions': 'Positions', 'visual.scope.prompt': 'Fixed prompt', 'visual.scope.generated': 'Generated output', 'visual.scope.all': 'Prompt + output', 'visual.metric': 'Map measure', 'visual.metric.strict': 'Different top-k or probabilities', 'visual.metric.top1': 'Different top-1', 'visual.metric.jaccard': 'Top-k gap', 'visual.redraw': 'Refresh view', 'visual.output': 'Generated output', 'visual.outputEmpty': 'Load two observations.', 'visual.noGenerated': 'No generated text.', 'visual.where': '3. Where do trajectories separate?', 'visual.whereHelp': 'Each column is an aligned token, each row is a real layer. Click a cell to inspect exact candidates.', 'visual.selectedCell': 'Selected cell', 'visual.clickMap': 'Click the map.', 'visual.trajectory': 'Selected token trajectory', 'visual.trajectoryHelp': 'The table shows the first candidate for A and B layer by layer. Marked rows are rows where they differ.', 'visual.factual': '4. Factual reading', 'visual.noComparison': 'No comparison loaded.', 'visual.ruleLead': 'Rule:', 'visual.ruleText': 'this section describes only what is measured. It does not automatically turn a divergence into proof of causality, bias, censorship or “thought”.', 'visual.strictFirst': 'First strict divergence', 'visual.top1First': 'First top-1 divergence', 'visual.declaredLayers': 'Declared layer(s)', 'visual.generatedOutputs': 'Generated outputs', 'visual.alignedTokens': 'Aligned tokens', 'visual.sharedLayers': 'Shared layers', 'visual.none': 'none', 'visual.identical': 'identical', 'visual.different': 'different', 'visual.same': 'same', 'visual.missing': 'missing', 'visual.layer': 'layer', 'visual.alignedTokensArrow': 'aligned tokens →', 'visual.declaredLayer': 'declared layer {layer}', 'visual.cellRate': 'different-cell rate', 'visual.strictLegend': '— strict', 'visual.top1Legend': '— top-1', 'visual.heatLegend': '{metric} · blue-green = identical · orange/red = different · dashed = declared layer', 'visual.metricStrictLabel': 'Strict difference', 'visual.metricJaccardLabel': 'Top-k gap', 'visual.cellMissing': '{label} · layer {layer} · missing cell', 'visual.prompt': 'Prompt', 'visual.generated': 'Generated', 'visual.rank': 'Rank', 'visual.state': 'State', 'visual.producedAnswer': 'Generated output', 'visual.noStrict': 'No strict difference is measured in the selected lens and scope.', 'visual.firstDiff': 'The first strict difference appears at layer {strict}. The first top-1 difference appears at layer {top1}.', 'visual.declaredCoincides': 'The measured boundary exactly matches the first declared intervention layer ({layer}). This is compatible with an intervention applied there.', 'visual.beforeDeclared': 'WARNING: a divergence appears before the declared layer ({layer}). Check alignment, baseline and request.', 'visual.afterDeclared': 'The divergence appears after the declared layer ({layer}), with an offset of {offset} layer(s).', 'visual.declaredNoVisible': 'An intervention is declared at layer {layer}, but no divergence is visible in this view.', 'visual.noDeclared': 'No intervention layer is declared in the metadata for either observation.', 'visual.surfaceSame': 'The generated texts are identical in these two runs.', 'visual.surfaceDifferent': 'The generated texts are different in these two runs.', 'visual.maxRow': 'The highest share of strictly different cells is observed at layer {layer} ({rate}% of aligned tokens).', 'visual.caution': 'This view establishes measured differences and their location. Semantic causality still requires repeated baselines and preregistered controls.', 'visual.syntheticIntervention': 'Synthetic demo intervention · layer(s) {layers}', 'visual.noIntervention': 'No declared intervention'
     },
     fr: {
-      'app.title': 'Prismora J-Lens Lab', 'app.subtitle': 'Un protocole · API publique et workers GPU privés · preuves immuables', 'app.language': 'Langue', 'app.refresh': 'Actualiser', 'app.checking': 'vérification…', 'app.offline': 'hors ligne',
+      'app.title': 'Prismora J-Lens Lab', 'shell.securityLead': 'Plan de contrôle local :', 'shell.securityText': 'aucune authentification utilisateur n’est incluse. Garde-le sur localhost ou protège-le derrière un reverse proxy authentifié.', 'app.subtitle': 'Un protocole · API publique et workers GPU privés · preuves immuables', 'app.language': 'Langue', 'app.refresh': 'Actualiser', 'app.checking': 'vérification…', 'app.offline': 'hors ligne',
       'nav.dashboard': 'Aperçu', 'nav.experiments': 'Expériences', 'nav.registry': 'Registre des modèles', 'nav.campaign': 'Créateur de campagne', 'nav.fleet': 'Parc GPU / API', 'nav.runs': 'Exécutions', 'nav.inspector': 'Inspecteur d’exécution', 'nav.visualizer': 'Visualiseur humain', 'nav.baseline': 'Laboratoire de référence', 'nav.causal': 'Laboratoire causal', 'nav.compare': 'Studio de comparaison', 'nav.claims': 'Registre des affirmations',
       'understand.badge': 'Résumé par règles, sans LLM', 'understand.demo': 'Charger la démo Build Week', 'understand.empty': 'Charge une comparaison pour voir les faits déterministes.', 'understand.errorTitle': 'Erreur Understand', 'understand.retry': 'Réessaie ou recharge la démo vérifiée.',
       'coverage.source': 'source', 'coverage.transmitted': 'transmis', 'coverage.instrumented': 'instrumentés', 'coverage.generated': 'générés instrumentés', 'coverage.layers': 'couches', 'coverage.unknown': 'inconnu', 'coverage.complete': 'complète', 'coverage.partial': 'partielle',
-      'status.demoLoaded': 'Démo Build Week chargée : paire A sélectionnée.', 'status.loadingArtifacts': 'Chargement des deux artifacts…', 'error.noRuns': 'Choisis deux exécutions archivées.', 'error.sameRuns': 'A et B doivent être deux exécutions différentes.'
+      'status.demoLoaded': 'Démo Build Week chargée : paire A sélectionnée.', 'status.loadingArtifacts': 'Chargement des deux artifacts…', 'status.comparisonLoaded': 'Comparaison chargée : {a} ↔ {b}.', 'status.probeResults': '{count} résultat(s) J-Lens lisible(s) trouvé(s) dans {files} fichier(s).', 'local.unimportedWarning': 'Fichier local affiché sans import dans l’archive Prismora.', 'error.noRuns': 'Choisis deux exécutions archivées.', 'error.sameRuns': 'A et B doivent être deux exécutions différentes.', 'error.noLens': 'Aucune lentille commune entre A et B.', 'error.demoUnavailable': 'Les artifacts de démo Build Week sont indisponibles.', 'error.localLoadFirst': 'Charge un dossier puis choisis deux résultats locaux.', 'error.localDifferent': 'A et B doivent être différents.',
+      'visual.title': 'Visualiseur humain', 'visual.description': 'Comparer deux exécutions sans lire les JSON : sorties générées, frontière de divergence, trajectoire couche par couche et top-k côte à côte. Les données brutes restent la preuve ; cette vue sert à les contrôler.', 'visual.badge': 'Contrôle visuel', 'visual.choose': '1. Choisir les deux observations', 'visual.obsA': 'Observation A', 'visual.obsB': 'Observation B', 'visual.swap': 'Échanger A ↔ B', 'visual.compareArchived': 'Comparer les exécutions archivées', 'visual.probeSummary': 'Afficher directement un ancien dossier de probe non importé', 'visual.probeHelp': 'Sélectionne le dossier décompressé contenant les fichiers _request_exact.json et _response_pretty.json. Les fichiers sont lus localement par ton navigateur et ne quittent pas ta machine.', 'visual.loadProbe': 'Lire le dossier', 'visual.compareLocal': 'Comparer les fichiers locaux', 'visual.statusEmpty': 'Choisis deux exécutions puis clique sur Comparer.', 'visual.controls': '2. Choisir ce que tu regardes', 'visual.lens': 'Lentille', 'visual.positions': 'Positions', 'visual.scope.prompt': 'Prompt fixe', 'visual.scope.generated': 'Sortie générée', 'visual.scope.all': 'Prompt + sortie', 'visual.metric': 'Mesure de la carte', 'visual.metric.strict': 'Top-k ou probabilités différents', 'visual.metric.top1': 'Top-1 différent', 'visual.metric.jaccard': 'Écart top-k', 'visual.redraw': 'Actualiser la vue', 'visual.output': 'Sortie générée', 'visual.outputEmpty': 'Charge deux observations.', 'visual.noGenerated': 'Aucun texte généré.', 'visual.where': '3. Où les trajectoires se séparent-elles ?', 'visual.whereHelp': 'Chaque colonne est un token aligné, chaque ligne une couche réelle. Clique sur une cellule pour voir les candidats exacts.', 'visual.selectedCell': 'Cellule sélectionnée', 'visual.clickMap': 'Clique sur la carte.', 'visual.trajectory': 'Trajectoire du token sélectionné', 'visual.trajectoryHelp': 'Le tableau montre, couche après couche, le premier candidat de A et de B. Les lignes marquées sont celles où ils diffèrent.', 'visual.factual': '4. Lecture factuelle', 'visual.noComparison': 'Aucune comparaison chargée.', 'visual.ruleLead': 'Règle :', 'visual.ruleText': 'cette section décrit uniquement ce qui est mesuré. Elle ne transforme pas automatiquement une divergence en preuve de causalité, de biais, de censure ou de « pensée ».', 'visual.strictFirst': 'Première divergence stricte', 'visual.top1First': 'Première divergence top-1', 'visual.declaredLayers': 'Couche(s) déclarée(s)', 'visual.generatedOutputs': 'Sorties générées', 'visual.alignedTokens': 'Tokens alignés', 'visual.sharedLayers': 'Couches communes', 'visual.none': 'aucune', 'visual.identical': 'identiques', 'visual.different': 'différentes', 'visual.same': 'même', 'visual.missing': 'absent', 'visual.layer': 'couche', 'visual.alignedTokensArrow': 'tokens alignés →', 'visual.declaredLayer': 'couche déclarée {layer}', 'visual.cellRate': 'taux de cellules différentes', 'visual.strictLegend': '— strict', 'visual.top1Legend': '— top-1', 'visual.heatLegend': '{metric} · bleu-vert = identique · orange/rouge = différent · pointillés = couche déclarée', 'visual.metricStrictLabel': 'Différence stricte', 'visual.metricJaccardLabel': 'Écart top-k', 'visual.cellMissing': '{label} · couche {layer} · cellule absente', 'visual.prompt': 'Prompt', 'visual.generated': 'Généré', 'visual.rank': 'Rang', 'visual.state': 'État', 'visual.producedAnswer': 'Sortie générée', 'visual.noStrict': 'Aucune différence stricte n’est mesurée dans la lentille et la zone sélectionnées.', 'visual.firstDiff': 'La première différence stricte apparaît à la couche {strict}. La première différence top-1 apparaît à la couche {top1}.', 'visual.declaredCoincides': 'La frontière mesurée coïncide exactement avec la première couche d’intervention déclarée ({layer}). C’est compatible avec une intervention appliquée à cet endroit.', 'visual.beforeDeclared': 'ALERTE : une divergence apparaît avant la couche déclarée ({layer}). Il faut vérifier l’alignement, la référence et la requête.', 'visual.afterDeclared': 'La divergence apparaît après la couche déclarée ({layer}), avec un décalage de {offset} couche(s).', 'visual.declaredNoVisible': 'Une intervention est déclarée à la couche {layer}, mais aucune divergence n’est visible dans cette vue.', 'visual.noDeclared': 'Aucune couche d’intervention n’est déclarée dans les métadonnées des deux observations.', 'visual.surfaceSame': 'Les textes générés sont identiques dans ces deux exécutions.', 'visual.surfaceDifferent': 'Les textes générés sont différents dans ces deux exécutions.', 'visual.maxRow': 'La plus forte proportion de cellules strictement différentes est observée à la couche {layer} ({rate}% des tokens alignés).', 'visual.caution': 'Cette vue établit des différences mesurées et leur localisation. La causalité sémantique exige encore une référence répétée et les contrôles préenregistrés.', 'visual.syntheticIntervention': 'Intervention synthétique de démonstration · couche(s) {layers}', 'visual.noIntervention': 'Sans intervention déclarée'
     }
   };
   const STATIC_I18N_BINDINGS = {
@@ -53,10 +55,13 @@
     if ($('globalLocaleSelect')) $('globalLocaleSelect').value = state.locale;
     document.querySelector('.topbar p').textContent = t('app.subtitle');
     document.querySelectorAll('[data-i18n]').forEach((node) => { node.textContent = t(node.dataset.i18n); });
+    document.querySelectorAll('[data-i18n-title]').forEach((node) => { node.title = t(node.dataset.i18nTitle); });
+    document.querySelectorAll('[data-i18n-aria-label]').forEach((node) => { node.setAttribute('aria-label', t(node.dataset.i18nAriaLabel)); });
     Object.entries(STATIC_I18N_BINDINGS).forEach(([selector, key]) => { const node = document.querySelector(selector); if (node) node.textContent = t(key); });
     if ($('loadBuildWeekDemoBtn')) $('loadBuildWeekDemoBtn').textContent = t('understand.demo');
     if ($('understandRuleBadge')) $('understandRuleBadge').textContent = t('understand.badge');
     if ($('understandSentences') && !state.understand) $('understandSentences').textContent = t('understand.empty');
+    if ($('healthBadge') && $('healthBadge').classList.contains('muted')) $('healthBadge').textContent = t('app.checking');
     renderUnderstandError();
   }
 
@@ -135,7 +140,7 @@
   async function refreshHealth() {
     try {
       const health = await api('/api/health');
-      $('healthBadge').textContent = `control plane ${health.version}`;
+      $('healthBadge').textContent = `${state.locale === 'fr' ? 'plan de contrôle' : 'control plane'} ${health.version}`;
       $('healthBadge').className = 'badge ok';
     } catch (error) {
       $('healthBadge').textContent = t('app.offline');
@@ -660,9 +665,9 @@
 
   function visualInterventionText(artifact) {
     const intervention = artifact?.request?.intervention;
-    if (!intervention || ((!intervention.layers || !intervention.layers.length) && intervention.layer === undefined) || intervention.mode === 'none') return 'Sans intervention déclarée';
+    if (!intervention || ((!intervention.layers || !intervention.layers.length) && intervention.layer === undefined) || intervention.mode === 'none') return t('visual.noIntervention');
     const layersList = intervention.layers || (intervention.layer === undefined ? [] : [intervention.layer]);
-    if (intervention.type === 'synthetic' || artifact?.request?.factors?.demo) return `Intervention synthétique de démonstration · couche(s) ${layersList.join(', ') || '—'}`;
+    if (intervention.type === 'synthetic' || artifact?.request?.factors?.demo) return t('visual.syntheticIntervention', { layers: layersList.join(', ') || '—' });
     const sources = (intervention.source_tokens || []).map((item) => JSON.stringify(item.token)).join(', ') || '—';
     const target = intervention.target_token?.token ? ` → ${JSON.stringify(intervention.target_token.token)}` : '';
     const layers = layersList.join(', ') || '—';
@@ -740,7 +745,7 @@
       request: visualProbeRequestToInternal(requestPayload || {}, label),
       result,
       provenance: {},
-      quality: { warnings: ['Fichier local affiché sans import dans l’archive Prismora.'] },
+      quality: { warnings: [t('local.unimportedWarning')] },
     };
   }
 
@@ -827,14 +832,14 @@
   function renderVisualSummary() {
     const comparison = state.visualComparison; const grid = $('visualSummaryGrid'); grid.replaceChildren();
     if (!comparison) return;
-    const declared = comparison.declaredLayers.length ? comparison.declaredLayers.join(', ') : 'aucune';
+    const declared = comparison.declaredLayers.length ? comparison.declaredLayers.join(', ') : t('visual.none');
     const entries = [
-      ['Première divergence stricte', comparison.firstStrict ?? 'aucune'],
-      ['Première divergence top-1', comparison.firstTop1 ?? 'aucune'],
-      ['Couche(s) déclarée(s)', declared],
-      ['Sorties générées', comparison.completionsEqual ? 'identiques' : 'différentes'],
-      ['Tokens alignés', comparison.aligned.length],
-      ['Couches communes', comparison.layers.length],
+      [t('visual.strictFirst'), comparison.firstStrict ?? t('visual.none')],
+      [t('visual.top1First'), comparison.firstTop1 ?? t('visual.none')],
+      [t('visual.declaredLayers'), declared],
+      [t('visual.generatedOutputs'), comparison.completionsEqual ? t('visual.identical') : t('visual.different')],
+      [t('visual.alignedTokens'), comparison.aligned.length],
+      [t('visual.sharedLayers'), comparison.layers.length],
     ];
     entries.forEach(([label, value]) => {
       const card = document.createElement('article'); card.className = 'human-stat-card';
@@ -850,8 +855,8 @@
     $('visualLabelB').textContent = visualArtifactLabel(comparison.b);
     $('visualInterventionA').textContent = visualInterventionText(comparison.a);
     $('visualInterventionB').textContent = visualInterventionText(comparison.b);
-    $('visualCompletionA').textContent = visualCompletion(comparison.a) || 'Aucun texte généré.';
-    $('visualCompletionB').textContent = visualCompletion(comparison.b) || 'Aucun texte généré.';
+    $('visualCompletionA').textContent = visualCompletion(comparison.a) || t('visual.noGenerated');
+    $('visualCompletionB').textContent = visualCompletion(comparison.b) || t('visual.noGenerated');
   }
 
   function renderVisualProfile() {
@@ -890,11 +895,11 @@
     if (declared !== null && comparison.layers.includes(declared)) {
       const index = comparison.layers.indexOf(declared); const x = left + (rows.length <= 1 ? 0 : index / (rows.length - 1)) * width;
       ctx.strokeStyle = '#ffffff'; ctx.setLineDash([5, 4]); ctx.beginPath(); ctx.moveTo(x, top); ctx.lineTo(x, top + height); ctx.stroke(); ctx.setLineDash([]);
-      ctx.fillStyle = '#ffffff'; ctx.fillText(`couche déclarée ${declared}`, Math.min(x + 5, canvas.width - 170), 13);
+      ctx.fillStyle = '#ffffff'; ctx.fillText(t('visual.declaredLayer', { layer: declared }), Math.min(x + 5, canvas.width - 170), 13);
     }
-    ctx.fillStyle = '#9aa9bf'; ctx.fillText('taux de cellules différentes', left, canvas.height - 8);
-    ctx.fillStyle = '#f0b55a'; ctx.fillText('— strict', canvas.width - 185, 16);
-    ctx.fillStyle = '#86b8ff'; ctx.fillText('— top-1', canvas.width - 95, 16);
+    ctx.fillStyle = '#9aa9bf'; ctx.fillText(t('visual.cellRate'), left, canvas.height - 8);
+    ctx.fillStyle = '#f0b55a'; ctx.fillText(t('visual.strictLegend'), canvas.width - 185, 16);
+    ctx.fillStyle = '#86b8ff'; ctx.fillText(t('visual.top1Legend'), canvas.width - 95, 16);
   }
 
   function renderVisualHeatmap() {
@@ -921,15 +926,15 @@
       const y = rows.findIndex((row) => row.layer === layer);
       if (y >= 0) { ctx.strokeStyle = '#ffffff'; ctx.setLineDash([4, 3]); ctx.beginPath(); ctx.moveTo(left, top + y * cellH); ctx.lineTo(left + aligned.length * cellW, top + y * cellH); ctx.stroke(); ctx.setLineDash([]); }
     });
-    ctx.fillStyle = '#98a7bd'; ctx.fillText('couche', 8, 12); ctx.fillText('tokens alignés →', left, canvas.height - 12);
+    ctx.fillStyle = '#98a7bd'; ctx.fillText(t('visual.layer'), 8, 12); ctx.fillText(t('visual.alignedTokensArrow'), left, canvas.height - 12);
     canvas.onclick = (event) => {
       const rect = canvas.getBoundingClientRect();
       const x = Math.floor((event.clientX - rect.left + canvas.parentElement.scrollLeft - left) / cellW);
       const y = Math.floor((event.clientY - rect.top + canvas.parentElement.scrollTop - top) / cellH);
       if (aligned[x] && rows[y]) { state.visualSelectedColumn = x; state.visualSelectedLayer = rows[y].layer; renderVisualComparison(); }
     };
-    const metricLabel = metric === 'top1' ? 'Top-1' : metric === 'jaccard' ? 'Écart top-k' : 'Différence stricte';
-    $('visualHeatLegend').textContent = `${metricLabel} · bleu-vert = identique · orange/rouge = différent · pointillés = couche déclarée`;
+    const metricLabel = metric === 'top1' ? 'Top-1' : metric === 'jaccard' ? t('visual.metricJaccardLabel') : t('visual.metricStrictLabel');
+    $('visualHeatLegend').textContent = t('visual.heatLegend', { metric: metricLabel });
   }
 
   function renderVisualTimeline() {
@@ -956,22 +961,22 @@
     if (!row) return;
     const cell = row.cells[column]; const pair = comparison.aligned[column];
     state.visualSelectedColumn = column; state.visualSelectedLayer = row.layer;
-    if (!cell || cell.missing) { $('visualCellSummary').textContent = `${pair.label} · couche ${row.layer} · cellule absente`; $('visualTopKSideBySide').replaceChildren(); return; }
+    if (!cell || cell.missing) { $('visualCellSummary').textContent = t('visual.cellMissing', { label: pair.label, layer: row.layer }); $('visualTopKSideBySide').replaceChildren(); return; }
     $('visualCellSummary').textContent = [
-      `${pair.kind === 'prompt' ? 'Prompt' : 'Généré'} ${pair.label} · couche ${row.layer}`,
+      `${pair.kind === 'prompt' ? t('visual.prompt') : t('visual.generated')} ${pair.label} · ${t('visual.layer')} ${row.layer}`,
       `Token A ${JSON.stringify(pair.tokenA.token)} (id ${pair.tokenA.id})`,
       `Token B ${JSON.stringify(pair.tokenB.token)} (id ${pair.tokenB.id})`,
-      `Top-1 ${cell.top1Different ? 'DIFFÉRENT' : 'identique'} · Jaccard top-k ${fmt(cell.jaccard, 3)}`,
+      `Top-1 ${cell.top1Different ? t('visual.different').toUpperCase() : t('visual.identical')} · Jaccard top-k ${fmt(cell.jaccard, 3)}`,
     ].join('\n');
     const container = $('visualTopKSideBySide'); container.replaceChildren();
     const table = document.createElement('table'); table.className = 'visual-paired-topk';
-    const head = document.createElement('thead'); head.innerHTML = '<tr><th>Rang</th><th>Token A</th><th>p A</th><th>Token B</th><th>p B</th><th></th></tr>'; table.append(head);
+    const head = document.createElement('thead'); head.innerHTML = `<tr><th>${t('visual.rank')}</th><th>Token A</th><th>p A</th><th>Token B</th><th>p B</th><th></th></tr>`; table.append(head);
     const body = document.createElement('tbody');
     const count = Math.max(cell.cellA.candidates.length, cell.cellB.candidates.length);
     for (let index = 0; index < count; index += 1) {
       const candidateA = cell.cellA.candidates[index] ?? '—'; const candidateB = cell.cellB.candidates[index] ?? '—';
       const tr = document.createElement('tr'); if (candidateA !== candidateB) tr.className = 'different-row';
-      [index + 1, JSON.stringify(candidateA), fmt(cell.cellA.probabilities[index], 5), JSON.stringify(candidateB), fmt(cell.cellB.probabilities[index], 5), candidateA === candidateB ? 'même' : 'différent'].forEach((value) => { const td = document.createElement('td'); td.textContent = value; tr.append(td); });
+      [index + 1, JSON.stringify(candidateA), fmt(cell.cellA.probabilities[index], 5), JSON.stringify(candidateB), fmt(cell.cellB.probabilities[index], 5), candidateA === candidateB ? t('visual.same') : t('visual.different')].forEach((value) => { const td = document.createElement('td'); td.textContent = value; tr.append(td); });
       body.append(tr);
     }
     table.append(body); container.append(table);
@@ -982,8 +987,8 @@
       if (layerCell && !layerCell.missing && layerCell.top1Different) tr.className = 'different-row';
       if (layerRow.layer === state.visualSelectedLayer) tr.classList.add('selected-row');
       const values = layerCell && !layerCell.missing
-        ? [layerRow.layer, JSON.stringify(layerCell.cellA.top1), fmt(layerCell.cellA.p1, 5), JSON.stringify(layerCell.cellB.top1), fmt(layerCell.cellB.p1, 5), layerCell.top1Different ? 'différent' : 'même']
-        : [layerRow.layer, '—', '—', '—', '—', 'absent'];
+        ? [layerRow.layer, JSON.stringify(layerCell.cellA.top1), fmt(layerCell.cellA.p1, 5), JSON.stringify(layerCell.cellB.top1), fmt(layerCell.cellB.p1, 5), layerCell.top1Different ? t('visual.different') : t('visual.same')]
+        : [layerRow.layer, '—', '—', '—', '—', t('visual.missing')];
       values.forEach((value) => { const td = document.createElement('td'); td.textContent = value; tr.append(td); });
       tr.addEventListener('click', () => { state.visualSelectedLayer = layerRow.layer; renderVisualComparison(); });
       trajectoryBody.append(tr);
@@ -1000,22 +1005,22 @@
     const lines = [];
     const declared = c.declaredLayers;
     if (c.firstStrict === null) {
-      lines.push('Aucune différence stricte n’est mesurée dans la lentille et la zone sélectionnées.');
+      lines.push(t('visual.noStrict'));
     } else {
-      lines.push(`La première différence stricte apparaît à la couche ${c.firstStrict}. La première différence du top-1 apparaît à la couche ${c.firstTop1 ?? 'aucune'}.`);
+      lines.push(t('visual.firstDiff', { strict: c.firstStrict, top1: c.firstTop1 ?? t('visual.none') }));
     }
     if (declared.length) {
       const firstDeclared = declared[0];
-      if (c.firstStrict === firstDeclared) lines.push(`La frontière mesurée coïncide exactement avec la première couche d’intervention déclarée (${firstDeclared}). C’est compatible avec une intervention appliquée à cet endroit.`);
-      else if (c.firstStrict !== null && c.firstStrict < firstDeclared) lines.push(`ALERTE : une divergence apparaît avant la couche déclarée (${firstDeclared}). Il faut vérifier l’alignement, la baseline et la requête.`);
-      else if (c.firstStrict !== null) lines.push(`La divergence apparaît après la couche déclarée (${firstDeclared}), avec un décalage de ${c.firstStrict - firstDeclared} couche(s).`);
-      else lines.push(`Une intervention est déclarée à la couche ${firstDeclared}, mais aucune divergence n’est visible dans cette vue.`);
+      if (c.firstStrict === firstDeclared) lines.push(t('visual.declaredCoincides', { layer: firstDeclared }));
+      else if (c.firstStrict !== null && c.firstStrict < firstDeclared) lines.push(t('visual.beforeDeclared', { layer: firstDeclared }));
+      else if (c.firstStrict !== null) lines.push(t('visual.afterDeclared', { layer: firstDeclared, offset: c.firstStrict - firstDeclared }));
+      else lines.push(t('visual.declaredNoVisible', { layer: firstDeclared }));
     } else {
-      lines.push('Aucune couche d’intervention n’est déclarée dans les métadonnées des deux observations.');
+      lines.push(t('visual.noDeclared'));
     }
-    lines.push(c.completionsEqual ? 'Les textes générés sont identiques dans ces deux runs.' : 'Les textes générés sont différents dans ces deux runs.');
-    if (c.maxRow) lines.push(`La plus forte proportion de cellules strictement différentes est observée à la couche ${c.maxRow.layer} (${fmt(c.maxRow.strictDifferenceRate * 100, 1)} % des tokens alignés).`);
-    lines.push('Cette vue établit des différences mesurées et leur localisation. La causalité sémantique exige encore une baseline répétée et les contrôles préenregistrés.');
+    lines.push(c.completionsEqual ? t('visual.surfaceSame') : t('visual.surfaceDifferent'));
+    if (c.maxRow) lines.push(t('visual.maxRow', { layer: c.maxRow.layer, rate: fmt(c.maxRow.strictDifferenceRate * 100, 1) }));
+    lines.push(t('visual.caution'));
     const node = $('visualHumanReading'); node.replaceChildren();
     lines.forEach((line, index) => { const p = document.createElement('p'); if (index === 1 && declared.length && c.firstStrict === declared[0]) p.className = 'highlight-reading'; p.textContent = line; node.append(p); });
   }
@@ -1033,14 +1038,14 @@
     const select = $('visualLensSelect'); const previous = select.value; fillSelect(select, shared.map((lens) => ({ lens })), 'lens', (row) => row.lens);
     if (shared.includes(previous)) select.value = previous;
     const lens = select.value || shared[0];
-    if (!lens) throw new Error('Aucune lentille commune entre A et B.');
+    if (!lens) throw new Error(t('error.noLens'));
     state.visualComparison = buildVisualComparison(state.visualA, state.visualB, lens, $('visualScopeSelect').value);
     state.visualSelectedColumn = Math.min(state.visualSelectedColumn, Math.max(0, state.visualComparison.aligned.length - 1));
     const suggestedLayer = state.visualComparison.firstStrict ?? state.visualComparison.declaredLayers[0] ?? state.visualComparison.layers[0] ?? null;
     if (!state.visualComparison.layers.includes(state.visualSelectedLayer)) state.visualSelectedLayer = suggestedLayer;
     renderVisualComparison();
     loadUnderstand().catch((error) => { state.understand = null; state.understandError = { code: 'understand.request_failed', technicalDetail: error.message }; renderUnderstand(); renderUnderstandError(); });
-    setStatus('visualStatus', `Comparaison chargée : ${visualArtifactLabel(state.visualA)} ↔ ${visualArtifactLabel(state.visualB)}.`, 'ok');
+    setStatus('visualStatus', t('status.comparisonLoaded', { a: visualArtifactLabel(state.visualA), b: visualArtifactLabel(state.visualB) }), 'ok');
   }
 
 
@@ -1132,7 +1137,7 @@
     fillSelect($('visualLocalA'), rows, 'label', (row) => row.label);
     fillSelect($('visualLocalB'), rows, 'label', (row) => row.label);
     if (rows.length > 1) $('visualLocalB').value = rows[1].label;
-    setStatus('visualProbeStatus', `${rows.length} résultat(s) J-Lens lisible(s) trouvé(s) dans ${selected.length} fichier(s).`, rows.length >= 2 ? 'ok' : 'warn');
+    setStatus('visualProbeStatus', t('status.probeResults', { count: rows.length, files: selected.length }), rows.length >= 2 ? 'ok' : 'warn');
   }
 
 
@@ -1140,7 +1145,7 @@
     state.understand = null; renderUnderstand(); clearUnderstandError();
     const payload = await api('/api/demo/build-week');
     state.demoArtifacts = payload.artifacts || [];
-    if (state.demoArtifacts.length < 2) throw new Error('Build Week demo artifacts are unavailable.');
+    if (state.demoArtifacts.length < 2) throw new Error(t('error.demoUnavailable'));
     state.visualA = state.demoArtifacts.find((run) => run.run_id === 'demo-pair-a-control') || state.demoArtifacts[0];
     state.visualB = state.demoArtifacts.find((run) => run.run_id === 'demo-pair-a-shift') || state.demoArtifacts[1];
     state.visualSelectedColumn = 0; state.visualSelectedLayer = null;
@@ -1161,8 +1166,8 @@
   $('visualCompareLocalBtn').addEventListener('click', () => {
     try {
       const a = state.visualLocalSources.get($('visualLocalA').value); const b = state.visualLocalSources.get($('visualLocalB').value);
-      if (!a || !b) throw new Error('Charge un dossier puis choisis deux résultats locaux.');
-      if (a.run_id === b.run_id) throw new Error('A et B doivent être différents.');
+      if (!a || !b) throw new Error(t('error.localLoadFirst'));
+      if (a.run_id === b.run_id) throw new Error(t('error.localDifferent'));
       state.visualA = a; state.visualB = b; state.visualSelectedColumn = 0; state.visualSelectedLayer = null; recomputeVisualComparison();
     } catch (error) { setStatus('visualStatus', error.message, 'error'); }
   });

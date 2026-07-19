@@ -181,3 +181,41 @@ def test_empty_state_locale_switch_source_guard():
     assert 'clearUnderstandError()' in handler
     assert 'textContent' not in handler
     assert 'loadUnderstand().catch' in handler
+
+
+def test_human_visualizer_i18n_inventory_and_static_bindings():
+    app_js = (ROOT / 'web' / 'app.js').read_text()
+    html = (ROOT / 'web' / 'index.html').read_text()
+    inventory = (ROOT / 'HUMAN_VISUALIZER_I18N_INVENTORY.md').read_text()
+    required_keys = [
+        'shell.securityLead', 'shell.securityText', 'visual.title', 'visual.description', 'visual.badge',
+        'visual.choose', 'visual.obsA', 'visual.obsB', 'visual.swap', 'visual.compareArchived',
+        'visual.probeSummary', 'visual.probeHelp', 'visual.controls', 'visual.lens', 'visual.positions',
+        'visual.metric', 'visual.output', 'visual.where', 'visual.selectedCell', 'visual.trajectory',
+        'visual.factual', 'visual.ruleText', 'status.comparisonLoaded', 'status.probeResults',
+        'error.noLens', 'visual.syntheticIntervention', 'visual.heatLegend', 'visual.caution'
+    ]
+    for key in required_keys:
+        assert key in app_js
+        assert key in inventory
+    for key in ['visual.title', 'visual.description', 'visual.badge', 'visual.choose', 'visual.obsA', 'visual.obsB', 'visual.controls', 'visual.output', 'visual.where', 'visual.selectedCell', 'visual.trajectory', 'visual.factual']:
+        assert f'data-i18n="{key}"' in html
+    # Known old mixed-language static strings must not remain as uncontrolled Human Visualizer text.
+    for old in ['Visualiseur humain</h2>', 'Comparer deux runs sans lire les JSON', 'Contrôle visuel</span>', 'Choisir ce que tu regardes', 'Réponse produite</h3>', 'Lecture factuelle</h3>']:
+        assert old not in html
+    # French dynamic strings may exist only inside the catalogue; runtime code must use t(...).
+    assert "setStatus('visualStatus', `Comparaison" not in app_js
+    assert "throw new Error('Aucune lentille" not in app_js
+
+
+def test_i18n_catalogue_locale_markers_are_paired():
+    app_js = (ROOT / 'web' / 'app.js').read_text()
+    # A lightweight source guard: every key referenced by data-i18n in HTML appears in the central catalogue source.
+    html = (ROOT / 'web' / 'index.html').read_text()
+    import re
+    for key in re.findall(r'data-i18n(?:-title|-aria-label)?="([^"]+)"', html):
+        assert f"'{key}'" in app_js
+    assert "'nav.visualizer': 'Human Visualizer'" in app_js
+    assert "'nav.visualizer': 'Visualiseur humain'" in app_js
+    assert "'visual.title': 'Human Visualizer'" in app_js
+    assert "'visual.title': 'Visualiseur humain'" in app_js

@@ -20,7 +20,7 @@
   </header>
 
   <div class="security-note">
-    <strong>Local control plane:</strong> no user authentication is bundled. Keep it on localhost or protect it behind an authenticated reverse proxy.
+    <strong data-i18n="shell.securityLead">Local control plane:</strong> <span data-i18n="shell.securityText">no user authentication is bundled. Keep it on localhost or protect it behind an authenticated reverse proxy.</span>
   </div>
 
   <div class="shell">
@@ -32,7 +32,7 @@
       <button class="nav-item" data-panel="fleet">GPU / API fleet</button>
       <button class="nav-item" data-panel="runs">Runs</button>
       <button class="nav-item" data-panel="inspector">Run inspector</button>
-      <button class="nav-item human-nav" data-panel="visualizer">Visualiseur humain</button>
+      <button class="nav-item human-nav" data-panel="visualizer">Human Visualizer</button>
       <button class="nav-item" data-panel="baseline">Baseline lab</button>
       <button class="nav-item" data-panel="causal">Causal lab</button>
       <button class="nav-item" data-panel="compare">Comparison studio</button>
@@ -171,59 +171,59 @@
       <section id="panel-visualizer" class="panel-page">
         <div class="page-heading">
           <div>
-            <h2>Visualiseur humain</h2>
-            <p>Comparer deux runs sans lire les JSON : réponses produites, frontière de divergence, trajectoire couche par couche et top-k côte à côte. Le raw reste la preuve ; cette vue sert à le contrôler.</p>
+            <h2 data-i18n="visual.title">Human Visualizer</h2>
+            <p data-i18n="visual.description">Compare two runs without reading JSON: generated outputs, divergence boundary, layer-by-layer trajectory and side-by-side top-k. Raw data remains the evidence; this view helps inspect it.</p>
           </div>
-          <span class="badge ok">Contrôle visuel</span>
+          <span class="badge ok" data-i18n="visual.badge">Visual check</span>
         </div>
 
         <div class="card human-source-card">
-          <h3>1. Choisir les deux observations</h3>
+          <h3 data-i18n="visual.choose">1. Choose the two observations</h3>
           <div class="visual-source-grid">
-            <label>Observation A
+            <label><span data-i18n="visual.obsA">Observation A</span>
               <select id="visualRunA"></select>
             </label>
-            <label>Observation B
+            <label><span data-i18n="visual.obsB">Observation B</span>
               <select id="visualRunB"></select>
             </label>
-            <button id="visualSwapRunsBtn" class="secondary" title="Échanger A et B">Échanger A ↔ B</button>
-            <button id="visualCompareStoredBtn" class="primary">Comparer les runs archivés</button>
+            <button id="visualSwapRunsBtn" class="secondary" data-i18n="visual.swap" data-i18n-title="visual.swap" title="Swap A ↔ B">Swap A ↔ B</button>
+            <button id="visualCompareStoredBtn" class="primary" data-i18n="visual.compareArchived">Compare archived runs</button>
             <button id="loadBuildWeekDemoBtn" class="secondary">Load Build Week demo</button>
           </div>
           <details class="local-probe-details">
-            <summary>Afficher directement un ancien dossier de probe non importé</summary>
-            <p>Sélectionne le dossier décompressé contenant les fichiers <code>_request_exact.json</code> et <code>_response_pretty.json</code>. Les fichiers sont lus localement par ton navigateur et ne quittent pas ton Mac.</p>
+            <summary data-i18n="visual.probeSummary">Show an old unimported probe folder directly</summary>
+            <p data-i18n="visual.probeHelp">Select the decompressed folder containing _request_exact.json and _response_pretty.json files. Files are read locally by your browser and do not leave your machine.</p>
             <div class="toolbar-row wrap">
               <input id="visualProbeFiles" type="file" accept=".json,.raw,application/json" multiple webkitdirectory directory />
-              <button id="visualLoadProbeBtn">Lire le dossier</button>
+              <button id="visualLoadProbeBtn" data-i18n="visual.loadProbe">Read folder</button>
               <label>Probe A <select id="visualLocalA"></select></label>
               <label>Probe B <select id="visualLocalB"></select></label>
-              <button id="visualCompareLocalBtn" class="primary">Comparer les fichiers locaux</button>
+              <button id="visualCompareLocalBtn" class="primary" data-i18n="visual.compareLocal">Compare local files</button>
             </div>
             <div id="visualProbeStatus" class="status-line"></div>
           </details>
-          <div id="visualStatus" class="status-line">Choisis deux runs puis clique sur « Comparer ».</div>
+          <div id="visualStatus" class="status-line" data-i18n="visual.statusEmpty">Choose two runs, then click Compare.</div>
         </div>
 
         <div class="card visual-controls-card">
-          <h3>2. Choisir ce que tu regardes</h3>
+          <h3 data-i18n="visual.controls">2. Choose what you inspect</h3>
           <div class="toolbar-row wrap">
-            <label>Lentille <select id="visualLensSelect"></select></label>
-            <label>Positions
+            <label><span data-i18n="visual.lens">Lens</span> <select id="visualLensSelect"></select></label>
+            <label><span data-i18n="visual.positions">Positions</span>
               <select id="visualScopeSelect">
-                <option value="prompt">Prompt fixe</option>
-                <option value="generated">Réponse générée</option>
-                <option value="all">Prompt + réponse</option>
+                <option value="prompt" data-i18n="visual.scope.prompt">Fixed prompt</option>
+                <option value="generated" data-i18n="visual.scope.generated">Generated output</option>
+                <option value="all" data-i18n="visual.scope.all">Prompt + output</option>
               </select>
             </label>
-            <label>Mesure de la carte
+            <label><span data-i18n="visual.metric">Map measure</span>
               <select id="visualMetricSelect">
-                <option value="strict">Top-k ou probabilités différents</option>
-                <option value="top1">Top-1 différent</option>
-                <option value="jaccard">Écart du top-k</option>
+                <option value="strict" data-i18n="visual.metric.strict">Different top-k or probabilities</option>
+                <option value="top1" data-i18n="visual.metric.top1">Different top-1</option>
+                <option value="jaccard" data-i18n="visual.metric.jaccard">Top-k gap</option>
               </select>
             </label>
-            <button id="visualRedrawBtn">Actualiser la vue</button>
+            <button id="visualRedrawBtn" data-i18n="visual.redraw">Refresh view</button>
           </div>
         </div>
 
@@ -240,20 +240,20 @@
           <article class="card human-run-card run-a">
             <header><span class="run-letter">A</span><strong id="visualLabelA">—</strong></header>
             <div id="visualInterventionA" class="intervention-line">—</div>
-            <h3>Réponse produite</h3>
-            <pre id="visualCompletionA" class="completion-view">Charge deux observations.</pre>
+            <h3 data-i18n="visual.output">Generated output</h3>
+            <pre id="visualCompletionA" class="completion-view" data-i18n="visual.outputEmpty">Load two observations.</pre>
           </article>
           <article class="card human-run-card run-b">
             <header><span class="run-letter">B</span><strong id="visualLabelB">—</strong></header>
             <div id="visualInterventionB" class="intervention-line">—</div>
-            <h3>Réponse produite</h3>
-            <pre id="visualCompletionB" class="completion-view">Charge deux observations.</pre>
+            <h3 data-i18n="visual.output">Generated output</h3>
+            <pre id="visualCompletionB" class="completion-view" data-i18n="visual.outputEmpty">Load two observations.</pre>
           </article>
         </div>
 
         <div class="card">
           <div class="visual-section-heading">
-            <div><h3>3. Où les trajectoires se séparent-elles ?</h3><p>Chaque colonne est un token aligné, chaque ligne une couche réelle. Clique sur une cellule pour voir les candidats exacts.</p></div>
+            <div><h3 data-i18n="visual.where">3. Where do trajectories separate?</h3><p data-i18n="visual.whereHelp">Each column is an aligned token, each row is a real layer. Click a cell to inspect exact candidates.</p></div>
             <div id="visualHeatLegend" class="visual-legend"></div>
           </div>
           <div class="canvas-shell human-profile-shell"><canvas id="visualProfileCanvas" width="1200" height="280"></canvas></div>
@@ -263,16 +263,16 @@
 
         <div class="grid two human-detail-grid">
           <article class="card">
-            <h3>Cellule sélectionnée</h3>
-            <div id="visualCellSummary" class="summary-box">Clique sur la carte.</div>
+            <h3 data-i18n="visual.selectedCell">Selected cell</h3>
+            <div id="visualCellSummary" class="summary-box" data-i18n="visual.clickMap">Click the map.</div>
             <div id="visualTopKSideBySide" class="visual-topk"></div>
           </article>
           <article class="card">
-            <h3>Trajectoire du token sélectionné</h3>
-            <p class="muted-copy">Le tableau montre, couche après couche, le premier candidat de A et de B. Les lignes marquées sont celles où ils diffèrent.</p>
+            <h3 data-i18n="visual.trajectory">Selected token trajectory</h3>
+            <p class="muted-copy" data-i18n="visual.trajectoryHelp">The table shows the first candidate for A and B layer by layer. Marked rows are rows where they differ.</p>
             <div class="table-wrap trajectory-wrap">
               <table id="visualTrajectoryTable">
-                <thead><tr><th>Couche</th><th>Top-1 A</th><th>p A</th><th>Top-1 B</th><th>p B</th><th>État</th></tr></thead>
+                <thead><tr><th data-i18n="visual.layer">layer</th><th>Top-1 A</th><th>p A</th><th>Top-1 B</th><th>p B</th><th data-i18n="visual.state">State</th></tr></thead>
                 <tbody></tbody>
               </table>
             </div>
@@ -280,9 +280,9 @@
         </div>
 
         <div class="card human-conclusion-card">
-          <h3>4. Lecture factuelle</h3>
-          <div id="visualHumanReading" class="human-reading">Aucune comparaison chargée.</div>
-          <div class="control-rule"><strong>Règle :</strong> cette section décrit uniquement ce qui est mesuré. Elle ne transforme pas automatiquement une divergence en preuve de causalité, de biais, de censure ou de « pensée ».</div>
+          <h3 data-i18n="visual.factual">4. Factual reading</h3>
+          <div id="visualHumanReading" class="human-reading" data-i18n="visual.noComparison">No comparison loaded.</div>
+          <div class="control-rule"><strong data-i18n="visual.ruleLead">Rule:</strong> <span data-i18n="visual.ruleText">this section describes only what is measured. It does not automatically turn a divergence into proof of causality, bias, censorship or “thought”.</span></div>
         </div>
       </section>
 
@@ -308,7 +308,7 @@
             <h3>Empirical top-1 reference</h3>
             <label>Experiment <select id="baselineBuildExperiment"></select></label>
             <label>Lens <select id="baselineBuildLens"><option>JACOBIAN_LENS</option><option>LOGIT_LENS</option></select></label>
-            <label>Positions <select id="baselineScope"><option value="all">all</option><option value="context">context</option><option value="generated">generated</option></select></label>
+            <label><span data-i18n="visual.positions">Positions</span> <select id="baselineScope"><option value="all">all</option><option value="context">context</option><option value="generated">generated</option></select></label>
             <button id="buildBaselineBtn">Build & store baseline</button>
             <pre id="baselineOutput" class="json-view"></pre>
           </div>
