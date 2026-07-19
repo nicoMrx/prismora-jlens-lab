@@ -62,6 +62,12 @@
     if ($('loadBuildWeekDemoBtn')) $('loadBuildWeekDemoBtn').textContent = t('understand.demo');
     if ($('understandRuleBadge')) $('understandRuleBadge').textContent = t('understand.badge');
     if ($('understandSentences') && !state.understand) $('understandSentences').textContent = t('understand.empty');
+    if (!state.visualComparison) {
+      if ($('visualCompletionA')) $('visualCompletionA').textContent = t('visual.outputEmpty');
+      if ($('visualCompletionB')) $('visualCompletionB').textContent = t('visual.outputEmpty');
+      if ($('visualCellSummary')) $('visualCellSummary').textContent = t('visual.clickMap');
+      if ($('visualHumanReading')) $('visualHumanReading').textContent = t('visual.noComparison');
+    }
     if ($('healthBadge') && $('healthBadge').classList.contains('muted')) $('healthBadge').textContent = t('app.checking');
     if ($('healthBadge') && $('healthBadge').classList.contains('ok') && state.healthVersion) $('healthBadge').textContent = `${state.locale === 'fr' ? 'plan de contrôle' : 'control plane'} ${state.healthVersion}`;
     renderUnderstandError();
@@ -1033,6 +1039,17 @@
     renderVisualSummary(); renderVisualOutputs(); renderVisualProfile(); renderVisualHeatmap(); renderVisualTimeline(); renderVisualCell(); renderVisualHumanReading(); renderUnderstand();
   }
 
+  function renderLocalizedVisualState() {
+    applyI18n();
+    if (state.visualA && state.visualB && state.visualComparison) {
+      renderVisualComparison();
+      loadUnderstand().catch((error) => { state.understand = null; state.understandError = { code: 'understand.request_failed', technicalDetail: error.message }; renderUnderstand(); renderUnderstandError(); });
+    } else {
+      renderUnderstand();
+      clearUnderstandError();
+    }
+  }
+
   function recomputeVisualComparison() {
     if (!state.visualA || !state.visualB) return;
     const lensesA = state.visualA.result?.meta?.types || Object.keys(state.visualA.result?.meta?.layers_by_type || {});
@@ -1159,7 +1176,7 @@
 
   $('visualCompareStoredBtn').addEventListener('click', () => loadStoredVisualComparison().catch((error) => setStatus('visualStatus', error.message, 'error')));
   $('loadBuildWeekDemoBtn')?.addEventListener('click', () => loadBuildWeekDemo().catch((error) => setStatus('visualStatus', error.message, 'error')));
-  $('globalLocaleSelect')?.addEventListener('change', () => { state.locale = $('globalLocaleSelect').value === 'fr' ? 'fr' : 'en'; localStorage.setItem('prismora.locale', state.locale); state.understandRequestSeq += 1; clearUnderstandError(); applyI18n(); renderUnderstand(); if (state.visualA && state.visualB) loadUnderstand().catch((error) => { state.understand = null; state.understandError = { code: 'understand.request_failed', technicalDetail: error.message }; renderUnderstand(); renderUnderstandError(); }); });
+  $('globalLocaleSelect')?.addEventListener('change', () => { state.locale = $('globalLocaleSelect').value === 'fr' ? 'fr' : 'en'; localStorage.setItem('prismora.locale', state.locale); state.understandRequestSeq += 1; clearUnderstandError(); renderLocalizedVisualState(); });
   $('visualSwapRunsBtn').addEventListener('click', () => { const a = $('visualRunA').value; $('visualRunA').value = $('visualRunB').value; $('visualRunB').value = a; });
   $('visualRedrawBtn').addEventListener('click', () => { try { recomputeVisualComparison(); } catch (error) { setStatus('visualStatus', error.message, 'error'); } });
   $('visualLensSelect').addEventListener('change', () => { if (state.visualA && state.visualB) { state.visualSelectedLayer = null; recomputeVisualComparison(); } });

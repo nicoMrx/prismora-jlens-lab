@@ -177,10 +177,11 @@ def test_global_i18n_catalogue_completeness_and_navigation_glossary():
 def test_empty_state_locale_switch_source_guard():
     app_js = (ROOT / 'web' / 'app.js').read_text()
     handler = app_js.split("$('globalLocaleSelect')?.addEventListener", 1)[1].split("$('visualSwapRunsBtn')", 1)[0]
-    assert 'state.visualA && state.visualB' in handler
+    localized = app_js.split('function renderLocalizedVisualState()', 1)[1].split('async function loadUnderstand', 1)[0]
+    assert 'state.visualA && state.visualB && state.visualComparison' in localized
     assert 'clearUnderstandError()' in handler
     assert 'textContent' not in handler
-    assert 'loadUnderstand().catch' in handler
+    assert 'loadUnderstand().catch' in localized
 
 
 def test_human_visualizer_i18n_inventory_and_static_bindings():
@@ -219,3 +220,21 @@ def test_i18n_catalogue_locale_markers_are_paired():
     assert "'nav.visualizer': 'Visualiseur humain'" in app_js
     assert "'visual.title': 'Human Visualizer'" in app_js
     assert "'visual.title': 'Visualiseur humain'" in app_js
+
+
+def test_loaded_visualizer_locale_switch_preserves_dynamic_containers_source():
+    app_js = (ROOT / 'web' / 'app.js').read_text()
+    html = (ROOT / 'web' / 'index.html').read_text()
+    for element_id in ['visualCompletionA', 'visualCompletionB', 'visualCellSummary', 'visualHumanReading']:
+        snippet = html.split(f'id="{element_id}"', 1)[1].split('>', 1)[0]
+        assert 'data-i18n' not in snippet
+    assert 'function renderLocalizedVisualState()' in app_js
+    localized = app_js.split('function renderLocalizedVisualState()', 1)[1].split("$('globalLocaleSelect')", 1)[0]
+    for call in ['renderVisualSummary()', 'renderVisualOutputs()', 'renderVisualProfile()', 'renderVisualHeatmap()', 'renderVisualTimeline()', 'renderVisualCell()', 'renderVisualHumanReading()', 'renderUnderstand()']:
+        assert call in localized or call in app_js.split('function renderVisualComparison()', 1)[1].split('function renderLocalizedVisualState()', 1)[0]
+    handler = app_js.split("$('globalLocaleSelect')?.addEventListener", 1)[1].split("$('visualSwapRunsBtn')", 1)[0]
+    assert 'renderLocalizedVisualState()' in handler
+    assert 'state.visualA = null' not in handler and 'state.visualB = null' not in handler
+    assert 'visualSelectedColumn = 0' not in handler and 'visualSelectedLayer = null' not in handler
+    assert "$('visualCompletionA').textContent = t('visual.outputEmpty')" in app_js
+    assert 'if (!state.visualComparison)' in app_js
