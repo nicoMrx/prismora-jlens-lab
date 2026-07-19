@@ -1,3 +1,127 @@
+/* ============================================================
+   PRISMORA — DESIGN TOKENS v1 · chantier UI Build Week
+   Source : maquette « trois niveaux » validée par NicoMrx
+   + Manifeste esthétique Prismora (Pepper, 19/07/2026)
+   ------------------------------------------------------------
+   Règles d'usage :
+   - Ces variables sont la SEULE source de couleur, de rayon,
+     d'ombre et de typographie. Aucune valeur hex en dur dans
+     les composants.
+   - Le thème se bascule via html[data-theme="dark"|"light"].
+   - La lumière (halos) est réservée à l'émergence MESURÉE :
+     top-1, point de trajectoire, état actif. Jamais décorative.
+   - Une donnée absente reste un vide (bordure dashed, fond
+     transparent). On ne comble jamais un silence.
+   ============================================================ */
+
+/* ---------- THÈME SOMBRE (défaut) ---------- */
+:root[data-theme="dark"] {
+  /* surfaces */
+  --pz-fond:        #111019;  /* bleu-noir aubergine — jamais noir absolu */
+  --pz-carte:       #1B1926;
+  --pz-carte-2:     #211E30;  /* surfaces imbriquées, traces, inputs */
+  --pz-ligne:       #2E2940;  /* séparateurs, bordures */
+
+  /* textes — contraste AA vérifié sur --pz-fond et --pz-carte */
+  --pz-texte:       #E8E4EF;
+  --pz-texte-2:     #B6AFC6;  /* secondaire — éclairci vs maquette pour lisibilité (retour Pepper) */
+  --pz-texte-3:     #8D85A0;  /* tertiaire : eyebrows, labels — minimum autorisé pour du texte porteur de sens */
+
+  /* accents — rôles sémantiques, pas décoratifs */
+  --pz-violet:      #8F79B7;  /* information active, trajectoire */
+  --pz-lavande:     #B7A6D6;  /* lecture, sélection, liens */
+  --pz-rose:        #C08AA5;  /* attention douce, fin de dégradé des barres */
+  --pz-turquoise:   #76AAA8;  /* accord, stabilité, couverture complète, cellules identiques */
+  --pz-ambre:       #D1A36A;  /* avertissement, couche déclarée */
+  --pz-corail:      #C4796B;  /* divergence forte, cellules différentes, erreurs */
+
+  /* lumière = grammaire de l'émergence */
+  --pz-halo:        rgba(183,166,214,.28);
+  --pz-halo-fort:   rgba(183,166,214,.50);
+
+  /* états de comparaison */
+  --pz-identique:   rgba(118,170,168,.22);
+  --pz-different:   rgba(196,121,107,.30);
+
+  --pz-ombre:       0 14px 40px rgba(6,4,14,.45);
+
+  /* marque — logo_arbre de NicoMrx, couleurs d'origine */
+  --pz-mark-a:      #EED8EA;  /* structure principale, rose très pâle */
+  --pz-mark-b:      #7777A2;  /* trajectoires secondaires, violet-gris */
+}
+
+/* ---------- THÈME CLAIR ---------- */
+:root[data-theme="light"] {
+  --pz-fond:        #F6F3F7;  /* blanc rosé-lavande — jamais clinique */
+  --pz-carte:       #FFFCFF;
+  --pz-carte-2:     #F1ECF4;
+  --pz-ligne:       #DFD8E6;
+
+  --pz-texte:       #292430;
+  --pz-texte-2:     #5F5769;  /* assombri vs maquette pour lisibilité (retour Pepper) */
+  --pz-texte-3:     #857C91;
+
+  --pz-violet:      #755A98;
+  --pz-lavande:     #8E77AC;
+  --pz-rose:        #AA718B;
+  --pz-turquoise:   #508987;
+  --pz-ambre:       #A8713D;
+  --pz-corail:      #A85E50;
+
+  --pz-halo:        rgba(117,90,152,.16);
+  --pz-halo-fort:   rgba(117,90,152,.34);
+
+  --pz-identique:   rgba(80,137,135,.16);
+  --pz-different:   rgba(168,94,80,.20);
+
+  --pz-ombre:       0 14px 40px rgba(66,52,88,.12);
+
+  /* marque — duo inversé pour rester lisible sur fond clair */
+  --pz-mark-a:      #755A98;
+  --pz-mark-b:      #AA718B;
+}
+
+/* ---------- TYPOGRAPHIE — trois rôles ----------
+   Spectral parle · Albert Sans guide · Spline Sans Mono mesure.
+   Les trois familles sont sous licence OFL : à vendorer en local
+   (woff2 dans web/assets/fonts/ + fichiers de licence), aucune
+   dépendance réseau — la démo juge doit fonctionner hors ligne. */
+:root {
+  --pz-f-voix:  'Spectral', Georgia, serif;            /* titres h1/h2, phrases-clefs, annotations italiques */
+  --pz-f-corps: 'Albert Sans', system-ui, sans-serif;  /* interface, récit, labels, boutons */
+  --pz-f-mesure:'Spline Sans Mono', ui-monospace, monospace; /* tokens, probabilités, hashes, rule_id, couches */
+
+  /* échelle */
+  --pz-t-h1:     1.9rem;   /* Spectral 300, strong = 500 */
+  --pz-t-h2:     1.15rem;  /* Spectral 400 */
+  --pz-t-clef:   1.45rem;  /* phrase-clef, Spectral 300, ligne 1.45 */
+  --pz-t-corps:  .95rem;
+  --pz-t-label:  .72rem;   /* eyebrows : letter-spacing .16em, uppercase, --pz-texte-3 */
+  --pz-t-mesure: .8rem;
+
+  /* formes */
+  --pz-r-carte:  14px;     /* cartes principales */
+  --pz-r-el:     9px;      /* boutons, tokens, traces */
+  --pz-r-pilule: 999px;    /* chips, segmented control */
+
+  /* rythme */
+  --pz-esp-1: .5rem;  --pz-esp-2: .9rem;  --pz-esp-3: 1.5rem;  --pz-esp-4: 2.4rem;
+  --pz-transition: .25s ease;   /* lent, discret, fonctionnel — désactivé sous prefers-reduced-motion */
+}
+
+/* ---------- RAPPELS DE COMPOSANTS (extraits de la maquette) ---------- */
+/* Chip règles (badge « Résumé par règles, sans LLM ») :
+   couleur --pz-lavande, bordure violet 45%, pastille --pz-violet avec halo faible. */
+/* Carte de couverture « silence » (valeur inconnue) :
+   bordure dashed --pz-ligne, fond transparent, valeur en Spectral italique --pz-texte-3. */
+/* Barres top-k : dégradé linéaire 90° --pz-violet → --pz-rose ;
+   le top-1 uniquement reçoit box-shadow 0 0 12px var(--pz-halo-fort). */
+/* Cellules heatmap : .id → --pz-identique ; .diff → --pz-different ;
+   .abs → transparent + 1px dashed --pz-ligne + « non mesuré » en italique.
+   La colonne de couche déclarée est marquée ⌖ en --pz-ambre. */
+/* Sévérités du récit Understand : info → --pz-turquoise ;
+   note → --pz-violet ; garde/avertissement → --pz-ambre ; erreur → --pz-corail. */
+
 :root {
   color-scheme: dark;
   --bg: #0b0e14;
@@ -188,3 +312,15 @@ canvas { display: block; }
 .coverage-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:12px;margin:12px 0}.coverage-card{border:1px solid #2f7d55;border-radius:12px;padding:12px;display:grid;gap:4px}.coverage-card.warn{border-color:#b87912;background:#fff8e8}.understand-heading{display:flex;justify-content:space-between;gap:12px;align-items:center}.understand-trace{border:1px solid #d0d7de;border-radius:10px;margin:8px 0;padding:10px}.understand-trace.warning{border-color:#b87912}.understand-trace summary{cursor:pointer;font-weight:700}.understand-trace pre{white-space:pre-wrap}
 
 .understand-error{border:1px solid #b93a3a;background:#2b1111;color:#ffd8d8;border-radius:10px;padding:10px;margin:10px 0}.understand-error pre{white-space:pre-wrap;color:#ffd8d8}
+
+
+/* Progressive Prismora interface foundation */
+html[data-theme="system"] { color-scheme: light dark; }
+:root, :root[data-theme="dark"] { --bg: var(--pz-fond); --panel: var(--pz-carte); --panel-2: var(--pz-carte-2); --line: var(--pz-ligne); --text: var(--pz-texte); --muted: var(--pz-texte-2); --accent: var(--pz-lavande); --accent-2: var(--pz-turquoise); --warn: var(--pz-ambre); --danger: var(--pz-corail); --shadow: var(--pz-ombre); --radius: var(--pz-r-carte); }
+:root[data-theme="light"] { color-scheme: light; --bg: var(--pz-fond); --panel: var(--pz-carte); --panel-2: var(--pz-carte-2); --line: var(--pz-ligne); --text: var(--pz-texte); --muted: var(--pz-texte-2); --accent: var(--pz-lavande); --accent-2: var(--pz-turquoise); --warn: var(--pz-ambre); --danger: var(--pz-corail); --shadow: var(--pz-ombre); --radius: var(--pz-r-carte); }
+html,body{background:var(--bg);color:var(--text)}body{font-family:var(--pz-f-corps)}h1,h2,.stat-card strong,.reader-hero h2{font-family:var(--pz-f-voix);font-weight:500}.mono,pre,code,.token-chip,.visual-token-pair{font-family:var(--pz-f-mesure)}
+.topbar,.sidebar,.card,.summary-box,.json-view,.canvas-shell,.completion-view,.claim-item,input,select,textarea{background:var(--panel);color:var(--text);border-color:var(--line)}.topbar{background:color-mix(in srgb,var(--bg) 88%,transparent);}.topbar p,.page-heading p,label,.muted-copy,.status-line{color:var(--muted)}.security-note,.control-rule{background:color-mix(in srgb,var(--pz-ambre) 18%,var(--bg));color:var(--text);border-color:color-mix(in srgb,var(--pz-ambre) 50%,var(--line))}th{background:var(--panel-2);color:var(--text)}td,th{border-color:var(--line)}button{background:var(--panel-2);color:var(--text);border-color:var(--line)}button.primary{background:color-mix(in srgb,var(--pz-violet) 55%,var(--panel));border-color:var(--pz-lavande);color:var(--pz-texte)}:root[data-theme="light"] button.primary{color:#fff}.nav-item.active,.human-nav.active{background:color-mix(in srgb,var(--pz-lavande) 20%,var(--panel));border-color:var(--pz-lavande);color:var(--text)}
+.brand-lockup{display:flex;gap:14px;align-items:center}.brand-mark{width:74px;height:62px;display:grid;place-items:center}.brand-mark svg{width:74px;height:62px;display:block}.level-switch{display:flex;gap:4px;padding:3px;border:1px solid var(--line);border-radius:999px;background:var(--panel)}.level-btn{border-radius:999px;background:transparent;border-color:transparent}.level-btn.active{background:var(--pz-lavande);color:var(--pz-fond)}
+.reader-page{display:none}.reader-page.active{display:grid;gap:16px}.reader-hero{display:grid;grid-template-columns:minmax(0,1fr) 180px minmax(280px,360px);gap:18px;align-items:center;padding:22px;border:1px solid var(--line);border-radius:var(--pz-r-carte);background:linear-gradient(135deg,var(--panel),var(--panel-2));box-shadow:var(--shadow)}.reader-hero-copy h2{font-size:clamp(2rem,4vw,4rem);line-height:1;margin:4px 0 10px}.eyebrow{margin:0;color:var(--pz-texte-3);font-size:var(--pz-t-label);letter-spacing:.16em;text-transform:uppercase}.reader-hero-copy p:not(.eyebrow){color:var(--muted);max-width:58ch}.reader-hero-mark{width:170px;height:142px;background:var(--pz-mark-a);mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 10673.6 8850.1'%3E%3Cpath d='M770.6 4445.4h9075M5936.3 763 6396 0l459 721M5958 8127.7l439 722 440-692M0 4461l818-535M1043 7051l202-711' stroke='black' stroke-width='420' fill='none' stroke-linecap='round'/%3E%3C/svg%3E") center/contain no-repeat}.reader-provenance{border:1px solid var(--line);border-radius:var(--pz-r-carte);padding:14px;background:color-mix(in srgb,var(--panel-2) 84%,transparent)}.reader-provenance h3{margin:0 0 10px}.reader-provenance #readerModelMeta{display:grid;gap:8px}.provenance-pill{display:flex;justify-content:space-between;gap:10px;border:1px solid var(--line);border-radius:var(--pz-r-el);padding:8px 10px;background:var(--panel)}.provenance-pill span{color:var(--muted);font-size:12px}.provenance-pill strong{overflow-wrap:anywhere}.provenance-pill.disabled{border-style:dashed;opacity:.82}
+.reader-conversation,.reader-jlens-card,.reader-understand{border:1px solid var(--line);border-radius:var(--pz-r-carte);background:var(--panel);box-shadow:var(--shadow);padding:16px}.reader-conversation h3{margin-top:0}.message{max-width:920px;border:1px solid var(--line);border-radius:22px;padding:14px 16px;margin:12px 0;background:var(--panel-2)}.user-message{border-bottom-left-radius:8px}.model-message{margin-left:auto;border-bottom-right-radius:8px;background:color-mix(in srgb,var(--pz-lavande) 10%,var(--panel-2))}.message-role{display:block;color:var(--muted);font-size:12px;text-transform:uppercase;letter-spacing:.12em}.message-text{margin:7px 0 0;white-space:pre-wrap;background:transparent;color:var(--text);border:0;padding:0;min-height:0}.reader-help{color:var(--muted);font-size:13px}.reader-token-list{display:flex;flex-wrap:wrap;gap:7px;margin-top:12px}.reader-token{font-family:var(--pz-f-mesure);border-style:solid;border-radius:999px;padding:7px 10px}.reader-token.active,.layer-chip.active{box-shadow:0 0 0 3px var(--pz-halo-fort);border-color:var(--pz-lavande);background:color-mix(in srgb,var(--pz-lavande) 24%,var(--panel));}.reader-card-head{display:flex;justify-content:space-between;gap:14px;align-items:flex-start}.reader-badges{display:flex;gap:8px;flex-wrap:wrap}.layer-rail{display:flex;flex-wrap:nowrap;gap:8px;align-items:center;overflow-x:auto;padding:14px 2px}.layer-chip{min-width:48px}.layer-chip.empty{opacity:.58}.layer-gap{border:1px dashed var(--line);color:var(--muted);border-radius:var(--pz-r-el);padding:7px 12px;font-style:italic;white-space:nowrap;background:transparent}.reader-measure-grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(260px,.75fr);gap:16px}.top8-list{display:grid;gap:8px}.top8-row{display:grid;grid-template-columns:2em minmax(0,1fr) 4.5em;gap:8px;align-items:center;border:1px solid var(--line);border-radius:var(--pz-r-el);padding:8px;background:var(--panel-2);position:relative;overflow:hidden}.top8-row .top8-bar{grid-column:1/-1;height:8px;width:var(--w);border-radius:999px;background:linear-gradient(90deg,var(--pz-violet),var(--pz-rose));box-shadow:0 0 12px var(--pz-halo)}.trajectory-mini{display:flex;gap:8px;flex-wrap:wrap}.trajectory-point{border:1px solid var(--line);border-radius:var(--pz-r-el);padding:8px 10px;background:var(--panel-2)}.reader-empty{color:var(--muted);font-style:italic;border:1px dashed var(--line);border-radius:var(--pz-r-el);padding:12px}.understand-trace.compact{background:var(--panel-2);border-color:var(--line)}.understand-trace.compact pre{color:var(--text)}.reader-evidence-link{margin-top:12px;float:right}
+button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible,[tabindex]:focus-visible{outline:3px solid var(--pz-halo-fort);outline-offset:2px}@media (prefers-reduced-motion: reduce){*,*::before,*::after{transition:none!important;animation:none!important;scroll-behavior:auto!important}}@media (max-width:1050px){.reader-hero{grid-template-columns:1fr}.reader-hero-mark{display:none}.reader-measure-grid{grid-template-columns:1fr}.top-actions{flex-wrap:wrap}.brand-mark{width:56px;height:48px}.brand-mark svg{width:56px;height:48px}}

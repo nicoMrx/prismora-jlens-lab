@@ -22,12 +22,17 @@
     understandError: null,
     understandRequestSeq: 0,
     healthVersion: null,
+    theme: ['dark','light','system'].includes(localStorage.getItem('prismora.theme')) ? localStorage.getItem('prismora.theme') : 'system',
+    level: ['read','explore','control'].includes(localStorage.getItem('prismora.level')) ? localStorage.getItem('prismora.level') : 'read',
+    readerArtifact: null,
+    readerSelectedToken: 0,
+    readerSelectedLayer: null,
   };
 
 
   const I18N = {
     en: {
-      'app.title': 'Prismora J-Lens Lab', 'shell.securityLead': 'Local control plane:', 'shell.securityText': 'no user authentication is bundled. Keep it on localhost or protect it behind an authenticated reverse proxy.', 'app.subtitle': 'One protocol · public API and private GPU workers · immutable evidence', 'app.language': 'Language', 'app.refresh': 'Refresh', 'app.checking': 'checking…', 'app.offline': 'offline',
+      'app.title': 'Prismora J-Lens Lab', 'shell.securityLead': 'Local control plane:', 'shell.securityText': 'no user authentication is bundled. Keep it on localhost or protect it behind an authenticated reverse proxy.', 'app.subtitle': 'One protocol · public API and private GPU workers · immutable evidence', 'app.language': 'Language', 'app.refresh': 'Refresh', 'app.checking': 'checking…', 'app.offline': 'offline', 'level.read': 'Read', 'level.explore': 'Explore', 'level.control': 'Control', 'theme.label': 'Theme', 'theme.system': 'System', 'theme.dark': 'Dark', 'theme.light': 'Light', 'reader.title': 'Read', 'reader.description': 'Conversation-first reading of real J-Lens artifacts. Raw artifacts remain authoritative.', 'reader.eyebrow': 'Conversation · verified synthetic demo', 'reader.heroTitle': 'Read what happens beneath the answer', 'reader.heroSubtitle': 'Follow one generated answer token through measured J-Lens layers without hiding raw evidence.', 'reader.demoBadge': 'Synthetic demo · verified manifest', 'reader.loadDemo': 'Load verified demo', 'reader.openExplorer': 'Open complete evidence in Explorer', 'reader.prompt': 'Prompt / request', 'reader.output': 'Generated output', 'reader.modelSource': 'Model / source', 'reader.conversation': 'Conversation', 'reader.user': 'Request', 'reader.modelAnswer': 'Model answer', 'reader.tokenHelp': 'Select a response token to inspect its measured candidates.', 'reader.jlensEyebrow': 'J-Lens measured readout', 'reader.selectedToken': 'Selected token', 'reader.layersMeasured': '{count} measured layers', 'reader.noCandidates': 'No candidates are measured for this token/layer.', 'reader.noTrajectory': 'No trajectory value is measured for this candidate.', 'reader.modelUnknown': 'Unknown model', 'reader.sourceUnknown': 'Unknown source', 'reader.run': 'Run', 'reader.modelLabel': 'Model', 'reader.source': 'Source', 'reader.gemmaHelp': 'Gemma is coming soon and remains disabled.', 'reader.layers': 'Captured layers only', 'reader.selected': 'Selected token / layer', 'reader.top8': 'Actual top-8 candidates', 'reader.trajectory': 'Candidate trajectory', 'reader.understand': 'Understand compact', 'reader.completeEvidence': 'Open complete Explorer evidence', 'reader.noLive': 'Coming soon · disabled', 'nav.reader': 'Reader', 'nav.conversations': 'Conversations', 'nav.models': 'Models', 'nav.settings': 'Settings', 'nav.protocols': 'Protocols', 'nav.campaigns': 'Campaigns', 'nav.understand': 'Understand', 'nav.ab': 'A/B comparison', 'nav.baselines': 'Baselines', 'nav.interventions': 'Interventions',
       'nav.dashboard': 'Overview', 'nav.experiments': 'Experiments', 'nav.registry': 'Model registry', 'nav.campaign': 'Campaign builder', 'nav.fleet': 'GPU / API fleet', 'nav.runs': 'Runs', 'nav.inspector': 'Run inspector', 'nav.visualizer': 'Human Visualizer', 'nav.baseline': 'Baseline lab', 'nav.causal': 'Causal lab', 'nav.compare': 'Comparison studio', 'nav.claims': 'Claim ledger',
       'understand.title': 'Understand', 'understand.badge': 'Rule-based, no LLM summary', 'understand.demo': 'Load Build Week demo', 'understand.empty': 'Load a comparison to see deterministic facts.', 'understand.errorTitle': 'Understand error', 'understand.retry': 'Retry or reload the verified demo.',
       'coverage.source': 'source', 'coverage.transmitted': 'transmitted', 'coverage.instrumented': 'instrumented', 'coverage.generated': 'instrumented generated', 'coverage.layers': 'layers', 'coverage.unknown': 'unknown', 'coverage.complete': 'complete', 'coverage.partial': 'partial',
@@ -35,7 +40,7 @@
       'visual.title': 'Human Visualizer', 'visual.description': 'Compare two runs without reading JSON: generated outputs, divergence boundary, layer-by-layer trajectory and side-by-side top-k. Raw data remains the evidence; this view helps inspect it.', 'visual.badge': 'Visual check', 'visual.choose': '1. Choose the two observations', 'visual.obsA': 'Observation A', 'visual.obsB': 'Observation B', 'visual.swap': 'Swap A ↔ B', 'visual.compareArchived': 'Compare archived runs', 'visual.probeSummary': 'Show an old unimported probe folder directly', 'visual.probeHelp': 'Select the decompressed folder containing _request_exact.json and _response_pretty.json files. Files are read locally by your browser and do not leave your machine.', 'visual.loadProbe': 'Read folder', 'visual.compareLocal': 'Compare local files', 'visual.statusEmpty': 'Choose two runs, then click Compare.', 'visual.controls': '2. Choose what you inspect', 'visual.lens': 'Lens', 'visual.positions': 'Positions', 'visual.scope.prompt': 'Fixed prompt', 'visual.scope.generated': 'Generated output', 'visual.scope.all': 'Prompt + output', 'visual.metric': 'Map measure', 'visual.metric.strict': 'Different top-k or probabilities', 'visual.metric.top1': 'Different top-1', 'visual.metric.jaccard': 'Top-k gap', 'visual.redraw': 'Refresh view', 'visual.output': 'Generated output', 'visual.outputEmpty': 'Load two observations.', 'visual.noGenerated': 'No generated text.', 'visual.where': '3. Where do trajectories separate?', 'visual.whereHelp': 'Each column is an aligned token, each row is a real layer. Click a cell to inspect exact candidates.', 'visual.selectedCell': 'Selected cell', 'visual.clickMap': 'Click the map.', 'visual.trajectory': 'Selected token trajectory', 'visual.trajectoryHelp': 'The table shows the first candidate for A and B layer by layer. Marked rows are rows where they differ.', 'visual.factual': '4. Factual reading', 'visual.noComparison': 'No comparison loaded.', 'visual.ruleLead': 'Rule:', 'visual.ruleText': 'this section describes only what is measured. It does not automatically turn a divergence into proof of causality, bias, censorship or “thought”.', 'visual.strictFirst': 'First strict divergence', 'visual.top1First': 'First top-1 divergence', 'visual.declaredLayers': 'Declared layer(s)', 'visual.generatedOutputs': 'Generated outputs', 'visual.alignedTokens': 'Aligned tokens', 'visual.sharedLayers': 'Shared layers', 'visual.none': 'none', 'visual.identical': 'identical', 'visual.different': 'different', 'visual.same': 'same', 'visual.missing': 'missing', 'visual.layer': 'layer', 'visual.alignedTokensArrow': 'aligned tokens →', 'visual.declaredLayer': 'declared layer {layer}', 'visual.cellRate': 'different-cell rate', 'visual.strictLegend': '— strict', 'visual.top1Legend': '— top-1', 'visual.heatLegend': '{metric} · blue-green = identical · orange/red = different · dashed = declared layer', 'visual.metricStrictLabel': 'Strict difference', 'visual.metricJaccardLabel': 'Top-k gap', 'visual.cellMissing': '{label} · layer {layer} · missing cell', 'visual.prompt': 'Prompt', 'visual.generated': 'Generated', 'visual.rank': 'Rank', 'visual.state': 'State', 'visual.producedAnswer': 'Generated output', 'visual.noStrict': 'No strict difference is measured in the selected lens and scope.', 'visual.firstDiff': 'The first strict difference appears at layer {strict}. The first top-1 difference appears at layer {top1}.', 'visual.declaredCoincides': 'The measured boundary exactly matches the first declared intervention layer ({layer}). This is compatible with an intervention applied there.', 'visual.beforeDeclared': 'WARNING: a divergence appears before the declared layer ({layer}). Check alignment, baseline and request.', 'visual.afterDeclared': 'The divergence appears after the declared layer ({layer}), with an offset of {offset} layer(s).', 'visual.declaredNoVisible': 'An intervention is declared at layer {layer}, but no divergence is visible in this view.', 'visual.noDeclared': 'No intervention layer is declared in the metadata for either observation.', 'visual.surfaceSame': 'The generated texts are identical in these two runs.', 'visual.surfaceDifferent': 'The generated texts are different in these two runs.', 'visual.maxRow': 'The highest share of strictly different cells is observed at layer {layer} ({rate}% of aligned tokens).', 'visual.caution': 'This view establishes measured differences and their location. Semantic causality still requires repeated baselines and preregistered controls.', 'visual.syntheticIntervention': 'Synthetic demo intervention · layer(s) {layers}', 'visual.noIntervention': 'No declared intervention'
     },
     fr: {
-      'app.title': 'Prismora J-Lens Lab', 'shell.securityLead': 'Plan de contrôle local :', 'shell.securityText': 'aucune authentification utilisateur n’est incluse. Garde-le sur localhost ou protège-le derrière un reverse proxy authentifié.', 'app.subtitle': 'Un protocole · API publique et workers GPU privés · preuves immuables', 'app.language': 'Langue', 'app.refresh': 'Actualiser', 'app.checking': 'vérification…', 'app.offline': 'hors ligne',
+      'app.title': 'Prismora J-Lens Lab', 'shell.securityLead': 'Plan de contrôle local :', 'shell.securityText': 'aucune authentification utilisateur n’est incluse. Garde-le sur localhost ou protège-le derrière un reverse proxy authentifié.', 'app.subtitle': 'Un protocole · API publique et workers GPU privés · preuves immuables', 'app.language': 'Langue', 'app.refresh': 'Actualiser', 'app.checking': 'vérification…', 'app.offline': 'hors ligne', 'level.read': 'Lire', 'level.explore': 'Explorer', 'level.control': 'Contrôler', 'theme.label': 'Thème', 'theme.system': 'Système', 'theme.dark': 'Sombre', 'theme.light': 'Clair', 'reader.title': 'Lire', 'reader.description': 'Lecture conversationnelle de vrais artifacts J-Lens. Les artifacts bruts restent l’autorité.', 'reader.eyebrow': 'Conversation · démo synthétique vérifiée', 'reader.heroTitle': 'Lire ce qui se passe sous la réponse', 'reader.heroSubtitle': 'Suivre un token de réponse générée à travers les couches J-Lens mesurées sans masquer la preuve brute.', 'reader.demoBadge': 'Démo synthétique · manifeste vérifié', 'reader.loadDemo': 'Charger la démo vérifiée', 'reader.openExplorer': 'Ouvrir la preuve complète dans Explorer', 'reader.prompt': 'Prompt / requête', 'reader.output': 'Sortie générée', 'reader.modelSource': 'Modèle / source', 'reader.conversation': 'Conversation', 'reader.user': 'Requête', 'reader.modelAnswer': 'Réponse du modèle', 'reader.tokenHelp': 'Sélectionne un token de réponse pour inspecter ses candidats mesurés.', 'reader.jlensEyebrow': 'Lecture J-Lens mesurée', 'reader.selectedToken': 'Token sélectionné', 'reader.layersMeasured': '{count} couches mesurées', 'reader.noCandidates': 'Aucun candidat n’est mesuré pour ce token et cette couche.', 'reader.noTrajectory': 'Aucune valeur de trajectoire n’est mesurée pour ce candidat.', 'reader.modelUnknown': 'Modèle inconnu', 'reader.sourceUnknown': 'Source inconnue', 'reader.run': 'Exécution', 'reader.modelLabel': 'Modèle', 'reader.source': 'Source', 'reader.gemmaHelp': 'Gemma est à venir et reste désactivé.', 'reader.layers': 'Couches capturées seulement', 'reader.selected': 'Token / couche sélectionnés', 'reader.top8': 'Top-8 candidats réels', 'reader.trajectory': 'Trajectoire du candidat', 'reader.understand': 'Comprendre', 'reader.completeEvidence': 'Ouvrir la preuve complète dans Explorer', 'reader.noLive': 'À venir · désactivé', 'nav.reader': 'Lire', 'nav.conversations': 'Conversations', 'nav.models': 'Modèles', 'nav.settings': 'Réglages', 'nav.protocols': 'Protocoles', 'nav.campaigns': 'Campagnes', 'nav.understand': 'Comprendre', 'nav.ab': 'Comparaison A/B', 'nav.baselines': 'Références', 'nav.interventions': 'Interventions',
       'nav.dashboard': 'Aperçu', 'nav.experiments': 'Expériences', 'nav.registry': 'Registre des modèles', 'nav.campaign': 'Créateur de campagne', 'nav.fleet': 'Parc GPU / API', 'nav.runs': 'Exécutions', 'nav.inspector': 'Inspecteur d’exécution', 'nav.visualizer': 'Visualiseur humain', 'nav.baseline': 'Laboratoire de référence', 'nav.causal': 'Laboratoire causal', 'nav.compare': 'Studio de comparaison', 'nav.claims': 'Registre des affirmations',
       'understand.title': 'Comprendre', 'understand.badge': 'Résumé par règles, sans LLM', 'understand.demo': 'Charger la démo Build Week', 'understand.empty': 'Charge une comparaison pour voir les faits déterministes.', 'understand.errorTitle': 'Erreur Understand', 'understand.retry': 'Réessaie ou recharge la démo vérifiée.',
       'coverage.source': 'source', 'coverage.transmitted': 'transmis', 'coverage.instrumented': 'instrumentés', 'coverage.generated': 'générés instrumentés', 'coverage.layers': 'couches', 'coverage.unknown': 'inconnu', 'coverage.complete': 'complète', 'coverage.partial': 'partielle',
@@ -44,21 +49,47 @@
     }
   };
   const STATIC_I18N_BINDINGS = {
-    'button[data-panel="dashboard"]': 'nav.dashboard', 'button[data-panel="experiments"]': 'nav.experiments', 'button[data-panel="registry"]': 'nav.registry', 'button[data-panel="campaign"]': 'nav.campaign', 'button[data-panel="fleet"]': 'nav.fleet', 'button[data-panel="runs"]': 'nav.runs', 'button[data-panel="inspector"]': 'nav.inspector', 'button[data-panel="visualizer"]': 'nav.visualizer', 'button[data-panel="baseline"]': 'nav.baseline', 'button[data-panel="causal"]': 'nav.causal', 'button[data-panel="compare"]': 'nav.compare', 'button[data-panel="claims"]': 'nav.claims'
+    'button[data-panel="reader"]': 'nav.reader', 'button[data-panel="dashboard"]': 'nav.dashboard', 'button[data-panel="experiments"]': 'nav.experiments', 'button[data-panel="registry"]': 'nav.registry', 'button[data-panel="campaign"]': 'nav.campaign', 'button[data-panel="fleet"]': 'nav.fleet', 'button[data-panel="runs"]': 'nav.runs', 'button[data-panel="inspector"]': 'nav.inspector', 'button[data-panel="visualizer"]': 'nav.visualizer', 'button[data-panel="baseline"]': 'nav.baseline', 'button[data-panel="causal"]': 'nav.causal', 'button[data-panel="compare"]': 'nav.compare', 'button[data-panel="claims"]': 'nav.claims'
   };
   function t(key, params = {}) {
     const template = (I18N[state.locale] && I18N[state.locale][key]) || I18N.en[key] || key;
     return template.replace(/\{(\w+)\}/g, (_, name) => String(params[name] ?? ''));
   }
+  function applyTheme() {
+    const effective = state.theme === 'system' ? (matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark') : state.theme;
+    document.documentElement.dataset.theme = effective;
+    document.documentElement.dataset.themePreference = state.theme;
+    if ($('globalThemeSelect')) $('globalThemeSelect').value = state.theme;
+  }
+  function navLabel(panel) {
+    const read = { reader: 'nav.reader', runs: 'nav.conversations', registry: 'nav.models', dashboard: 'nav.settings' };
+    const explore = { reader: 'nav.reader', runs: 'nav.runs', experiments: 'nav.protocols', campaign: 'nav.campaigns', visualizer: 'nav.understand', compare: 'nav.ab', baseline: 'nav.baselines', causal: 'nav.interventions', registry: 'nav.registry', dashboard: 'nav.settings' };
+    const key = (state.level === 'read' ? read : state.level === 'explore' ? explore : {})[panel];
+    return key ? t(key) : t(`nav.${panel}`);
+  }
+  function applyLevel() {
+    const visible = { read: ['reader','runs','registry','dashboard'], explore: ['reader','runs','experiments','campaign','visualizer','compare','baseline','causal','registry','dashboard'], control: [] };
+    document.documentElement.dataset.level = state.level;
+    document.querySelectorAll('.level-btn').forEach((node) => node.classList.toggle('active', node.dataset.level === state.level));
+    document.querySelectorAll('.nav-item').forEach((node) => {
+      const panel = node.dataset.panel;
+      const isVisible = state.level === 'control' ? true : visible[state.level].includes(panel);
+      node.hidden = !isVisible;
+      if (isVisible) node.textContent = navLabel(panel);
+    });
+  }
+  function defaultPanelForLevel(level) { return level === 'explore' ? 'visualizer' : level === 'control' ? 'dashboard' : 'reader'; }
   function applyI18n() {
     document.documentElement.lang = state.locale;
     document.title = t('app.title');
     if ($('globalLocaleSelect')) $('globalLocaleSelect').value = state.locale;
+    applyTheme();
     document.querySelector('.topbar p').textContent = t('app.subtitle');
     document.querySelectorAll('[data-i18n]').forEach((node) => { node.textContent = t(node.dataset.i18n); });
     document.querySelectorAll('[data-i18n-title]').forEach((node) => { node.title = t(node.dataset.i18nTitle); });
     document.querySelectorAll('[data-i18n-aria-label]').forEach((node) => { node.setAttribute('aria-label', t(node.dataset.i18nAriaLabel)); });
     Object.entries(STATIC_I18N_BINDINGS).forEach(([selector, key]) => { const node = document.querySelector(selector); if (node) node.textContent = t(key); });
+    applyLevel();
     if ($('loadBuildWeekDemoBtn')) $('loadBuildWeekDemoBtn').textContent = t('understand.demo');
     if ($('understandRuleBadge')) $('understandRuleBadge').textContent = t('understand.badge');
     if ($('understandSentences') && !state.understand) $('understandSentences').textContent = t('understand.empty');
@@ -118,6 +149,8 @@
   function escapeText(value) { return String(value ?? ''); }
 
   function navigate(panel) {
+    const compatible = { human: 'visualizer' };
+    panel = compatible[panel] || panel;
     document.querySelectorAll('.panel-page').forEach((node) => node.classList.toggle('active', node.id === `panel-${panel}`));
     document.querySelectorAll('.nav-item').forEach((node) => node.classList.toggle('active', node.dataset.panel === panel));
     if (window.location.hash !== `#${panel}`) history.replaceState(null, '', `${window.location.pathname}${window.location.search}#${panel}`);
@@ -126,6 +159,8 @@
 
   document.querySelectorAll('.nav-item').forEach((button) => button.addEventListener('click', () => navigate(button.dataset.panel)));
   document.querySelectorAll('[data-jump]').forEach((button) => button.addEventListener('click', () => navigate(button.dataset.jump)));
+  document.querySelectorAll('.level-btn').forEach((button) => button.addEventListener('click', () => { state.level = button.dataset.level; localStorage.setItem('prismora.level', state.level); applyLevel(); navigate(defaultPanelForLevel(state.level)); }));
+  $('globalThemeSelect')?.addEventListener('change', () => { state.theme = $('globalThemeSelect').value; localStorage.setItem('prismora.theme', state.theme); applyTheme(); });
 
   function fillSelect(select, rows, valueKey, labelFn, includeBlank = false) {
     const previous = select.value;
@@ -1069,6 +1104,54 @@
   }
 
 
+
+
+  function tokenText(tok) { return tok?.text ?? tok?.token ?? tok?.surface ?? ''; }
+  function generatedTokens(artifact) { return (artifact?.result?.tokens || []).filter((tok) => tok.role === 'generated' || tok.generated || tok.is_generated || tok.position >= (artifact?.coverage?.source_tokens_total || 0)); }
+  function lensLayers(artifact) { const lens = artifact?.result?.meta?.types?.[0] || 'JACOBIAN_LENS'; return artifact?.result?.meta?.layers_by_type?.[lens] || artifact?.coverage?.captured_layers || []; }
+  function tokenCells(artifact, pos, lens = 'JACOBIAN_LENS') {
+    const cells = (artifact?.result?.cells || artifact?.result?.logits || []).filter((cell) => cell.position === pos || cell.token_index === pos);
+    if (cells.length) return cells;
+    const token = (artifact?.result?.tokens || []).find((tok) => tok.position === pos || tok.index === pos);
+    const layers = lensLayers(artifact);
+    const result = (token?.results || []).find((row) => row.type === lens) || token?.results?.[0];
+    if (!result) return [];
+    return layers.map((layer, index) => ({ layer, position: pos, top_tokens: result.top_tokens?.[index] || [], top_probs: result.top_probs?.[index] || [] }));
+  }
+  function topCandidates(cell) {
+    if (!cell) return [];
+    const direct = cell.topk || cell.top_k || cell.candidates;
+    if (Array.isArray(direct)) return direct.slice(0, 8).map((item) => Array.isArray(item) ? { token: item[0], probability: item[1] } : item);
+    const toks = cell.top_tokens || []; const probs = cell.top_probs || [];
+    return toks.map((tok, i) => ({ token: tok, probability: probs[i] })).filter((row) => row.token !== undefined && row.probability !== undefined).slice(0, 8);
+  }
+  function readerCellFor(a, pos, layer) { return tokenCells(a, pos).find((c) => Number(c.layer) === Number(layer)); }
+  function readerValidLayers(a, pos) { return lensLayers(a).map(Number).filter((layer) => topCandidates(readerCellFor(a, pos, layer)).length); }
+  function readerModelId(a) { return a.model_id || a.request?.model?.model_id || a.request?.model_id || a.result?.meta?.model_id || ''; }
+  function readerBackendId(a) { return a.backend_id || a.request?.backend || a.request?.backend_id || a.result?.meta?.backend_id || ''; }
+  function renderReaderEmpty(id, key) { const node = $(id); node.replaceChildren(); const p = document.createElement('p'); p.className = 'reader-empty'; p.textContent = t(key); node.append(p); }
+  function renderReader() {
+    const a = state.readerArtifact || state.visualA; if (!a || !$('readerPrompt')) return; state.readerArtifact = a;
+    const tokens = generatedTokens(a); const selected = tokens[Math.min(state.readerSelectedToken, Math.max(0, tokens.length - 1))] || (a.result?.tokens || [])[0];
+    const lens = a.result?.meta?.types?.[0] || 'JACOBIAN_LENS'; const layers = lensLayers(a).map(Number).sort((x,y)=>x-y);
+    const pos = selected?.position ?? selected?.index ?? 0; const validLayers = readerValidLayers(a, pos);
+    if (validLayers.length && (state.readerSelectedLayer == null || !validLayers.includes(Number(state.readerSelectedLayer)))) state.readerSelectedLayer = validLayers[validLayers.length - 1];
+    else if (state.readerSelectedLayer == null || !layers.includes(Number(state.readerSelectedLayer))) state.readerSelectedLayer = layers[0] ?? null;
+    const model = readerModelId(a); const backend = readerBackendId(a);
+    $('readerPrompt').textContent = a.request?.prompt || a.request?.messages?.map(m => `${m.role}: ${m.content}`).join('\n') || a.prompt || '—';
+    $('readerOutput').textContent = a.result?.completion || a.result?.generated_text || tokens.map(tokenText).join('') || '—';
+    $('readerModelMeta').replaceChildren(...[[t('reader.modelLabel'), model || t('reader.modelUnknown')], [t('reader.source'), backend || a.provenance?.source || t('reader.sourceUnknown')], [t('reader.run'), a.run_id || '—']].map(([label,value])=>{ const d=document.createElement('div'); d.className='provenance-pill'; d.innerHTML=`<span>${escapeText(label)}</span><strong>${escapeText(value)}</strong>`; return d; }), (() => { const d=document.createElement('div'); d.className='provenance-pill disabled'; d.title=t('reader.gemmaHelp'); d.innerHTML=`<span>Gemma</span><strong>${t('reader.noLive')}</strong>`; return d; })());
+    $('readerTokens').replaceChildren(...tokens.map((tok,i)=>{ const b=document.createElement('button'); b.type='button'; b.className='reader-token'+(i===state.readerSelectedToken?' active':''); b.textContent=tokenText(tok).trim() || `#${i}`; b.setAttribute('aria-pressed', i===state.readerSelectedToken ? 'true' : 'false'); b.onclick=()=>{state.readerSelectedToken=i; state.readerSelectedLayer=null; renderReader();}; return b; }));
+    $('readerSelectedTokenTitle').textContent = tokenText(selected).trim() || '—'; $('readerLensBadge').textContent = lens; $('readerLayerCount').textContent = t('reader.layersMeasured', { count: layers.length });
+    const rail=[]; layers.forEach((layer,i)=>{ if(i && layer-layers[i-1]>1){ const g=document.createElement('span'); g.className='layer-gap'; g.textContent=`${layers[i-1]+1}…${layer-1} ${state.locale==='fr'?'non mesuré':'unmeasured'}`; rail.push(g);} const b=document.createElement('button'); b.type='button'; b.className='layer-chip'+(Number(state.readerSelectedLayer)===layer?' active':'')+(validLayers.includes(layer)?'':' empty'); b.textContent=String(layer); b.onclick=()=>{state.readerSelectedLayer=layer; renderReader();}; rail.push(b); }); $('readerLayerRail').replaceChildren(...rail);
+    const cell = readerCellFor(a,pos,state.readerSelectedLayer); const top=topCandidates(cell);
+    $('readerSelection').textContent = `${t('reader.selectedToken')}: ${tokenText(selected).trim() || '—'} · ${t('visual.layer')} ${state.readerSelectedLayer ?? '—'}`;
+    if (!top.length) renderReaderEmpty('readerTop8', 'reader.noCandidates'); else $('readerTop8').replaceChildren(...top.map((c,i)=>{ const row=document.createElement('div'); row.className='top8-row'; const prob=Number(c.probability ?? c.prob ?? c.p ?? 0); row.innerHTML=`<span class=rank>${i+1}</span><span class=candidate>${escapeText(c.token || c.text || c.value || '—')}</span><span class=prob>${fmt(prob,3)}</span><span class=top8-bar style="--w:${Math.max(2, prob*100)}%"></span>`; return row; }));
+    const candidate = top[0]?.token || top[0]?.text || top[0]?.value; const points = layers.map((layer)=>{ const c=topCandidates(readerCellFor(a,pos,layer)).find(x=>(x.token||x.text||x.value)===candidate); return { layer, probability: c?.probability ?? c?.prob ?? c?.p }; }).filter((point)=>point.probability !== undefined);
+    if (!points.length) renderReaderEmpty('readerTrajectory','reader.noTrajectory'); else $('readerTrajectory').replaceChildren(...points.map((point)=>{ const d=document.createElement('span'); d.className='trajectory-point'; d.textContent=`L${point.layer} ${fmt(point.probability,3)}`; return d; }));
+    if ($('readerUnderstand')) { $('readerUnderstand').replaceChildren(...(state.understand?.sentences || []).slice(0,3).map(s=>{ const details=document.createElement('details'); details.className='understand-trace compact'; const summary=document.createElement('summary'); summary.textContent=s.text; const pre=document.createElement('pre'); pre.textContent=JSON.stringify({ rule_id:s.rule_id, evidence:s.evidence }, null, 2); details.append(summary, pre); return details; })); }
+  }
+
   async function loadUnderstand() {
     if (!state.visualA || !state.visualB) return;
     const locale = state.locale;
@@ -1081,7 +1164,7 @@
     const result = await api(endpoint, { method: 'POST', body: JSON.stringify({ run_a: state.visualA.run_id, run_b: state.visualB.run_id, lens: $('visualLensSelect').value || 'JACOBIAN_LENS', scope, locale: requestedLocale, probability_abs_tolerance: 0 }) });
     if (seq !== state.understandRequestSeq || requestedLocale !== state.locale) return;
     state.understand = result; state.understandError = null;
-    renderUnderstand();
+    renderUnderstand(); renderReader();
   }
 
 
@@ -1171,10 +1254,11 @@
     state.visualSelectedColumn = 0; state.visualSelectedLayer = null;
     $('visualScopeSelect').value = 'all';
     recomputeVisualComparison();
-    setStatus('visualStatus', t('status.demoLoaded'), 'ok');
+    state.readerArtifact = state.visualA; renderReader(); setStatus('visualStatus', t('status.demoLoaded'), 'ok');
   }
 
   $('visualCompareStoredBtn').addEventListener('click', () => loadStoredVisualComparison().catch((error) => setStatus('visualStatus', error.message, 'error')));
+  $('readerLoadDemoBtn')?.addEventListener('click', () => loadBuildWeekDemo().then(()=>navigate('reader')).catch((error) => toast(error.message, true)));
   $('loadBuildWeekDemoBtn')?.addEventListener('click', () => loadBuildWeekDemo().catch((error) => setStatus('visualStatus', error.message, 'error')));
   $('globalLocaleSelect')?.addEventListener('change', () => { state.locale = $('globalLocaleSelect').value === 'fr' ? 'fr' : 'en'; localStorage.setItem('prismora.locale', state.locale); state.understandRequestSeq += 1; clearUnderstandError(); renderLocalizedVisualState(); });
   $('visualSwapRunsBtn').addEventListener('click', () => { const a = $('visualRunA').value; $('visualRunA').value = $('visualRunB').value; $('visualRunB').value = a; });
@@ -1201,10 +1285,13 @@
   refreshAll().then(async () => {
     await loadRegistry();
     if (state.runs.length > 1 && $('visualRunA').value === $('visualRunB').value) $('visualRunB').value = state.runs[1].run_id;
-    const requestedPanel = window.location.hash ? window.location.hash.slice(1) : '';
-    if (requestedPanel && document.getElementById(`panel-${requestedPanel}`)) {
-      navigate(requestedPanel);
-      if (requestedPanel === 'visualizer' && state.runs.length > 1) loadStoredVisualComparison().catch((error) => setStatus('visualStatus', error.message, 'error'));
+    applyI18n();
+    const requestedPanel = window.location.hash ? window.location.hash.slice(1) : 'reader';
+    if (!state.readerArtifact) await loadBuildWeekDemo().catch(()=>{});
+    const targetPanel = requestedPanel === 'visualizer' || requestedPanel === 'human' ? 'visualizer' : requestedPanel;
+    if (targetPanel && document.getElementById(`panel-${targetPanel}`)) {
+      navigate(targetPanel);
+      if (targetPanel === 'visualizer' && state.runs.length > 1) loadStoredVisualComparison().catch((error) => setStatus('visualStatus', error.message, 'error'));
     }
   }).catch((error) => toast(error.message, true));
 })();
