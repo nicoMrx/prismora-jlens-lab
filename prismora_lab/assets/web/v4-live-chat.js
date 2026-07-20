@@ -2,6 +2,7 @@
   'use strict';
 
   const SESSION_KEY = 'prismora.v4.session';
+  const LIVE_REF_KEY = 'prismora.v4.liveRef';
   const MODEL_KEY = 'prismora.v4.liveModel';
   const STOP_MARKERS = ['<|im_end|>', '<|end|>', '<|return|>', '<end_of_turn>', '<eos>'];
   const $ = (selector, root = document) => root.querySelector(selector);
@@ -9,17 +10,30 @@
   let models = [];
   let busy = false;
   let scheduled = false;
+  let currentArtifact = null;
+  let progressTimer = null;
+  let progressStartedAt = 0;
 
   const copy = {
     fr: {
       local: 'Démo et imports locaux', livePrefix: 'Neuronpedia · ', choose: 'Sélectionnez un modèle Neuronpedia dans « Source » pour envoyer un vrai message.',
       notConnected: 'Testez d’abord la connexion Neuronpedia dans Réglages et compte.', pending: 'Run Neuronpedia en cours · aucune mesure n’est inventée.',
       failed: 'Le run Neuronpedia a échoué', live: 'Neuronpedia live · raw archivé', unavailable: 'Les modèles live sont indisponibles.',
+      workTitle: 'Neuronpedia travaille sur votre message', sent: 'Requête envoyée au modèle.',
+      measuring: 'Le modèle génère sa réponse et calcule les readouts J-Lens.',
+      waiting: 'Prismora attend les mesures de toutes les couches.', long: 'Toujours en cours — un grand modèle peut prendre plusieurs minutes.',
+      dontClose: 'Gardez cette page ouverte. Le temps affiché est réel ; la progression est volontairement indéterminée.',
+      received: 'Artifact reçu · raw archivé · affichage des mesures…', restored: 'Artifact live restauré depuis le serveur local.',
     },
     en: {
       local: 'Demo and local imports', livePrefix: 'Neuronpedia · ', choose: 'Select a Neuronpedia model in “Source” to send a real message.',
       notConnected: 'Test the Neuronpedia connection first in Settings and account.', pending: 'Neuronpedia run in progress · no measurement is invented.',
       failed: 'Neuronpedia run failed', live: 'Live Neuronpedia · raw archived', unavailable: 'Live models are unavailable.',
+      workTitle: 'Neuronpedia is working on your message', sent: 'Request sent to the model.',
+      measuring: 'The model is generating its answer and computing J-Lens readouts.',
+      waiting: 'Prismora is waiting for measurements from all layers.', long: 'Still running — a large model can take several minutes.',
+      dontClose: 'Keep this page open. Elapsed time is real; progress is intentionally indeterminate.',
+      received: 'Artifact received · raw archived · rendering measurements…', restored: 'Live artifact restored from the local server.',
     },
   };
   const t = (key) => copy[language()][key] || key;
@@ -28,6 +42,7 @@
     const response = await fetch(path, {
       ...options,
       headers: { 'content-type': 'application/json', ...(options.headers || {}) },
+      cache: 'no-store',
     });
     const text = await response.text();
     let value;
@@ -55,13 +70,17 @@
     return value.startsWith('live:') ? value.slice(5) : null;
   }
 
-  function liveSession() {
+  function sessionArtifact() {
     try {
       const payload = JSON.parse(sessionStorage.getItem(SESSION_KEY) || 'null');
-      return payload?.sourceType === 'live' ? payload : null;
+      return payload?.sourceType === 'live' ? payload.artifact || null : null;
     } catch {
       return null;
     }
+  }
+
+  function activeArtifact() {
+    return currentArtifact || sessionArtifact();
   }
 
   function livePrompt(artifact) {
@@ -108,6 +127,10 @@
     }
   }
 
+  function modelLabel(modelId) {
+    return models.find((model) => model.model_id === modelId)?.label || modelId || 'Neuronpedia';
+  }
+
   function renderSources() {
     const select = sourceSelect();
     if (!select) return;
@@ -120,10 +143,9 @@
       option.textContent = item.label;
       return option;
     }));
-    select.disabled = false;
-    const session = liveSession();
-    const sessionModel = session?.artifact?.request?.model?.model_id;
-    const wanted = sessionModel ? `live:${sessionModel}` : current;
+    select.disabled = busy;
+    const artifactModel = activeArtifact()?.request?.model?.model_id;
+    const wanted = artifactModel ? `live:${artifactModel}` : current;
     select.value = options.some((item) => item.value === wanted) ? wanted : 'local';
     select.onchange = () => {
       localStorage.setItem(MODEL_KEY, select.value);
@@ -141,6 +163,64 @@
     if (select) select.disabled = value;
   }
 
+  function ensureProgress() {
+    let panel = $('#live-progress');
+    if (panel) return panel;
+    panel = document.createElement('section');
+    panel.id = 'live-progress';
+    panel.className = 'live-progress';
+    panel.hidden = true;
+    panel.setAttribute('role', 'status');
+    panel.setAttribute('aria-live', 'polite');
+    panel.innerHTML = '<span class="live-progress-spinner" aria-hidden="true"></span><div class="live-progress-copy"><strong></strong><p></p></div><span class="live-progress-time">00:00</span><p class="live-progress-note"></p>';
+    const composer = $('#composer');
+    composer?.insertAdjacentElement('afterend', panel);
+    return panel;
+  }
+
+  function elapsedLabel(seconds) {
+    const minutes = Math.floor(seconds / 60);
+    return `${String(minutes).padStart(2, '0')}:${String(seconds % 60).padStart(2, '0')}`;
+  }
+
+  function progressStage(seconds) {
+    if (seconds >= 45) return t('long');
+    if (seconds >= 15) return t('waiting');
+    if (seconds >= 4) return t('measuring');
+    return t('sent');
+  }
+
+  function updateProgress() {
+    const panel = ensureProgress();
+    if (!progressStartedAt || panel.hidden) return;
+    const seconds = Math.max(0, Math.floor((Date.now() - progressStartedAt) / 1000));
+    $('.live-progress-copy p', panel).textContent = progressStage(seconds);
+    $('.live-progress-time', panel).textContent = elapsedLabel(seconds);
+  }
+
+  function startProgress(modelId) {
+    const panel = ensureProgress();
+    panel.hidden = false;
+    panel.classList.remove('done', 'error');
+    $('.live-progress-copy strong', panel).textContent = `${t('workTitle')} · ${modelLabel(modelId)}`;
+    $('.live-progress-note', panel).textContent = t('dontClose');
+    progressStartedAt = Date.now();
+    updateProgress();
+    clearInterval(progressTimer);
+    progressTimer = setInterval(updateProgress, 1000);
+  }
+
+  function finishProgress({ error = false, message = '' } = {}) {
+    const panel = ensureProgress();
+    clearInterval(progressTimer);
+    progressTimer = null;
+    panel.classList.toggle('done', !error);
+    panel.classList.toggle('error', error);
+    $('.live-progress-copy p', panel).textContent = message || (error ? t('failed') : t('received'));
+    updateProgress();
+    if (!error) setTimeout(() => { panel.hidden = true; }, 1800);
+  }
+
   function showPending(message) {
     const messages = $('#messages');
     const jlens = $('#jlens');
@@ -153,6 +233,47 @@
     if (output) output.textContent = t('pending');
     if (tokens) tokens.replaceChildren();
     setStatus(t('pending'));
+  }
+
+  function saveLiveReference(artifact) {
+    const reference = {
+      run_id: artifact.run_id,
+      experiment_id: artifact.experiment_id,
+      model_id: artifact?.request?.model?.model_id || null,
+      user_message: livePrompt(artifact),
+    };
+    sessionStorage.setItem(LIVE_REF_KEY, JSON.stringify(reference));
+    const params = new URLSearchParams();
+    params.set('live', artifact.run_id);
+    if (artifact.experiment_id) params.set('experiment', artifact.experiment_id);
+    history.replaceState(null, '', `/v4.html?${params.toString()}`);
+  }
+
+  async function waitForReader(timeout = 10000) {
+    const start = Date.now();
+    while (Date.now() - start < timeout) {
+      if ($('#messages') && !$('#messages').hidden && $('#jlens') && !$('#jlens').hidden) return true;
+      await new Promise((resolve) => setTimeout(resolve, 50));
+    }
+    return false;
+  }
+
+  async function loadArtifactIntoReader(artifact, { updateUrl = true } = {}) {
+    currentArtifact = artifact;
+    if (updateUrl) saveLiveReference(artifact);
+    const input = $('#import-files');
+    const form = $('#import-form');
+    const submit = $('#load-import');
+    if (!input || !form || !submit || typeof DataTransfer === 'undefined') {
+      throw new Error('Le lecteur local ne peut pas recevoir l’artifact live.');
+    }
+    const transfer = new DataTransfer();
+    transfer.items.add(new File([JSON.stringify(artifact)], `${artifact.run_id}.json`, { type: 'application/json' }));
+    input.files = transfer.files;
+    form.requestSubmit(submit);
+    await waitForReader();
+    renderSources();
+    schedulePolish();
   }
 
   async function submitLive(event) {
@@ -179,6 +300,7 @@
       }
       setBusy(true);
       showPending(message);
+      startProgress(modelId);
       const artifact = await api('/api/live/chat', {
         method: 'POST',
         body: JSON.stringify({
@@ -192,27 +314,21 @@
           enable_thinking: false,
         }),
       });
-      sessionStorage.setItem(SESSION_KEY, JSON.stringify({
-        version: 1,
-        artifact,
-        sourceType: 'live',
-        selectedToken: 0,
-        selectedLayer: null,
-        level: 'read',
-      }));
-      localStorage.setItem('prismora.level', 'read');
-      localStorage.setItem(MODEL_KEY, `live:${modelId}`);
-      location.assign(`/v4.html?live=${encodeURIComponent(artifact.run_id)}`);
+      $('.live-progress-copy p', ensureProgress()).textContent = t('received');
+      await loadArtifactIntoReader(artifact);
+      $('#message-input').value = '';
+      setBusy(false);
+      finishProgress();
     } catch (error) {
       setBusy(false);
+      finishProgress({ error: true, message: `${t('failed')} : ${error.message}` });
       setStatus(`${t('failed')} : ${error.message}`, true);
     }
   }
 
   function polishLiveArtifact() {
-    const session = liveSession();
-    if (!session?.artifact) return;
-    const artifact = session.artifact;
+    const artifact = activeArtifact();
+    if (!artifact) return;
     const modelId = artifact?.request?.model?.model_id || 'model';
     const who = $('#model-who');
     if (who && !who.textContent.includes('Neuronpedia live')) who.textContent = `${modelId} · Neuronpedia live`;
@@ -225,7 +341,7 @@
     trimTechnicalTokenButtons();
     const status = $('#reader-status');
     const expected = `${t('live')} · ${artifact.run_id}`;
-    if (status && status.textContent !== expected) status.textContent = expected;
+    if (!busy && status && status.textContent !== expected) status.textContent = expected;
   }
 
   function schedulePolish() {
@@ -237,17 +353,51 @@
     });
   }
 
+  async function restoreLiveFromServer() {
+    const params = new URLSearchParams(location.search);
+    let runId = params.get('live');
+    let experimentId = params.get('experiment');
+    if (!runId) {
+      try {
+        const reference = JSON.parse(sessionStorage.getItem(LIVE_REF_KEY) || 'null');
+        runId = reference?.run_id || null;
+        experimentId = reference?.experiment_id || null;
+      } catch {
+        runId = null;
+      }
+    }
+    if (!runId) {
+      currentArtifact = sessionArtifact();
+      return;
+    }
+    const existing = sessionArtifact();
+    if (existing?.run_id === runId) {
+      currentArtifact = existing;
+      return;
+    }
+    try {
+      const suffix = experimentId ? `?experiment_id=${encodeURIComponent(experimentId)}` : '';
+      const artifact = await api(`/api/runs/${encodeURIComponent(runId)}${suffix}`);
+      currentArtifact = artifact;
+      await loadArtifactIntoReader(artifact, { updateUrl: false });
+      setStatus(`${t('restored')} · ${runId}`);
+    } catch (error) {
+      setStatus(`${t('failed')} : ${error.message}`, true);
+    }
+  }
+
   async function init() {
+    ensureProgress();
     document.addEventListener('submit', submitLive, true);
     try {
       const payload = await api('/api/live/models');
       models = Array.isArray(payload.models) ? payload.models : [];
-      renderSources();
     } catch {
       models = [];
-      renderSources();
       setStatus(t('unavailable'), true);
     }
+    await restoreLiveFromServer();
+    renderSources();
     const root = $('.screen[data-screen="read"]') || document.body;
     new MutationObserver(schedulePolish).observe(root, { childList: true, subtree: true, characterData: true });
     new MutationObserver(() => { renderSources(); schedulePolish(); }).observe(document.documentElement, {
