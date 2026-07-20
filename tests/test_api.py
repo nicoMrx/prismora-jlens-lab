@@ -64,3 +64,46 @@ def test_locked_experiment_cannot_be_silently_edited(tmp_path):
     locked['title'] = 'silently changed title'
     response = client.post('/api/experiments', json=locked)
     assert response.status_code == 409
+
+
+def test_session_settings_never_return_neuronpedia_api_key(tmp_path):
+    client = make_client(tmp_path)
+    secret = "np_live_super_secret"
+    response = client.put('/api/session/settings', json={"display_name": "Nico", "locale": "fr", "theme": "dark", "neuronpedia_api_key": secret})
+    assert response.status_code == 200
+    body = response.json()
+    assert body["neuronpedia_connected"] is True
+    assert secret not in json.dumps(body)
+    fetched = client.get('/api/session/settings').json()
+    assert secret not in json.dumps(fetched)
+    deleted = client.delete('/api/session/neuronpedia-key').json()
+    assert deleted["neuronpedia_connected"] is False
+    assert secret not in json.dumps(deleted)
+
+
+def test_neuronpedia_connection_test_allows_continue_without_key(tmp_path):
+    client = make_client(tmp_path)
+    response = client.post('/api/session/neuronpedia/test', json={})
+    assert response.status_code == 200
+    body = response.json()
+    assert body["neuronpedia_connected"] is False
+    assert "imports remain available" in body["message"]
+
+
+def test_session_secret_not_persisted_to_artifacts_exports_or_next_process(tmp_path):
+    secret = "np_test_redacted_secret"
+    client = make_client(tmp_path)
+    client.put('/api/session/settings', json={"neuronpedia_api_key": secret})
+    spec = json.loads((ROOT / "examples" / "strategy_quadratic_mock.json").read_text())
+    client.post('/api/experiments', json=spec)
+    client.post(f"/api/experiments/{spec['experiment_id']}/lock", json={})
+    executed = client.post('/api/runs/execute', json={"experiment_id": spec['experiment_id'], "limit": 1}).json()
+    run_id = executed['completed'][0]['run_id']
+    artifact_text = json.dumps(client.get(f'/api/runs/{run_id}').json())
+    assert secret not in artifact_text
+    bundle = client.get(f"/api/experiments/{spec['experiment_id']}/bundle")
+    assert secret.encode() not in bundle.content
+    fresh_client = make_client(tmp_path)
+    fresh_settings = fresh_client.get('/api/session/settings').json()
+    assert fresh_settings["neuronpedia_connected"] is False
+    assert secret not in json.dumps(fresh_settings)
