@@ -12,11 +12,7 @@
   let runtimeArtifact = null;
   let runtimeSourceType = null;
 
-  const copy = {
-    fr: { interventions: 'Interventions' },
-    en: { interventions: 'Interventions' },
-  };
-
+  const copy = { fr: { interventions: 'Interventions' }, en: { interventions: 'Interventions' } };
   const isArtifact = (value) => value?.schema === 'prismora.run/v2';
 
   function storedSession() {
@@ -123,6 +119,21 @@
     requestAnimationFrame(() => requestAnimationFrame(() => { scheduled = false; sync(); }));
   }
 
+  function boot() {
+    const saved = storedSession();
+    if (isArtifact(saved?.artifact)) { runtimeArtifact = saved.artifact; runtimeSourceType = saved.sourceType || null; }
+    ensureHost();
+    const screen = $('.screen[data-screen="explore"]');
+    if (screen) new MutationObserver(schedule).observe(screen, { childList: true });
+    for (const selector of ['#tokens', '#layer-rail', '[data-shared-artifact]']) {
+      const node = $(selector);
+      if (node) new MutationObserver(schedule).observe(node, { childList: true, subtree: true, characterData: true });
+    }
+    new MutationObserver(schedule).observe(document.documentElement, { attributes: true, attributeFilter: ['lang'] });
+    schedule();
+  }
+
+  document.addEventListener('prismora:explorer-refresh', schedule);
   document.addEventListener('submit', async (event) => {
     const form = event.target;
     if (!(form instanceof HTMLFormElement) || form.id !== 'import-form' || event.submitter?.value === 'cancel') return;
@@ -135,7 +146,6 @@
       } catch { /* The normal import path owns user-facing errors. */ }
     }
   });
-
   document.addEventListener('click', (event) => {
     const nav = event.target.closest?.('[data-nav]');
     if (nav && VIEWS.includes(nav.dataset.nav)) { requestAnimationFrame(() => activate(nav.dataset.nav)); return; }
@@ -143,24 +153,12 @@
     if (card) { activate(card.dataset.explorerView); return; }
     if (event.target.closest?.('#lvl-explore, #details-button')) requestAnimationFrame(() => activate('understand'));
   });
-
   document.addEventListener('keydown', (event) => {
     const card = event.target.closest?.('[data-explorer-view]');
     if (!card || !['Enter', ' '].includes(event.key)) return;
     event.preventDefault(); activate(card.dataset.explorerView);
   });
 
-  window.addEventListener('DOMContentLoaded', () => {
-    const saved = storedSession();
-    if (isArtifact(saved?.artifact)) { runtimeArtifact = saved.artifact; runtimeSourceType = saved.sourceType || null; }
-    ensureHost();
-    const screen = $('.screen[data-screen="explore"]');
-    if (screen) new MutationObserver(schedule).observe(screen, { childList: true });
-    for (const selector of ['#tokens', '#layer-rail', '[data-shared-artifact]']) {
-      const node = $(selector);
-      if (node) new MutationObserver(schedule).observe(node, { childList: true, subtree: true, characterData: true });
-    }
-    new MutationObserver(schedule).observe(document.documentElement, { attributes: true, attributeFilter: ['lang'] });
-    schedule();
-  });
+  if (document.readyState === 'loading') window.addEventListener('DOMContentLoaded', boot, { once: true });
+  else boot();
 })();
