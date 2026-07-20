@@ -114,4 +114,11 @@
     if (related === target) return;
     tooltip.classList.remove('visible');
   });
+
+  if (!document.querySelector('script[data-prismora-instruments]')) {
+    const instruments = document.createElement('script');
+    instruments.src = '/v4-instruments.js?v=1';
+    instruments.dataset.prismoraInstruments = '1';
+    document.head.append(instruments);
+  }
 })();
