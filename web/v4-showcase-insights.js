@@ -114,23 +114,39 @@
     workbench.insertBefore(panel, anchor || null);
   }
 
+  function renderKey(kind) {
+    return [language(), kind, state.a?.run_id || '', state.b?.run_id || ''].join('|');
+  }
+
   async function render() {
     const workbench = $('.user-comparison-workbench');
     const compareView = $('#explorer-compare-view');
     if (!workbench || !compareView) return;
-    $('.showcase-insights', workbench)?.remove();
-    compareView.classList.remove('showcase-pair-active');
-    if (!state.a || !state.b) return;
 
     const traceA = state.a?.derived?.concept_traces?.meta;
     const traceB = state.b?.derived?.concept_traces?.meta;
     const isMeta = Boolean(traceA && traceB);
     const sameQuestion = String(state.a?.run_id || '').includes('same-question') && String(state.b?.run_id || '').includes('same-question');
-    if (!isMeta && !sameQuestion) return;
+    const kind = isMeta ? 'meta' : sameQuestion ? 'same-question' : '';
+    const existing = $('.showcase-insights', workbench);
 
+    if (!state.a || !state.b || !kind) {
+      if (existing) existing.remove();
+      compareView.classList.remove('showcase-pair-active');
+      return;
+    }
+
+    const key = renderKey(kind);
+    if (existing?.dataset.renderKey === key) {
+      compareView.classList.add('showcase-pair-active');
+      return;
+    }
+    if (existing) existing.remove();
     compareView.classList.add('showcase-pair-active');
+
     const panel = document.createElement('section');
-    panel.className = `showcase-insights ${isMeta ? 'meta' : 'same-question'}`;
+    panel.className = `showcase-insights ${kind}`;
+    panel.dataset.renderKey = key;
     const heading = document.createElement('h3');
     heading.textContent = isMeta ? t('metaTitle') : t('sameTitle');
     const lead = document.createElement('p');
@@ -142,6 +158,7 @@
 
     if (isMeta) {
       const manifest = await loadManifest();
+      if (renderKey(kind) !== key) return;
       const controls = manifest?.cards?.find((card) => card.demo_id === 'meta-capture')?.controls;
       if (controls) {
         const control = document.createElement('p');
@@ -172,6 +189,14 @@
     });
   }
 
+  function init() {
+    state.a = sessionArtifact();
+    const view = $('#explorer-compare-view') || document.body;
+    new MutationObserver(schedule).observe(view, { childList: true, subtree: true });
+    new MutationObserver(schedule).observe(document.documentElement, { attributes: true, attributeFilter: ['lang'] });
+    schedule();
+  }
+
   document.addEventListener('change', (event) => {
     if (event.target.matches?.('.user-comparison-a')) readInput(event.target, 'a');
     if (event.target.matches?.('.user-comparison-b')) readInput(event.target, 'b');
@@ -183,11 +208,6 @@
     }
   });
 
-  window.addEventListener('DOMContentLoaded', () => {
-    state.a = sessionArtifact();
-    const view = $('#explorer-compare-view') || document.body;
-    new MutationObserver(schedule).observe(view, { childList: true, subtree: true });
-    new MutationObserver(schedule).observe(document.documentElement, { attributes: true, attributeFilter: ['lang'] });
-    schedule();
-  });
+  if (document.readyState === 'loading') window.addEventListener('DOMContentLoaded', init, { once: true });
+  else init();
 })();
