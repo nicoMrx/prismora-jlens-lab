@@ -143,4 +143,27 @@
     scrub.dataset.prismoraLayerScrub = '1';
     document.head.append(scrub);
   }
+
+  if (!document.querySelector('link[data-prismora-explorer-subviews]')) {
+    const styles = document.createElement('link');
+    styles.rel = 'stylesheet';
+    styles.href = '/v4-explorer-subviews.css?v=1';
+    styles.dataset.prismoraExplorerSubviews = '1';
+    document.head.append(styles);
+  }
+
+  const explorerScripts = [
+    ['router', '/v4-explorer-router.js?v=1'],
+    ['reference', '/v4-explorer-reference.js?v=1'],
+    ['interventions', '/v4-explorer-interventions.js?v=1'],
+    ['compare', '/v4-explorer-compare.js?v=1'],
+  ];
+  explorerScripts.forEach(([name, src]) => {
+    if (document.querySelector(`script[data-prismora-explorer-${name}]`)) return;
+    const script = document.createElement('script');
+    script.src = src;
+    script.async = false;
+    script.dataset[`prismoraExplorer${name[0].toUpperCase()}${name.slice(1)}`] = '1';
+    document.head.append(script);
+  });
 })();
