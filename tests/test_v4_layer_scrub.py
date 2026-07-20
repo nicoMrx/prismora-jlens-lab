@@ -18,6 +18,7 @@ def test_v4_layer_scrub_updates_reader_and_overlay_without_network():
         assert "/v4-layer-scrub.js" in tooltip
         assert ".layer-hover-badge" in css
         assert "cursor:crosshair" in css
+        assert ".lens-overlay-chart .overlay-point{pointer-events:none}" in css
         assert "fetch(" not in script
         assert "/api/" not in script
 
