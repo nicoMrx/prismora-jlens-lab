@@ -40,9 +40,10 @@ def _mount_with_prismora_extensions(
         mount_demo_library_routes(self, package_root)
 
         static_root = Path(getattr(app, "directory", package_root / "web"))
-        polish_styles = (
-            '<link rel="stylesheet" href="/v4-campaign-polish.css?v=1" data-prismora-campaign-polish="1">'
-            '<link rel="stylesheet" href="/v4-showcase-insights.css?v=1" data-prismora-showcase-insights="1">'
+        extension_styles = (
+            '<link rel="stylesheet" href="/v4-live-chat.css?v=1" data-prismora-live-chat-style="1">',
+            '<link rel="stylesheet" href="/v4-campaign-polish.css?v=1" data-prismora-campaign-polish="1">',
+            '<link rel="stylesheet" href="/v4-showcase-insights.css?v=1" data-prismora-showcase-insights="1">',
         )
         extension_scripts = (
             '<script src="/v4-sidebar-observer-guard.js?v=1"></script>',
@@ -56,8 +57,9 @@ def _mount_with_prismora_extensions(
         async def prismora_v4_guarded() -> HTMLResponse:
             html_path = static_root / "v4.html"
             html = html_path.read_text(encoding="utf-8")
-            if 'data-prismora-campaign-polish="1"' not in html:
-                html = html.replace("</head>", polish_styles + "</head>", 1)
+            missing_styles = "".join(tag for tag in extension_styles if tag not in html)
+            if missing_styles:
+                html = html.replace("</head>", missing_styles + "</head>", 1)
 
             marker = '<script src="/v4-campaign-center.js'
             if marker not in html:
