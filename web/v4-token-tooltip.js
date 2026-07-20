@@ -152,18 +152,10 @@
     document.head.append(styles);
   }
 
-  const explorerScripts = [
-    ['router', '/v4-explorer-router.js?v=1'],
-    ['reference', '/v4-explorer-reference.js?v=1'],
-    ['interventions', '/v4-explorer-interventions.js?v=1'],
-    ['compare', '/v4-explorer-compare.js?v=1'],
-  ];
-  explorerScripts.forEach(([name, src]) => {
-    if (document.querySelector(`script[data-prismora-explorer-${name}]`)) return;
-    const script = document.createElement('script');
-    script.src = src;
-    script.async = false;
-    script.dataset[`prismoraExplorer${name[0].toUpperCase()}${name.slice(1)}`] = '1';
-    document.head.append(script);
-  });
+  if (!document.querySelector('script[data-prismora-explorer-subviews]')) {
+    const explorer = document.createElement('script');
+    explorer.src = '/v4-explorer-subviews.js?v=1';
+    explorer.dataset.prismoraExplorerSubviews = '1';
+    document.head.append(explorer);
+  }
 })();
