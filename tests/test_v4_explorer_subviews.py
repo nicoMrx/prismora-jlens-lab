@@ -59,6 +59,7 @@ def test_v4_explorer_module_has_static_loading_and_dynamic_fallback():
     assert 'href="/v4-explorer-subviews.css?v=1"' in html
     assert 'src="/v4-explorer-subviews.js?v=1"' in html
     assert 'data-prismora-explorer-subviews="1"' in html
+    assert html.index('/v4-explorer-subviews.js?v=1') < html.index('/v4-token-tooltip.js?v=1')
     assert html == packaged_html
 
     assert "/v4-explorer-subviews.css?v=1" in loader
