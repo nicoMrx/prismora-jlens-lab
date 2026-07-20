@@ -305,7 +305,7 @@
   function ensureWorkbench() {
     const panel = $('#explorer-compare-view');
     if (!panel) return;
-    let workbench = $('.user-comparison-workbench', panel);
+    const workbench = $('.user-comparison-workbench', panel);
     if (!workbench) buildWorkbench(panel);
     else updateControls(workbench);
   }
@@ -324,7 +324,10 @@
     state.a = sessionArtifact();
     state.aLabel = state.a ? t('loaded') : null;
     const explore = $('.screen[data-screen="explore"]') || document.body;
-    new MutationObserver(schedule).observe(explore, { childList: true, subtree: true });
+    new MutationObserver(() => {
+      const panel = $('#explorer-compare-view');
+      if (panel && !$('.user-comparison-workbench', panel)) schedule();
+    }).observe(explore, { childList: true, subtree: true });
     new MutationObserver(() => {
       const panel = $('#explorer-compare-view');
       const old = panel && $('.user-comparison-workbench', panel);
