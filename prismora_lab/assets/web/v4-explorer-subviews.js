@@ -8,96 +8,56 @@
   const $$ = (selector) => [...document.querySelectorAll(selector)];
   const language = () => document.documentElement.lang === 'fr' ? 'fr' : 'en';
 
-  let activeView = VIEWS.includes(localStorage.getItem(VIEW_KEY))
-    ? localStorage.getItem(VIEW_KEY)
-    : 'understand';
-  let artifact = null;
+  let activeView = VIEWS.includes(localStorage.getItem(VIEW_KEY)) ? localStorage.getItem(VIEW_KEY) : 'understand';
+  let currentArtifact = null;
   let scheduled = false;
   let compareSequence = 0;
 
   const copy = {
     fr: {
-      interventionsNav: 'Interventions',
-      compareTitle: 'Comparaison A/B',
+      interventionsNav: 'Interventions', compareTitle: 'Comparaison A/B',
       compareSubtitle: 'Comparer deux artifacts vérifiés sans modifier les données chargées.',
       compareLoading: 'Chargement de la paire de démonstration vérifiée…',
       compareUnavailable: 'Un second artifact compatible est nécessaire. Le run chargé reste intact et aucune comparaison n’est inventée.',
       compareError: 'La comparaison vérifiée n’a pas pu être produite.',
-      demoPair: 'Paire A vérifiée · contrôle ↔ variation',
-      fullComparison: 'Ouvrir la comparaison A/B complète',
-      why: 'Pourquoi cette phrase ?',
-      rule: 'Règle',
-      evidence: 'Preuves',
-      referencesTitle: 'Références',
-      referencesSubtitle: 'Provenance, couverture et limites de l’artifact actuellement chargé.',
-      interventionsTitle: 'Interventions',
-      interventionsSubtitle: 'Déclarations présentes dans la requête, sans déduire un effet causal.',
+      demoPair: 'Paire A vérifiée · contrôle ↔ variation', fullComparison: 'Ouvrir la comparaison A/B complète',
+      why: 'Pourquoi cette phrase ?', rule: 'Règle', evidence: 'Preuves',
+      referencesTitle: 'Références', referencesSubtitle: 'Provenance, couverture et limites de l’artifact actuellement chargé.',
+      interventionsTitle: 'Interventions', interventionsSubtitle: 'Déclarations présentes dans la requête, sans déduire un effet causal.',
       noArtifact: 'Chargez une démo ou un export local pour ouvrir cette sous-vue.',
-      run: 'Exécution',
-      model: 'Modèle',
-      source: 'Source',
-      sourceFile: 'Fichier source',
-      lenses: 'Lentilles disponibles',
-      layers: 'Couches capturées',
-      coverage: 'Couverture',
-      status: 'Statut',
-      syntheticYes: 'Démonstration synthétique',
-      syntheticNo: 'Artifact mesuré',
+      run: 'Exécution', model: 'Modèle', source: 'Source', sourceFile: 'Fichier source',
+      lenses: 'Lentilles disponibles', layers: 'Couches capturées', coverage: 'Couverture', status: 'Statut',
+      complete: 'complète', partial: 'partielle', unknown: 'inconnue',
+      syntheticYes: 'Démonstration synthétique', syntheticNo: 'Artifact mesuré',
       noIntervention: 'Aucune intervention n’est déclarée dans cet artifact.',
-      operation: 'Opération',
-      declaredLayers: 'Couches déclarées',
-      strength: 'Force',
-      steerTokens: 'Tokens dirigés',
-      swapToken: 'Token de remplacement',
-      ablation: 'Ablation',
-      yes: 'oui',
-      no: 'non',
-      unavailable: 'non disponible',
+      operation: 'Opération', declaredLayers: 'Couches déclarées', strength: 'Force',
+      steerTokens: 'Tokens dirigés', swapToken: 'Token de remplacement', ablation: 'Ablation',
+      yes: 'oui', no: 'non', unavailable: 'non disponible',
       causalGuard: 'Une intervention déclarée et une divergence mesurée ne constituent pas, à elles seules, une preuve causale.',
-      openBaselines: 'Ouvrir le laboratoire de référence',
-      openCausal: 'Ouvrir le laboratoire causal',
+      openBaselines: 'Ouvrir le laboratoire de référence', openCausal: 'Ouvrir le laboratoire causal',
       openRuns: 'Ouvrir les exécutions et données brutes',
     },
     en: {
-      interventionsNav: 'Interventions',
-      compareTitle: 'A/B comparison',
+      interventionsNav: 'Interventions', compareTitle: 'A/B comparison',
       compareSubtitle: 'Compare two verified artifacts without modifying the loaded data.',
       compareLoading: 'Loading the verified demo pair…',
       compareUnavailable: 'A second compatible artifact is required. The loaded run remains intact and no comparison is invented.',
       compareError: 'The verified comparison could not be produced.',
-      demoPair: 'Verified Pair A · control ↔ shift',
-      fullComparison: 'Open the complete A/B comparison',
-      why: 'Why this sentence?',
-      rule: 'Rule',
-      evidence: 'Evidence',
-      referencesTitle: 'References',
-      referencesSubtitle: 'Provenance, coverage and limitations of the currently loaded artifact.',
-      interventionsTitle: 'Interventions',
-      interventionsSubtitle: 'Declarations present in the request, without inferring a causal effect.',
+      demoPair: 'Verified Pair A · control ↔ shift', fullComparison: 'Open the complete A/B comparison',
+      why: 'Why this sentence?', rule: 'Rule', evidence: 'Evidence',
+      referencesTitle: 'References', referencesSubtitle: 'Provenance, coverage and limitations of the currently loaded artifact.',
+      interventionsTitle: 'Interventions', interventionsSubtitle: 'Declarations present in the request, without inferring a causal effect.',
       noArtifact: 'Load a demo or local export to open this subview.',
-      run: 'Run',
-      model: 'Model',
-      source: 'Source',
-      sourceFile: 'Source file',
-      lenses: 'Available lenses',
-      layers: 'Captured layers',
-      coverage: 'Coverage',
-      status: 'Status',
-      syntheticYes: 'Synthetic demonstration',
-      syntheticNo: 'Measured artifact',
+      run: 'Run', model: 'Model', source: 'Source', sourceFile: 'Source file',
+      lenses: 'Available lenses', layers: 'Captured layers', coverage: 'Coverage', status: 'Status',
+      complete: 'complete', partial: 'partial', unknown: 'unknown',
+      syntheticYes: 'Synthetic demonstration', syntheticNo: 'Measured artifact',
       noIntervention: 'No intervention is declared in this artifact.',
-      operation: 'Operation',
-      declaredLayers: 'Declared layers',
-      strength: 'Strength',
-      steerTokens: 'Steered tokens',
-      swapToken: 'Swap token',
-      ablation: 'Ablation',
-      yes: 'yes',
-      no: 'no',
-      unavailable: 'unavailable',
+      operation: 'Operation', declaredLayers: 'Declared layers', strength: 'Strength',
+      steerTokens: 'Steered tokens', swapToken: 'Swap token', ablation: 'Ablation',
+      yes: 'yes', no: 'no', unavailable: 'unavailable',
       causalGuard: 'A declared intervention and a measured divergence do not, by themselves, establish causal proof.',
-      openBaselines: 'Open Baseline Lab',
-      openCausal: 'Open Causal Lab',
+      openBaselines: 'Open Baseline Lab', openCausal: 'Open Causal Lab',
       openRuns: 'Open runs and exact raw data',
     },
   };
@@ -158,7 +118,6 @@
   function ensureStructure() {
     const screen = $('.screen[data-screen="explore"]');
     if (!screen) return null;
-
     const cards = screen.querySelector(':scope > .cards');
     if (cards) {
       cards.classList.add('explorer-overview-cards');
@@ -178,7 +137,6 @@
       host.className = 'explorer-subview-host';
       screen.insertBefore(host, $('#legacy-explore') || null);
     }
-
     let understand = $('#explorer-understand-view');
     if (!understand) {
       understand = document.createElement('div');
@@ -186,25 +144,23 @@
       understand.className = 'explorer-subview explorer-subview-stack';
       host.append(understand);
     }
-
     for (const id of ['explorer-compare-view', 'explorer-references-view', 'explorer-interventions-view']) {
       let panel = $(`#${id}`);
       if (!panel) {
         panel = document.createElement('section');
         panel.id = id;
         panel.className = 'explorer-subview card';
-        host.append(panel);
-      } else if (panel.parentElement !== host) {
-        host.append(panel);
       }
+      if (panel.parentElement !== host) host.append(panel);
     }
-
-    adoptInstrumentPanels(understand);
+    adoptInstrumentPanels();
     ensureInterventionsNav();
     return host;
   }
 
-  function adoptInstrumentPanels(understand) {
+  function adoptInstrumentPanels() {
+    const understand = $('#explorer-understand-view');
+    if (!understand) return;
     for (const id of ['understand-panel', 'lens-comparison-panel']) {
       const panel = $(`#${id}`);
       if (panel && panel.parentElement !== understand) understand.append(panel);
@@ -258,35 +214,38 @@
     panel.append(row);
   }
 
+  function coverageText(value) {
+    const status = value?.coverage?.status;
+    return ['complete', 'partial', 'unknown'].includes(status) ? t(status) : status || t('unavailable');
+  }
+
   function renderReferences() {
     const panel = $('#explorer-references-view');
     if (!panel) return;
     heading(panel, t('referencesTitle'), t('referencesSubtitle'));
-    if (!artifact) {
+    if (!currentArtifact) {
       const empty = document.createElement('p');
       empty.className = 'explorer-subview-empty';
       empty.textContent = t('noArtifact');
       panel.append(empty);
       return;
     }
-
-    const layersByType = artifact?.result?.meta?.layers_by_type || {};
+    const layersByType = currentArtifact?.result?.meta?.layers_by_type || {};
     const allLayers = [...new Set(Object.values(layersByType).flat().filter(Number.isFinite))].sort((a, b) => a - b);
     const lenses = Object.keys(layersByType);
-    const coverage = artifact.coverage || {};
-    const source = artifact?.provenance?.backend || artifact?.request?.backend || t('unavailable');
-    const file = artifact?.provenance?.original_filename || artifact?.provenance?.source || t('unavailable');
-    const synthetic = Boolean(artifact?.result?.meta?.mock || artifact?.request?.factors?.demo || sessionPayload()?.sourceType === 'demo');
+    const source = currentArtifact?.provenance?.backend || currentArtifact?.request?.backend || t('unavailable');
+    const sourceFile = currentArtifact?.provenance?.original_filename || currentArtifact?.provenance?.source || t('unavailable');
+    const synthetic = Boolean(currentArtifact?.result?.meta?.mock || currentArtifact?.request?.factors?.demo || sessionPayload()?.sourceType === 'demo');
     const grid = document.createElement('div');
     grid.className = 'explorer-fact-grid';
     grid.append(
-      fact(t('run'), artifact.run_id || 'local'),
-      fact(t('model'), artifact?.request?.model?.model_id || t('unavailable')),
+      fact(t('run'), currentArtifact.run_id || 'local'),
+      fact(t('model'), currentArtifact?.request?.model?.model_id || t('unavailable')),
       fact(t('source'), source),
-      fact(t('sourceFile'), file),
+      fact(t('sourceFile'), sourceFile),
       fact(t('lenses'), lenses.join(', ') || t('unavailable')),
       fact(t('layers'), allLayers.length ? `${allLayers.length} · ${allLayers[0]}–${allLayers.at(-1)}` : t('unavailable')),
-      fact(t('coverage'), coverage.status || t('unavailable')),
+      fact(t('coverage'), coverageText(currentArtifact)),
       fact(t('status'), synthetic ? t('syntheticYes') : t('syntheticNo')),
     );
     panel.append(grid);
@@ -304,14 +263,9 @@
     const swapToken = explicit.swapToken || request.swapToken || null;
     const ablation = explicit.steerAblate ?? request.steerAblate ?? false;
     const strength = explicit.steerStrength ?? request.steerStrength ?? explicit.strength ?? null;
-    const declared = Object.keys(explicit).length || layers.length || steerTokens.length || swapToken || ablation || strength !== null;
     return {
-      declared: Boolean(declared),
-      layers: [...new Set(layers)].sort((a, b) => a - b),
-      steerTokens,
-      swapToken,
-      ablation,
-      strength,
+      declared: Boolean(Object.keys(explicit).length || layers.length || steerTokens.length || swapToken || ablation || strength !== null),
+      layers: [...new Set(layers)].sort((a, b) => a - b), steerTokens, swapToken, ablation, strength,
     };
   }
 
@@ -326,15 +280,14 @@
     const panel = $('#explorer-interventions-view');
     if (!panel) return;
     heading(panel, t('interventionsTitle'), t('interventionsSubtitle'));
-    if (!artifact) {
+    if (!currentArtifact) {
       const empty = document.createElement('p');
       empty.className = 'explorer-subview-empty';
       empty.textContent = t('noArtifact');
       panel.append(empty);
       return;
     }
-
-    const data = interventionData(artifact);
+    const data = interventionData(currentArtifact);
     if (!data.declared) {
       const empty = document.createElement('p');
       empty.className = 'explorer-subview-empty';
@@ -364,16 +317,11 @@
     addActions(panel, [[t('openCausal'), '/#causal']]);
   }
 
-  function currentLens() {
-    return $('#lens-select')?.value || 'JACOBIAN_LENS';
-  }
-
   function renderSentence(sentence) {
     const card = document.createElement('article');
     card.className = `explorer-sentence ${sentence.severity || 'info'}`;
     const text = document.createElement('p');
     text.textContent = sentence.text || '';
-    card.append(text);
     const details = document.createElement('details');
     const summary = document.createElement('summary');
     summary.textContent = t('why');
@@ -383,7 +331,7 @@
     const evidence = document.createElement('pre');
     evidence.textContent = `${t('evidence')}\n${JSON.stringify(sentence.evidence || [], null, 2)}`;
     details.append(summary, rule, evidence);
-    card.append(details);
+    card.append(text, details);
     return card;
   }
 
@@ -391,8 +339,7 @@
     const panel = $('#explorer-compare-view');
     if (!panel) return;
     heading(panel, t('compareTitle'), t('compareSubtitle'));
-    const demoRun = artifact?.run_id;
-    if (!['demo-pair-a-control', 'demo-pair-a-shift'].includes(demoRun)) {
+    if (!['demo-pair-a-control', 'demo-pair-a-shift'].includes(currentArtifact?.run_id)) {
       const empty = document.createElement('p');
       empty.className = 'explorer-subview-empty';
       empty.textContent = t('compareUnavailable');
@@ -400,7 +347,6 @@
       addActions(panel, [[t('fullComparison'), '/#visualizer']]);
       return;
     }
-
     const sequence = ++compareSequence;
     const loading = document.createElement('p');
     loading.textContent = t('compareLoading');
@@ -409,12 +355,9 @@
       const result = await api('/api/demo/build-week/understand/compare', {
         method: 'POST',
         body: JSON.stringify({
-          run_a: 'demo-pair-a-control',
-          run_b: 'demo-pair-a-shift',
-          lens: currentLens(),
-          scope: 'all',
-          locale: language(),
-          probability_abs_tolerance: 0,
+          run_a: 'demo-pair-a-control', run_b: 'demo-pair-a-shift',
+          lens: $('#lens-select')?.value || 'JACOBIAN_LENS', scope: 'all',
+          locale: language(), probability_abs_tolerance: 0,
         }),
       });
       if (sequence !== compareSequence || activeView !== 'compare') return;
@@ -422,11 +365,10 @@
       const badge = document.createElement('span');
       badge.className = 'explorer-pair-badge';
       badge.textContent = t('demoPair');
-      panel.append(badge);
       const list = document.createElement('div');
       list.className = 'explorer-sentence-list';
       list.replaceChildren(...(result.sentences || []).map(renderSentence));
-      panel.append(list);
+      panel.append(badge, list);
       addActions(panel, [[t('fullComparison'), '/#visualizer']]);
     } catch (error) {
       if (sequence !== compareSequence) return;
@@ -443,36 +385,25 @@
     activeView = view;
     localStorage.setItem(VIEW_KEY, view);
     ensureStructure();
-    ensureInterventionsNav();
-
     $$('.explorer-overview-cards [data-explorer-view]').forEach((card) => {
-      card.classList.toggle('active', card.dataset.explorerView === view);
-      card.setAttribute('aria-pressed', card.dataset.explorerView === view ? 'true' : 'false');
+      const active = card.dataset.explorerView === view;
+      card.classList.toggle('active', active);
+      card.setAttribute('aria-pressed', active ? 'true' : 'false');
     });
     $$('#sidebar-nav [data-nav]').forEach((button) => {
-      if (['understand', 'compare', 'baselines', 'interventions'].includes(button.dataset.nav)) {
-        button.classList.toggle('active', button.dataset.nav === view);
-      }
+      if (VIEWS.includes(button.dataset.nav)) button.classList.toggle('active', button.dataset.nav === view);
     });
-
-    const map = {
-      understand: '#explorer-understand-view',
-      compare: '#explorer-compare-view',
-      baselines: '#explorer-references-view',
-      interventions: '#explorer-interventions-view',
+    const panels = {
+      understand: '#explorer-understand-view', compare: '#explorer-compare-view',
+      baselines: '#explorer-references-view', interventions: '#explorer-interventions-view',
     };
-    for (const [name, selector] of Object.entries(map)) {
+    Object.entries(panels).forEach(([name, selector]) => {
       const panel = $(selector);
       if (panel) panel.hidden = name !== view;
-    }
-
+    });
     if (view === 'compare') renderComparison();
     if (view === 'baselines') renderReferences();
     if (view === 'interventions') renderInterventions();
-  }
-
-  function refreshArtifact() {
-    artifact = sessionArtifact() || artifact;
   }
 
   function schedule() {
@@ -480,7 +411,7 @@
     scheduled = true;
     requestAnimationFrame(() => requestAnimationFrame(() => {
       scheduled = false;
-      refreshArtifact();
+      currentArtifact = sessionArtifact() || currentArtifact;
       ensureStructure();
       activateView(activeView);
     }));
@@ -488,13 +419,10 @@
 
   document.addEventListener('click', (event) => {
     const card = event.target.closest('[data-explorer-view]');
-    if (card) {
-      activateView(card.dataset.explorerView);
-      return;
-    }
+    if (card) return activateView(card.dataset.explorerView);
     const nav = event.target.closest('#sidebar-nav [data-nav]');
     if (nav && VIEWS.includes(nav.dataset.nav)) activateView(nav.dataset.nav);
-    if (event.target.closest('[data-level="explore"], #details-button, #load-demo')) schedule();
+    if (event.target.closest('[data-level="explore"], #details-button')) schedule();
   });
 
   document.addEventListener('keydown', (event) => {
@@ -512,7 +440,7 @@
     try {
       const value = JSON.parse(await file.text());
       const candidate = isArtifact(value) ? value : value?.artifact || value?.run || value?.data || normalizeNative(value, file.name);
-      if (isArtifact(candidate)) artifact = candidate;
+      if (isArtifact(candidate)) currentArtifact = candidate;
     } catch {
       // The ordinary import path owns visible errors.
     }
@@ -524,15 +452,22 @@
   });
 
   window.addEventListener('DOMContentLoaded', () => {
-    artifact = sessionArtifact();
+    currentArtifact = sessionArtifact();
     ensureStructure();
-    const screen = $('.screen[data-screen="explore"]');
-    if (screen) {
-      const observer = new MutationObserver(schedule);
-      observer.observe(screen, { childList: true, subtree: true });
+    const explore = $('.screen[data-screen="explore"]');
+    if (explore) {
+      const panelObserver = new MutationObserver(() => {
+        const understand = $('#explorer-understand-view');
+        const waiting = ['understand-panel', 'lens-comparison-panel']
+          .map((id) => $(`#${id}`))
+          .some((panel) => panel && panel.parentElement !== understand);
+        if (waiting) schedule();
+      });
+      panelObserver.observe(explore, { childList: true });
     }
-    const languageObserver = new MutationObserver(schedule);
-    languageObserver.observe(document.documentElement, { attributes: true, attributeFilter: ['lang'] });
+    const shared = $('[data-shared-artifact]');
+    if (shared) new MutationObserver(schedule).observe(shared, { childList: true, subtree: true, characterData: true });
+    new MutationObserver(schedule).observe(document.documentElement, { attributes: true, attributeFilter: ['lang'] });
     activateView(activeView);
   });
 })();
