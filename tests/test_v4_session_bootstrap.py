@@ -29,6 +29,16 @@ def test_v4_native_neuronpedia_import_normalizes_without_network_or_api_key():
     assert "neuronpedia_api_key" not in bootstrap
 
 
+def test_v4_dense_layer_layout_stays_inside_the_measurement_card():
+    bootstrap = (WEB / "v4-session-bootstrap.js").read_text(encoding="utf-8")
+    assert "count > 24" in bootstrap
+    assert "positionForIndex" in bootstrap
+    assert "layer % 8 === 0" in bootstrap
+    assert "normalizeDenseMeasurements" in bootstrap
+    assert "MutationObserver" in bootstrap
+    assert "point.style.left" in bootstrap
+
+
 def test_v4_source_and_packaged_shell_are_identical():
     for name in ("v4.html", "v4-session-bootstrap.js"):
         assert (WEB / name).read_text(encoding="utf-8") == (PKG / name).read_text(encoding="utf-8")
