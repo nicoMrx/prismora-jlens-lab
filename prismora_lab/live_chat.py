@@ -21,6 +21,10 @@ _MODEL_CATALOG = [
 _MODEL_BY_ID = {item["model_id"]: item for item in _MODEL_CATALOG}
 _SAFE = re.compile(r"[^a-z0-9._-]+")
 _SPECIAL_TOKEN = re.compile(r"^<\|[^|>]+\|>$")
+_STOP_MARKERS = ("<|im_end|>", "<|end|>", "<|return|>", "<end_of_turn>", "<eos>")
+_START_MARKERS = ("<|im_start|>", "<|start|>", "<|start_header_id|>")
+_MESSAGE_MARKERS = ("<|message|>",)
+_ROLE_TOKENS = {"assistant", "model"}
 
 
 def _model(value: str) -> dict[str, Any]:
@@ -143,30 +147,97 @@ def _token_text(row: dict[str, Any]) -> str:
     return str(row.get("token") or "")
 
 
+def _compact(value: str) -> str:
+    return re.sub(r"\s+", "", value).lower()
+
+
+def _marker_span(
+    generated: list[dict[str, Any]],
+    markers: tuple[str, ...],
+    *,
+    start: int = 0,
+    max_tokens: int = 10,
+) -> tuple[int, int, str] | None:
+    targets = {_compact(marker): marker for marker in markers}
+    for index in range(max(0, start), len(generated)):
+        combined = ""
+        for end in range(index, min(len(generated), index + max_tokens)):
+            combined += _token_text(generated[end])
+            compact = _compact(combined)
+            if compact in targets:
+                return index, end + 1, targets[compact]
+            if compact and not any(target.startswith(compact) for target in targets):
+                break
+    return None
+
+
 def _channel_marker_index(generated: list[dict[str, Any]], channel: str) -> int | None:
     for index, row in enumerate(generated):
         if _token_text(row).strip().lower() != channel:
             continue
-        nearby = " ".join(_token_text(item).lower() for item in generated[max(0, index - 3):index])
+        nearby = "".join(_token_text(item).lower() for item in generated[max(0, index - 6):index])
         if "channel" in nearby or "<|channel|>" in nearby:
             return index
     return None
 
 
 def _message_start(generated: list[dict[str, Any]], channel_index: int) -> int:
-    for index in range(channel_index + 1, min(len(generated), channel_index + 6)):
+    marker = _marker_span(generated, _MESSAGE_MARKERS, start=channel_index + 1, max_tokens=6)
+    if marker and marker[0] <= channel_index + 6:
+        return marker[1]
+    for index in range(channel_index + 1, min(len(generated), channel_index + 7)):
         text = _token_text(generated[index]).strip().lower()
         if "message" in text and ("<|" in text or text == "message"):
             return index + 1
     return channel_index + 1
 
 
-def _normalize_visible_final(artifact: dict[str, Any]) -> None:
-    """Expose the visible final channel while preserving the exact raw on disk.
+def _last_user_message(artifact: dict[str, Any]) -> str:
+    chat = artifact.get("request", {}).get("chat") or []
+    for message in reversed(chat):
+        if message.get("role") == "user":
+            return str(message.get("content") or "")
+    return ""
 
-    GPT-OSS exports may place technical channel markers and analysis tokens before
-    the final answer. The immutable raw remains authoritative; only the normalized
-    artifact view is reduced to prompt + visible final generated tokens.
+
+def _visible_sequence(
+    generated: list[dict[str, Any]],
+    *,
+    final_marker: int | None,
+) -> tuple[list[dict[str, Any]], str, str | None]:
+    if final_marker is not None:
+        start = _message_start(generated, final_marker)
+        mode = "visible-final"
+    else:
+        start = 0
+        leading = _marker_span(generated, _START_MARKERS, start=0, max_tokens=8)
+        if leading and leading[0] == 0:
+            start = leading[1]
+            if start < len(generated) and _token_text(generated[start]).strip().lower() in _ROLE_TOKENS:
+                start += 1
+        mode = "terminal-marker"
+
+    stop = _marker_span(generated, _STOP_MARKERS, start=start, max_tokens=10)
+    stop_index = stop[0] if stop else len(generated)
+    marker = stop[2] if stop else None
+    visible = []
+    for row in generated[start:stop_index]:
+        text = _token_text(row).strip()
+        if not text or _SPECIAL_TOKEN.fullmatch(text):
+            continue
+        visible.append(row)
+    if final_marker is None and stop is None:
+        mode = "not-detected"
+    return visible, mode, marker
+
+
+def _normalize_visible_final(artifact: dict[str, Any]) -> None:
+    """Expose only the visible answer while preserving the exact immutable raw.
+
+    GPT-OSS may emit analysis/final channel markers. Qwen and Gemma may emit
+    split chat-template terminators such as ``<|im_end|>`` and then continue with
+    another role. The raw remains authoritative; only the normalized artifact
+    view is trimmed for Read and Explore.
     """
 
     result = artifact.get("result", {})
@@ -174,30 +245,23 @@ def _normalize_visible_final(artifact: dict[str, Any]) -> None:
     generated = [row for row in all_tokens if row.get("is_generated")]
     final_marker = _channel_marker_index(generated, "final")
     analysis_marker = _channel_marker_index(generated, "analysis")
+    visible, mode, terminal_marker = _visible_sequence(generated, final_marker=final_marker)
+
     live_meta = artifact.setdefault("derived", {}).setdefault("live_chat", {})
-    live_meta["full_generated_token_count"] = len(generated)
+    live_meta.update(
+        {
+            "user_message": _last_user_message(artifact),
+            "full_generated_token_count": len(generated),
+            "channel_normalization": mode,
+            "terminal_marker": terminal_marker,
+            "visible_generated_token_count": len(visible),
+            "removed_generated_token_count": len(generated) - len(visible),
+            "raw_preserved": True,
+        }
+    )
 
-    if final_marker is None:
-        live_meta.update(
-            {
-                "channel_normalization": "not-detected",
-                "visible_generated_token_count": len(generated),
-                "removed_generated_token_count": 0,
-            }
-        )
-        return
-
-    start = _message_start(generated, final_marker)
-    visible: list[dict[str, Any]] = []
-    for row in generated[start:]:
-        text = _token_text(row).strip()
-        if text.lower() in {"<|end|>", "<|return|>"}:
-            break
-        if _SPECIAL_TOKEN.fullmatch(text):
-            continue
-        visible.append(row)
     if not visible:
-        live_meta["channel_normalization"] = "final-marker-without-visible-content"
+        live_meta["channel_normalization"] = f"{mode}-without-visible-content"
         return
 
     prompt_tokens = [row for row in all_tokens if not row.get("is_generated")]
@@ -213,7 +277,7 @@ def _normalize_visible_final(artifact: dict[str, Any]) -> None:
         "present": analysis_marker is not None,
         "source_positions": [
             generated[analysis_marker].get("position") if analysis_marker is not None else None,
-            generated[final_marker].get("position"),
+            generated[final_marker].get("position") if final_marker is not None else None,
         ],
     }
     channels["final"] = {
@@ -223,20 +287,18 @@ def _normalize_visible_final(artifact: dict[str, Any]) -> None:
     meta["default_channel"] = "final"
     meta["source_generated_tokens"] = len(generated)
     meta["visible_generated_tokens"] = len(visible)
-    live_meta.update(
-        {
-            "channel_normalization": "visible-final",
-            "visible_generated_token_count": len(visible),
-            "removed_generated_token_count": len(generated) - len(visible),
-            "raw_preserved": True,
-        }
-    )
+
     coverage = artifact.get("coverage")
     if isinstance(coverage, dict):
         coverage["instrumented_generated_tokens"] = len(visible)
-        coverage.setdefault("warnings", []).append(
-            "Normalized view exposes the visible final channel; the immutable raw preserves the full generated stream."
-        )
+        if len(visible) != len(generated):
+            warning = (
+                "Normalized view exposes only the visible answer; the immutable raw preserves "
+                "the complete generated stream and technical markers."
+            )
+            warnings = coverage.setdefault("warnings", [])
+            if warning not in warnings:
+                warnings.append(warning)
 
 
 def mount_live_chat_routes(app: Any, context: Any) -> None:
@@ -299,12 +361,15 @@ def mount_live_chat_routes(app: Any, context: Any) -> None:
                 "raw_preserved": True,
             }
             _normalize_visible_final(artifact)
+            validate("run", artifact)
             context.store.save_run(artifact)
             return artifact
         except HTTPException:
             raise
         except Exception as exc:
-            status = getattr(exc, "status_code", None) or 502
+            status = getattr(exc, "status_code", None)
+            if status is None:
+                status = 400 if isinstance(exc, ValueError) else 502
             raise HTTPException(
                 status_code=int(status),
                 detail={"message": str(exc), "type": type(exc).__name__},
