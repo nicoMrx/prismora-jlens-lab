@@ -158,4 +158,110 @@
       showImportError(error instanceof Error ? error.message : String(error));
     }
   }, true);
+
+  function shouldShowDenseLabel(layer, index, count, selectedLayer) {
+    return index === 0
+      || index === count - 1
+      || layer === selectedLayer
+      || layer % 8 === 0;
+  }
+
+  function normalizeDenseMeasurements() {
+    const rail = document.querySelector('#layer-rail');
+    if (!rail) return;
+
+    const buttons = [...rail.querySelectorAll('.layer-button')];
+    const numbers = [...rail.querySelectorAll('.layer-number')];
+    const count = Math.min(buttons.length, numbers.length);
+    const dense = count > 24;
+    rail.classList.toggle('dense', dense);
+
+    if (!dense || count < 2) return;
+
+    const selectedIndex = buttons.findIndex((button) => button.classList.contains('active'));
+    const selectedLayer = selectedIndex >= 0 ? Number(numbers[selectedIndex]?.textContent) : null;
+    const positionForIndex = (index) => 4 + (index / (count - 1)) * 92;
+
+    buttons.slice(0, count).forEach((button, index) => {
+      button.style.left = `${positionForIndex(index)}%`;
+    });
+
+    numbers.slice(0, count).forEach((number, index) => {
+      const layer = Number(number.textContent);
+      number.style.left = `${positionForIndex(index)}%`;
+      number.hidden = !shouldShowDenseLabel(layer, index, count, selectedLayer);
+    });
+
+    const layerByIndex = numbers.slice(0, count).map((number) => Number(number.textContent));
+    const gaps = [...rail.querySelectorAll('.layer-gap')];
+    const gapLabels = [...rail.querySelectorAll('.layer-gap-label')];
+    let gapIndex = 0;
+    for (let index = 1; index < count; index += 1) {
+      if (layerByIndex[index] - layerByIndex[index - 1] <= 1) continue;
+      const left = positionForIndex(index - 1) + 1;
+      const right = positionForIndex(index) - 1;
+      if (gaps[gapIndex]) {
+        gaps[gapIndex].style.left = `${left}%`;
+        gaps[gapIndex].style.width = `${Math.max(0, right - left)}%`;
+      }
+      if (gapLabels[gapIndex]) gapLabels[gapIndex].style.left = `${(left + right) / 2}%`;
+      gapIndex += 1;
+    }
+
+    const chart = document.querySelector('#trajectory');
+    if (!chart) return;
+    chart.classList.add('dense');
+
+    const chartLabels = [...chart.querySelectorAll('.trajectory-label')];
+    const positionByLayer = new Map();
+    chartLabels.forEach((label, index) => {
+      const layer = Number(label.textContent);
+      const position = positionForIndex(index);
+      positionByLayer.set(layer, position);
+      label.style.left = `${position}%`;
+      label.hidden = !shouldShowDenseLabel(layer, index, chartLabels.length, selectedLayer);
+    });
+
+    chart.querySelectorAll('.point').forEach((point) => {
+      const match = String(point.title || '').match(/^L(-?\d+)/);
+      if (!match) return;
+      const position = positionByLayer.get(Number(match[1]));
+      if (position !== undefined) point.style.left = `${position}%`;
+    });
+
+    const trajectoryGaps = [...chart.querySelectorAll('.trajectory-gap')];
+    let trajectoryGapIndex = 0;
+    for (let index = 1; index < layerByIndex.length; index += 1) {
+      if (layerByIndex[index] - layerByIndex[index - 1] <= 1) continue;
+      const left = positionForIndex(index - 1) + 1;
+      const right = positionForIndex(index) - 1;
+      const gap = trajectoryGaps[trajectoryGapIndex];
+      if (gap) {
+        gap.style.left = `${left}%`;
+        gap.style.width = `${Math.max(0, right - left)}%`;
+      }
+      trajectoryGapIndex += 1;
+    }
+  }
+
+  window.addEventListener('DOMContentLoaded', () => {
+    const rail = document.querySelector('#layer-rail');
+    const chart = document.querySelector('#trajectory');
+    if (!rail || !chart) return;
+
+    let scheduled = false;
+    const schedule = () => {
+      if (scheduled) return;
+      scheduled = true;
+      requestAnimationFrame(() => {
+        scheduled = false;
+        normalizeDenseMeasurements();
+      });
+    };
+
+    const observer = new MutationObserver(schedule);
+    observer.observe(rail, { childList: true });
+    observer.observe(chart, { childList: true });
+    schedule();
+  });
 })();
