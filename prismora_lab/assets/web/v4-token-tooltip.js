@@ -60,7 +60,7 @@
   }
 
   function tokenTarget(node) {
-    return node?.closest?.('.token, .candidate strong, .jlens-title-token');
+    return node?.closest?.('.token, .candidate strong, .jlens-title-token, .lens-table-card strong');
   }
 
   function enhanceJlensTitle() {
@@ -120,5 +120,20 @@
     instruments.src = '/v4-instruments.js?v=1';
     instruments.dataset.prismoraInstruments = '1';
     document.head.append(instruments);
+  }
+
+  if (!document.querySelector('link[data-prismora-lens-comparison]')) {
+    const styles = document.createElement('link');
+    styles.rel = 'stylesheet';
+    styles.href = '/v4-lens-comparison.css?v=1';
+    styles.dataset.prismoraLensComparison = '1';
+    document.head.append(styles);
+  }
+
+  if (!document.querySelector('script[data-prismora-lens-comparison]')) {
+    const comparison = document.createElement('script');
+    comparison.src = '/v4-lens-comparison.js?v=1';
+    comparison.dataset.prismoraLensComparison = '1';
+    document.head.append(comparison);
   }
 })();
