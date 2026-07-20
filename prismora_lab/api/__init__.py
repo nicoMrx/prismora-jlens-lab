@@ -6,6 +6,7 @@ from pathlib import Path
 from typing import Any
 
 from fastapi import FastAPI
+from fastapi.responses import HTMLResponse
 
 
 _ORIGINAL_MOUNT = FastAPI.mount
@@ -33,6 +34,27 @@ def _mount_with_prismora_extensions(
         package_root = Path(__file__).resolve().parents[2]
         mount_campaign_routes(self, context, package_root)
         mount_demo_library_routes(self, package_root)
+
+        static_root = Path(getattr(app, "directory", package_root / "web"))
+        guard_tag = '<script src="/v4-sidebar-observer-guard.js?v=1"></script>'
+
+        @self.get("/v4.html", include_in_schema=False)
+        async def prismora_v4_guarded() -> HTMLResponse:
+            html_path = static_root / "v4.html"
+            html = html_path.read_text(encoding="utf-8")
+            if guard_tag not in html:
+                marker = '<script src="/v4-campaign-center.js'
+                if marker not in html:
+                    marker = '<script src="/v4-token-tooltip.js'
+                html = html.replace(marker, guard_tag + marker, 1)
+            return HTMLResponse(
+                html,
+                headers={
+                    "Cache-Control": "no-store, no-cache, must-revalidate",
+                    "Pragma": "no-cache",
+                },
+            )
+
         self.state.prismora_extensions_mounted = True
     return _ORIGINAL_MOUNT(self, path, app, name=name)
 
