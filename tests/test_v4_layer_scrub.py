@@ -15,6 +15,8 @@ def test_v4_layer_scrub_updates_reader_and_overlay_without_network():
         assert "entry.button.click()" in script
         assert "pointermove" in script
         assert "layer-hover-badge" in script
+        assert "suppressNativeOverlayTooltips" in script
+        assert "querySelectorAll('title')" in script
         assert "/v4-layer-scrub.js" in tooltip
         assert ".layer-hover-badge" in css
         assert "cursor:crosshair" in css
