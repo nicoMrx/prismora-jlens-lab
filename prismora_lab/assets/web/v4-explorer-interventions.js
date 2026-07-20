@@ -13,7 +13,7 @@
     if (!host) return null;
     let node = $('#explorer-interventions-view');
     if (!node) {
-      node = document.createElement('section'); node.id = 'explorer-interventions-view'; node.className = 'explorer-subview card'; node.dataset.explorerPanel = 'interventions'; host.append(node);
+      node = document.createElement('section'); node.id = 'explorer-interventions-view'; node.className = 'explorer-subview card'; node.dataset.explorerPanel = 'interventions'; node.hidden = true; host.append(node);
     }
     return node;
   }
@@ -44,5 +44,6 @@
     }
     const guard=document.createElement('p');guard.className='explorer-causal-guard';guard.textContent=t('guard');node.append(guard);const actions=document.createElement('div');actions.className='explorer-subview-actions';actions.innerHTML=`<a href="/#causal">${t('open')}</a>`;node.append(actions);
   }
-  document.addEventListener('prismora:explorer-view',(event)=>{panel();if(event.detail?.view==='interventions')render(event.detail);});
+  document.addEventListener('prismora:explorer-view',(event)=>{const node=panel();if(node)node.hidden=event.detail?.view!=='interventions';if(event.detail?.view==='interventions')render(event.detail);});
+  document.dispatchEvent(new CustomEvent('prismora:explorer-refresh'));
 })();
