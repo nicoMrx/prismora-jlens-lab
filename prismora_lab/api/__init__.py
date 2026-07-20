@@ -30,8 +30,10 @@ def _mount_with_prismora_extensions(
     if path == "/" and is_prismora and context is not None and not already_mounted:
         from ..campaign_api import mount_campaign_routes
         from ..demo_library_api import mount_demo_library_routes
+        from ..session_security import install_session_security
 
         package_root = Path(__file__).resolve().parents[2]
+        install_session_security(self, context)
         mount_campaign_routes(self, context, package_root)
         mount_demo_library_routes(self, package_root)
 
