@@ -20,6 +20,7 @@ _MODEL_CATALOG = [
 ]
 _MODEL_BY_ID = {item["model_id"]: item for item in _MODEL_CATALOG}
 _SAFE = re.compile(r"[^a-z0-9._-]+")
+_SPECIAL_TOKEN = re.compile(r"^<\|[^|>]+\|>$")
 
 
 def _model(value: str) -> dict[str, Any]:
@@ -138,6 +139,106 @@ def _live_spec(payload: dict[str, Any]) -> dict[str, Any]:
     return spec
 
 
+def _token_text(row: dict[str, Any]) -> str:
+    return str(row.get("token") or "")
+
+
+def _channel_marker_index(generated: list[dict[str, Any]], channel: str) -> int | None:
+    for index, row in enumerate(generated):
+        if _token_text(row).strip().lower() != channel:
+            continue
+        nearby = " ".join(_token_text(item).lower() for item in generated[max(0, index - 3):index])
+        if "channel" in nearby or "<|channel|>" in nearby:
+            return index
+    return None
+
+
+def _message_start(generated: list[dict[str, Any]], channel_index: int) -> int:
+    for index in range(channel_index + 1, min(len(generated), channel_index + 6)):
+        text = _token_text(generated[index]).strip().lower()
+        if "message" in text and ("<|" in text or text == "message"):
+            return index + 1
+    return channel_index + 1
+
+
+def _normalize_visible_final(artifact: dict[str, Any]) -> None:
+    """Expose the visible final channel while preserving the exact raw on disk.
+
+    GPT-OSS exports may place technical channel markers and analysis tokens before
+    the final answer. The immutable raw remains authoritative; only the normalized
+    artifact view is reduced to prompt + visible final generated tokens.
+    """
+
+    result = artifact.get("result", {})
+    all_tokens = list(result.get("tokens") or [])
+    generated = [row for row in all_tokens if row.get("is_generated")]
+    final_marker = _channel_marker_index(generated, "final")
+    analysis_marker = _channel_marker_index(generated, "analysis")
+    live_meta = artifact.setdefault("derived", {}).setdefault("live_chat", {})
+    live_meta["full_generated_token_count"] = len(generated)
+
+    if final_marker is None:
+        live_meta.update(
+            {
+                "channel_normalization": "not-detected",
+                "visible_generated_token_count": len(generated),
+                "removed_generated_token_count": 0,
+            }
+        )
+        return
+
+    start = _message_start(generated, final_marker)
+    visible: list[dict[str, Any]] = []
+    for row in generated[start:]:
+        text = _token_text(row).strip()
+        if text.lower() in {"<|end|>", "<|return|>"}:
+            break
+        if _SPECIAL_TOKEN.fullmatch(text):
+            continue
+        visible.append(row)
+    if not visible:
+        live_meta["channel_normalization"] = "final-marker-without-visible-content"
+        return
+
+    prompt_tokens = [row for row in all_tokens if not row.get("is_generated")]
+    result["tokens"] = prompt_tokens + visible
+    done = result.setdefault("done", {})
+    done["completion"] = "".join(_token_text(row) for row in visible)
+    done["source_completion_tokens"] = len(generated)
+    done["visible_completion_tokens"] = len(visible)
+
+    meta = result.setdefault("meta", {})
+    channels = meta.setdefault("channels", {})
+    channels["analysis"] = {
+        "present": analysis_marker is not None,
+        "source_positions": [
+            generated[analysis_marker].get("position") if analysis_marker is not None else None,
+            generated[final_marker].get("position"),
+        ],
+    }
+    channels["final"] = {
+        "present": True,
+        "source_positions": [visible[0].get("position"), visible[-1].get("position")],
+    }
+    meta["default_channel"] = "final"
+    meta["source_generated_tokens"] = len(generated)
+    meta["visible_generated_tokens"] = len(visible)
+    live_meta.update(
+        {
+            "channel_normalization": "visible-final",
+            "visible_generated_token_count": len(visible),
+            "removed_generated_token_count": len(generated) - len(visible),
+            "raw_preserved": True,
+        }
+    )
+    coverage = artifact.get("coverage")
+    if isinstance(coverage, dict):
+        coverage["instrumented_generated_tokens"] = len(visible)
+        coverage.setdefault("warnings", []).append(
+            "Normalized view exposes the visible final channel; the immutable raw preserves the full generated stream."
+        )
+
+
 def mount_live_chat_routes(app: Any, context: Any) -> None:
     if getattr(app.state, "prismora_live_chat_mounted", False):
         return
@@ -195,10 +296,9 @@ def mount_live_chat_routes(app: Any, context: Any) -> None:
             artifact.setdefault("derived", {})["live_chat"] = {
                 "single_turn": True,
                 "signed_by": "NicoMrx",
-                "visible_final_normalization_required": bool(
-                    artifact.get("result", {}).get("meta", {}).get("channels", {}).get("analysis", {}).get("present")
-                ),
+                "raw_preserved": True,
             }
+            _normalize_visible_final(artifact)
             context.store.save_run(artifact)
             return artifact
         except HTTPException:
