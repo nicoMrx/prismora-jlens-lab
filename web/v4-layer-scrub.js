@@ -94,6 +94,11 @@
     $('#layer-hover-badge')?.classList.remove('visible');
   }
 
+  function resetHover() {
+    hideBadge();
+    lastLayer = null;
+  }
+
   document.addEventListener('pointermove', (event) => {
     const rail = event.target.closest?.('#layer-rail');
     if (rail) {
@@ -113,7 +118,10 @@
         activateLayer(layer);
         showBadge(event, layer);
       }
+      return;
     }
+
+    resetHover();
   });
 
   document.addEventListener('pointerout', (event) => {
@@ -123,7 +131,12 @@
     const relatedRail = event.relatedTarget?.closest?.('#layer-rail');
     const relatedOverlay = event.relatedTarget?.closest?.('.lens-overlay-chart');
     if (relatedRail || relatedOverlay) return;
-    hideBadge();
-    lastLayer = null;
+    resetHover();
   });
+
+  document.addEventListener('click', (event) => {
+    if (event.target.closest('[data-level], [data-nav], [data-explorer-view]')) resetHover();
+  });
+  window.addEventListener('blur', resetHover);
+  window.addEventListener('scroll', resetHover, true);
 })();
