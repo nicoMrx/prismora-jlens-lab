@@ -5,6 +5,7 @@ from fastapi.testclient import TestClient
 from prismora_lab.api.app import create_app
 from prismora_lab.backends.mock import MockBackend
 from prismora_lab.config import Settings
+from prismora_lab.live_chat import _normalize_visible_final
 from prismora_lab.store import LabStore
 
 
@@ -67,6 +68,7 @@ def test_live_chat_creates_reproducible_spec_raw_and_artifact(tmp_path):
     assert artifact["request"]["chat"][-1]["content"] == "Explique la photosynthèse en une phrase."
     assert artifact["raw"]["immutable"] is True
     assert artifact["derived"]["live_chat"]["signed_by"] == "NicoMrx"
+    assert artifact["derived"]["live_chat"]["raw_preserved"] is True
     assert artifact["provenance"]["environment"]["signature"] == "NicoMrx"
     assert "session-secret-never-returned" not in response.text
 
@@ -77,6 +79,36 @@ def test_live_chat_creates_reproducible_spec_raw_and_artifact(tmp_path):
     spec = store.get_experiment(artifact["experiment_id"])
     assert spec["metadata"]["signature"] == "NicoMrx"
     assert spec["preregistration"]["status"] == "draft"
+
+
+def test_gpt_oss_channel_normalization_exposes_final_and_keeps_full_stream_metadata():
+    def token(position, text, generated=True):
+        return {"position": position, "token": text, "id": position, "is_generated": generated, "results": []}
+
+    artifact = {
+        "result": {
+            "tokens": [
+                token(0, "prompt", False),
+                token(1, "<|channel|>"), token(2, "analysis"), token(3, "<|message|>"),
+                token(4, "Reasoning"), token(5, "<|channel|>"), token(6, "final"),
+                token(7, "<|message|>"), token(8, "Bonjour"), token(9, " !"), token(10, "<|end|>"),
+            ],
+            "meta": {},
+            "done": {},
+        },
+        "derived": {"live_chat": {"raw_preserved": True}},
+        "coverage": {"warnings": []},
+    }
+    _normalize_visible_final(artifact)
+    generated = [row["token"] for row in artifact["result"]["tokens"] if row["is_generated"]]
+    assert generated == ["Bonjour", " !"]
+    assert artifact["result"]["done"]["completion"] == "Bonjour !"
+    assert artifact["result"]["meta"]["default_channel"] == "final"
+    assert artifact["result"]["meta"]["channels"]["analysis"]["present"] is True
+    assert artifact["derived"]["live_chat"]["full_generated_token_count"] == 10
+    assert artifact["derived"]["live_chat"]["visible_generated_token_count"] == 2
+    assert artifact["derived"]["live_chat"]["removed_generated_token_count"] == 8
+    assert artifact["derived"]["live_chat"]["raw_preserved"] is True
 
 
 def test_live_chat_rejects_unknown_model_and_invalid_limits(tmp_path):
