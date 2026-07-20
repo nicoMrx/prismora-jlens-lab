@@ -183,4 +183,20 @@
     userComparison.dataset.prismoraUserComparison = '1';
     document.head.append(userComparison);
   }
+
+  if (!document.querySelector('link[data-prismora-campaign-center]')) {
+    const styles = document.createElement('link');
+    styles.rel = 'stylesheet';
+    styles.href = '/v4-campaign-center.css?v=1';
+    styles.dataset.prismoraCampaignCenter = '1';
+    document.head.append(styles);
+  }
+
+  if (!document.querySelector('script[data-prismora-campaign-center]')) {
+    const campaign = document.createElement('script');
+    campaign.src = '/v4-campaign-center.js?v=1';
+    campaign.async = false;
+    campaign.dataset.prismoraCampaignCenter = '1';
+    document.head.append(campaign);
+  }
 })();
