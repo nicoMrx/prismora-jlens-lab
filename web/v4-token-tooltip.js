@@ -155,7 +155,16 @@
   if (!document.querySelector('script[data-prismora-explorer-subviews]')) {
     const explorer = document.createElement('script');
     explorer.src = '/v4-explorer-subviews.js?v=1';
+    explorer.async = false;
     explorer.dataset.prismoraExplorerSubviews = '1';
     document.head.append(explorer);
+  }
+
+  if (!document.querySelector('script[data-prismora-explorer-polish]')) {
+    const polish = document.createElement('script');
+    polish.src = '/v4-explorer-polish.js?v=1';
+    polish.async = false;
+    polish.dataset.prismoraExplorerPolish = '1';
+    document.head.append(polish);
   }
 })();
