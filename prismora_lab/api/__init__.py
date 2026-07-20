@@ -37,16 +37,29 @@ def _mount_with_prismora_extensions(
 
         static_root = Path(getattr(app, "directory", package_root / "web"))
         guard_tag = '<script src="/v4-sidebar-observer-guard.js?v=1"></script>'
+        polish_styles = (
+            '<link rel="stylesheet" href="/v4-campaign-polish.css?v=1" data-prismora-campaign-polish="1">'
+            '<link rel="stylesheet" href="/v4-showcase-insights.css?v=1" data-prismora-showcase-insights="1">'
+        )
+        polish_scripts = (
+            '<script src="/v4-campaign-polish.js?v=1" data-prismora-campaign-polish="1"></script>'
+            '<script src="/v4-showcase-insights.js?v=1" data-prismora-showcase-insights="1"></script>'
+        )
 
         @self.get("/v4.html", include_in_schema=False)
         async def prismora_v4_guarded() -> HTMLResponse:
             html_path = static_root / "v4.html"
             html = html_path.read_text(encoding="utf-8")
+            if 'data-prismora-campaign-polish="1"' not in html:
+                html = html.replace("</head>", polish_styles + "</head>", 1)
             if guard_tag not in html:
                 marker = '<script src="/v4-campaign-center.js'
                 if marker not in html:
                     marker = '<script src="/v4-token-tooltip.js'
-                html = html.replace(marker, guard_tag + marker, 1)
+                html = html.replace(marker, guard_tag + polish_scripts + marker, 1)
+            elif 'src="/v4-showcase-insights.js?v=1"' not in html:
+                marker = '<script src="/v4-campaign-center.js'
+                html = html.replace(marker, polish_scripts + marker, 1)
             return HTMLResponse(
                 html,
                 headers={
