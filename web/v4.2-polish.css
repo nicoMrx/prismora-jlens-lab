@@ -1,0 +1,11 @@
+/* Prismora v4.2.1 responsive and measured-state polish */
+body[data-stage="measured"] .hero{min-height:220px}
+body[data-stage="measured"] .hero-mark{width:190px}
+body[data-stage="measured"] .sidebar{top:104px;height:calc(100vh - 104px)}
+.demo-actions{margin-bottom:4px}
+#reader-status{max-width:520px;text-align:center}
+.model-select select:disabled{opacity:.72;cursor:not-allowed}
+.layer-number,.trajectory-label{min-width:24px;text-align:center}
+
+@media (max-width:1180px){
+  .topbar{

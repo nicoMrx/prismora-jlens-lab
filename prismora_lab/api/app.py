@@ -2,11 +2,12 @@ from __future__ import annotations
 
 import copy
 import json
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
 
 from fastapi import Body, FastAPI, HTTPException, Query
+import httpx
 from fastapi.responses import FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 
@@ -31,11 +32,22 @@ from ..timeutil import utc_now_iso
 
 
 @dataclass(slots=True)
+class SessionSettings:
+    display_name: str = ""
+    locale: str = "en"
+    theme: str = "system"
+    worker_url: str | None = None
+    neuronpedia_api_key: str | None = None
+    neuronpedia_connected: bool = False
+
+
+@dataclass(slots=True)
 class LabContext:
     settings: Settings
     store: LabStore
     backends: dict[str, ExecutionBackend]
     examples_dir: Path
+    session: SessionSettings = field(default_factory=SessionSettings)
 
 
 def _default_backends(settings: Settings) -> dict[str, ExecutionBackend]:
@@ -99,6 +111,74 @@ def create_app(
     @app.exception_handler(SchemaValidationError)
     async def schema_error_handler(_request, exc: SchemaValidationError):  # type: ignore[no-untyped-def]
         return JSONResponse(status_code=422, content={"detail": {"message": str(exc), "errors": exc.errors}})
+
+
+    def public_session_settings() -> dict[str, Any]:
+        return {
+            "display_name": context.session.display_name,
+            "locale": context.session.locale,
+            "theme": context.session.theme,
+            "worker_url": context.session.worker_url,
+            "neuronpedia_connected": context.session.neuronpedia_connected,
+            "backends": sorted(context.backends),
+            "models": [],
+        }
+
+    @app.get("/api/session/settings")
+    async def get_session_settings() -> dict[str, Any]:
+        return public_session_settings()
+
+    @app.put("/api/session/settings")
+    async def put_session_settings(payload: dict[str, Any] = Body(...)) -> dict[str, Any]:
+        if "display_name" in payload:
+            context.session.display_name = str(payload.get("display_name") or "")[:120]
+        if payload.get("locale") in {"en", "fr"}:
+            context.session.locale = payload["locale"]
+        if payload.get("theme") in {"system", "dark", "light"}:
+            context.session.theme = payload["theme"]
+        if "worker_url" in payload:
+            context.session.worker_url = str(payload.get("worker_url") or "") or None
+        api_key = payload.get("neuronpedia_api_key")
+        if api_key is not None:
+            context.session.neuronpedia_api_key = str(api_key) or None
+            context.session.neuronpedia_connected = bool(context.session.neuronpedia_api_key)
+            if "neuronpedia" in context.backends:
+                context.backends["neuronpedia"] = NeuronpediaBackend(
+                    api_key=context.session.neuronpedia_api_key,
+                    base_url=context.settings.neuronpedia_base_url,
+                    timeout_seconds=context.settings.neuronpedia_timeout_seconds,
+                    max_retries=context.settings.neuronpedia_max_retries,
+                )
+        return public_session_settings()
+
+    @app.delete("/api/session/neuronpedia-key")
+    async def delete_session_neuronpedia_key() -> dict[str, Any]:
+        context.session.neuronpedia_api_key = None
+        context.session.neuronpedia_connected = False
+        if "neuronpedia" in context.backends:
+            context.backends["neuronpedia"] = NeuronpediaBackend(
+                api_key=None,
+                base_url=context.settings.neuronpedia_base_url,
+                timeout_seconds=context.settings.neuronpedia_timeout_seconds,
+                max_retries=context.settings.neuronpedia_max_retries,
+            )
+        return public_session_settings()
+
+    @app.post("/api/session/neuronpedia/test")
+    async def test_session_neuronpedia(payload: dict[str, Any] = Body(default_factory=dict)) -> dict[str, Any]:
+        api_key = str(payload.get("neuronpedia_api_key") or context.session.neuronpedia_api_key or "")
+        if not api_key:
+            context.session.neuronpedia_connected = False
+            return {"neuronpedia_connected": False, "message": "No API key supplied; demo and imports remain available."}
+        try:
+            async with httpx.AsyncClient(base_url=context.settings.neuronpedia_base_url, timeout=10, follow_redirects=True) as client:
+                response = await client.get("/api/health", headers={"x-api-key": api_key})
+            connected = response.status_code < 500
+        except httpx.HTTPError:
+            connected = False
+        context.session.neuronpedia_api_key = api_key
+        context.session.neuronpedia_connected = connected
+        return {"neuronpedia_connected": connected, "message": "Connection test completed."}
 
     @app.get("/api/health")
     async def health() -> dict[str, Any]:
