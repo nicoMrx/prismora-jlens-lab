@@ -28,6 +28,19 @@ def test_v4_live_chat_intercepts_fake_composer_and_restores_real_artifact():
     assert "BEGIN PRIVATE KEY" not in script
 
 
+def test_v4_live_chat_restores_user_prompt_and_hides_template_markers():
+    script = (WEB / "v4-live-chat.js").read_text(encoding="utf-8")
+    assert "function livePrompt" in script
+    assert "request?.chat" in script
+    assert "derived?.live_chat?.user_message" in script
+    assert "function cleanCompletion" in script
+    assert "<|im_end|>" in script
+    assert "trimTechnicalTokenButtons" in script
+    assert "buttons.slice(index).forEach((button) => button.remove())" in script
+    assert "user.textContent !== prompt" in script
+    assert "output.textContent !== completion" in script
+
+
 def test_v4_live_chat_source_and_package_are_identical():
     assert (WEB / "v4-live-chat.js").read_text(encoding="utf-8") == (
         PKG / "v4-live-chat.js"
