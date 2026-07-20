@@ -60,6 +60,10 @@
     return entries[targetIndex]?.layer ?? null;
   }
 
+  function suppressNativeOverlayTooltips(chart) {
+    chart.querySelectorAll('title').forEach((title) => title.remove());
+  }
+
   function ensureHoverBadge() {
     let badge = $('#layer-hover-badge');
     if (!badge) {
@@ -103,6 +107,7 @@
 
     const overlay = event.target.closest?.('.lens-overlay-chart');
     if (overlay) {
+      suppressNativeOverlayTooltips(overlay);
       const layer = nearestLayerFromOverlay(event.clientX, overlay);
       if (layer !== null) {
         activateLayer(layer);
