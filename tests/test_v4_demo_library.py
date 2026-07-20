@@ -11,6 +11,7 @@ def test_v4_demo_library_loads_verified_real_pairs_campaign_and_final_channel():
     restore = (WEB / "v4-demo-restore.js").read_text(encoding="utf-8")
     css = (WEB / "v4-demo-library.css").read_text(encoding="utf-8")
     loader = (WEB / "v4-token-tooltip.js").read_text(encoding="utf-8")
+    html = (WEB / "v4.html").read_text(encoding="utf-8")
 
     assert "/api/demo/showcase" in script
     assert "prismora.v4.comparisonB" in script
@@ -42,6 +43,12 @@ def test_v4_demo_library_loads_verified_real_pairs_campaign_and_final_channel():
     assert "demos.async = false" in loader
     assert "restore.async = false" in loader
 
+    # Critical showcase assets are also loaded directly, with a bumped cache key.
+    assert '<link rel="stylesheet" href="/v4-demo-library.css?v=2"' in html
+    assert '<script src="/v4-demo-library.js?v=2"' in html
+    assert '<script src="/v4-demo-restore.js?v=2"' in html
+    assert '<script src="/v4-token-tooltip.js?v=2"' in html
+
 
 def test_v4_demo_library_assets_are_identical_between_source_and_package():
     for name in (
@@ -49,6 +56,7 @@ def test_v4_demo_library_assets_are_identical_between_source_and_package():
         "v4-demo-library.css",
         "v4-demo-restore.js",
         "v4-token-tooltip.js",
+        "v4.html",
     ):
         assert (WEB / name).read_text(encoding="utf-8") == (PKG / name).read_text(encoding="utf-8")
 
