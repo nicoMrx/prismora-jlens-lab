@@ -3,6 +3,7 @@
 
   const SESSION_KEY = 'prismora.v4.session';
   const MODEL_KEY = 'prismora.v4.liveModel';
+  const STOP_MARKERS = ['<|im_end|>', '<|end|>', '<|return|>', '<end_of_turn>', '<eos>'];
   const $ = (selector, root = document) => root.querySelector(selector);
   const language = () => document.documentElement.lang === 'fr' ? 'fr' : 'en';
   let models = [];
@@ -60,6 +61,50 @@
       return payload?.sourceType === 'live' ? payload : null;
     } catch {
       return null;
+    }
+  }
+
+  function livePrompt(artifact) {
+    const derived = artifact?.derived?.live_chat?.user_message;
+    if (derived) return String(derived);
+    const chat = Array.isArray(artifact?.request?.chat) ? artifact.request.chat : [];
+    return String([...chat].reverse().find((message) => message?.role === 'user')?.content || artifact?.request?.prompt || '');
+  }
+
+  function cleanCompletion(artifact) {
+    let text = String(artifact?.result?.done?.completion || artifact?.result?.completion || '');
+    const finalMarker = text.match(/<\|channel\|>\s*final\s*<\|message\|>/i);
+    if (finalMarker) text = text.slice((finalMarker.index || 0) + finalMarker[0].length);
+    let stop = text.length;
+    STOP_MARKERS.forEach((marker) => {
+      const index = text.toLowerCase().indexOf(marker.toLowerCase());
+      if (index >= 0) stop = Math.min(stop, index);
+    });
+    return text
+      .slice(0, stop)
+      .replace(/<\|(?:im_start|start|start_header_id|message|channel)[^>]*\|>/gi, '')
+      .trim();
+  }
+
+  function compact(value) {
+    return String(value || '').replace(/\s+/g, '').toLowerCase();
+  }
+
+  function trimTechnicalTokenButtons() {
+    const buttons = [...document.querySelectorAll('#tokens .token')];
+    if (!buttons.length) return;
+    const targets = STOP_MARKERS.map((marker) => compact(marker));
+    for (let index = 0; index < buttons.length; index += 1) {
+      let combined = '';
+      for (let end = index; end < Math.min(buttons.length, index + 10); end += 1) {
+        combined += buttons[end].textContent || '';
+        const value = compact(combined);
+        if (targets.includes(value)) {
+          buttons.slice(index).forEach((button) => button.remove());
+          return;
+        }
+        if (value && !targets.some((target) => target.startsWith(value))) break;
+      }
     }
   }
 
@@ -167,11 +212,19 @@
   function polishLiveArtifact() {
     const session = liveSession();
     if (!session?.artifact) return;
-    const modelId = session.artifact?.request?.model?.model_id || 'model';
+    const artifact = session.artifact;
+    const modelId = artifact?.request?.model?.model_id || 'model';
     const who = $('#model-who');
     if (who && !who.textContent.includes('Neuronpedia live')) who.textContent = `${modelId} · Neuronpedia live`;
+    const user = $('#user-message');
+    const prompt = livePrompt(artifact);
+    if (user && prompt && user.textContent !== prompt) user.textContent = prompt;
+    const output = $('#model-output');
+    const completion = cleanCompletion(artifact);
+    if (output && completion && output.textContent !== completion) output.textContent = completion;
+    trimTechnicalTokenButtons();
     const status = $('#reader-status');
-    const expected = `${t('live')} · ${session.artifact.run_id}`;
+    const expected = `${t('live')} · ${artifact.run_id}`;
     if (status && status.textContent !== expected) status.textContent = expected;
   }
 
