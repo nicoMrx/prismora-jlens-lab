@@ -60,7 +60,33 @@
   }
 
   function tokenTarget(node) {
-    return node?.closest?.('.token, .candidate strong');
+    return node?.closest?.('.token, .candidate strong, .jlens-title-token');
+  }
+
+  function enhanceJlensTitle() {
+    const title = document.querySelector('#jlens-title');
+    if (!title) return;
+    const text = title.textContent || '';
+    const match = text.match(/^(.*?)([“«"])(.+?)([”»"])(.*)$/u);
+    if (!match) return;
+    const existing = title.querySelector('.jlens-title-token');
+    if (existing && existing.textContent === match[3]) return;
+
+    const token = document.createElement('span');
+    token.className = 'jlens-title-token';
+    token.textContent = match[3];
+    title.replaceChildren(
+      document.createTextNode(`${match[1]}${match[2]}`),
+      token,
+      document.createTextNode(`${match[4]}${match[5]}`),
+    );
+  }
+
+  const title = document.querySelector('#jlens-title');
+  if (title) {
+    const titleObserver = new MutationObserver(enhanceJlensTitle);
+    titleObserver.observe(title, { childList: true, characterData: true, subtree: true });
+    enhanceJlensTitle();
   }
 
   document.addEventListener('pointerover', (event) => {
