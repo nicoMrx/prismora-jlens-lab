@@ -136,4 +136,11 @@
     comparison.dataset.prismoraLensComparison = '1';
     document.head.append(comparison);
   }
+
+  if (!document.querySelector('script[data-prismora-layer-scrub]')) {
+    const scrub = document.createElement('script');
+    scrub.src = '/v4-layer-scrub.js?v=1';
+    scrub.dataset.prismoraLayerScrub = '1';
+    document.head.append(scrub);
+  }
 })();
