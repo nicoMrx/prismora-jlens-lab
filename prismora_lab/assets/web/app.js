@@ -27,13 +27,14 @@
     readerArtifact: null,
     readerSelectedToken: 0,
     readerSelectedLayer: null,
+    sessionSettings: null,
   };
 
 
   const I18N = {
     en: {
       'app.title': 'Prismora J-Lens Lab', 'shell.securityLead': 'Local control plane:', 'shell.securityText': 'no user authentication is bundled. Keep it on localhost or protect it behind an authenticated reverse proxy.', 'app.subtitle': 'One protocol · public API and private GPU workers · immutable evidence', 'app.language': 'Language', 'app.refresh': 'Refresh', 'app.checking': 'checking…', 'app.offline': 'offline', 'level.read': 'Read', 'level.explore': 'Explore', 'level.control': 'Control', 'theme.label': 'Theme', 'theme.system': 'System', 'theme.dark': 'Dark', 'theme.light': 'Light', 'reader.title': 'Read', 'reader.description': 'Conversation-first reading of real J-Lens artifacts. Raw artifacts remain authoritative.', 'reader.eyebrow': 'Conversation · verified synthetic demo', 'reader.heroTitle': 'Read what happens beneath the answer', 'reader.heroSubtitle': 'Follow one generated answer token through measured J-Lens layers without hiding raw evidence.', 'reader.demoBadge': 'Synthetic demo · verified manifest', 'reader.loadDemo': 'Load verified demo', 'reader.openExplorer': 'Open complete evidence in Explorer', 'reader.prompt': 'Prompt / request', 'reader.output': 'Generated output', 'reader.modelSource': 'Model / source', 'reader.conversation': 'Conversation', 'reader.user': 'Request', 'reader.modelAnswer': 'Model answer', 'reader.tokenHelp': 'Select a response token to inspect its measured candidates.', 'reader.jlensEyebrow': 'J-Lens measured readout', 'reader.selectedToken': 'Selected token', 'reader.layersMeasured': '{count} measured layers', 'reader.noCandidates': 'No candidates are measured for this token/layer.', 'reader.noTrajectory': 'No trajectory value is measured for this candidate.', 'reader.modelUnknown': 'Unknown model', 'reader.sourceUnknown': 'Unknown source', 'reader.run': 'Run', 'reader.modelLabel': 'Model', 'reader.source': 'Source', 'reader.gemmaHelp': 'Gemma is coming soon and remains disabled.', 'reader.layers': 'Captured layers only', 'reader.selected': 'Selected token / layer', 'reader.top8': 'Actual top-8 candidates', 'reader.trajectory': 'Candidate trajectory', 'reader.understand': 'Understand compact', 'reader.completeEvidence': 'Open complete Explorer evidence', 'reader.noLive': 'Coming soon · disabled', 'nav.reader': 'Reader', 'nav.conversations': 'Conversations', 'nav.models': 'Models', 'nav.settings': 'Settings', 'nav.protocols': 'Protocols', 'nav.campaigns': 'Campaigns', 'nav.understand': 'Understand', 'nav.ab': 'A/B comparison', 'nav.baselines': 'Baselines', 'nav.interventions': 'Interventions',
-      'nav.dashboard': 'Overview', 'nav.experiments': 'Experiments', 'nav.registry': 'Model registry', 'nav.campaign': 'Campaign builder', 'nav.fleet': 'GPU / API fleet', 'nav.runs': 'Runs', 'nav.inspector': 'Run inspector', 'nav.visualizer': 'Human Visualizer', 'nav.baseline': 'Baseline lab', 'nav.causal': 'Causal lab', 'nav.compare': 'Comparison studio', 'nav.claims': 'Claim ledger',
+      'settings.open': 'Settings', 'settings.title': 'Settings and account', 'settings.name': 'Display name', 'settings.worker': 'Worker URL (optional)', 'settings.key': 'Neuronpedia API key', 'settings.secretNote': 'The key is never stored in localStorage, logs, artifacts or exports. Demo and imports work without a key.', 'settings.continue': 'Continue without key — demo and imports', 'settings.test': 'Test connection', 'settings.save': 'Save for this session', 'import.title': 'Import Neuronpedia export', 'import.drop': 'Select one export file, related files, or a decompressed export folder', 'import.cancel': 'Cancel', 'import.prepare': 'Prepare import', 'composer.send': 'Send', 'status.pending': 'Request pending; measurements have not arrived yet.', 'import.loadedLocal': 'Loaded local Neuronpedia export in Read; not archived until you choose a remote action.', 'nav.dashboard': 'Overview', 'nav.experiments': 'Experiments', 'nav.registry': 'Model registry', 'nav.campaign': 'Campaign builder', 'nav.fleet': 'GPU / API fleet', 'nav.runs': 'Runs', 'nav.inspector': 'Run inspector', 'nav.visualizer': 'Human Visualizer', 'nav.baseline': 'Baseline lab', 'nav.causal': 'Causal lab', 'nav.compare': 'Comparison studio', 'nav.claims': 'Claim ledger',
       'understand.title': 'Understand', 'understand.badge': 'Rule-based, no LLM summary', 'understand.demo': 'Load Build Week demo', 'understand.empty': 'Load a comparison to see deterministic facts.', 'understand.errorTitle': 'Understand error', 'understand.retry': 'Retry or reload the verified demo.',
       'coverage.source': 'source', 'coverage.transmitted': 'transmitted', 'coverage.instrumented': 'instrumented', 'coverage.generated': 'instrumented generated', 'coverage.layers': 'layers', 'coverage.unknown': 'unknown', 'coverage.complete': 'complete', 'coverage.partial': 'partial',
       'status.demoLoaded': 'Build Week demo loaded: Pair A selected.', 'status.loadingArtifacts': 'Loading both artifacts…', 'status.comparisonLoaded': 'Comparison loaded: {a} ↔ {b}.', 'status.probeResults': '{count} readable J-Lens result(s) found in {files} file(s).', 'local.unimportedWarning': 'Local file displayed without import into the Prismora archive.', 'error.noRuns': 'Choose two archived runs.', 'error.sameRuns': 'A and B must be two different runs.', 'error.noLens': 'No common lens between A and B.', 'error.demoUnavailable': 'Build Week demo artifacts are unavailable.', 'error.localLoadFirst': 'Load a folder, then choose two local results.', 'error.localDifferent': 'A and B must be different.',
@@ -41,7 +42,7 @@
     },
     fr: {
       'app.title': 'Prismora J-Lens Lab', 'shell.securityLead': 'Plan de contrôle local :', 'shell.securityText': 'aucune authentification utilisateur n’est incluse. Garde-le sur localhost ou protège-le derrière un reverse proxy authentifié.', 'app.subtitle': 'Un protocole · API publique et workers GPU privés · preuves immuables', 'app.language': 'Langue', 'app.refresh': 'Actualiser', 'app.checking': 'vérification…', 'app.offline': 'hors ligne', 'level.read': 'Lire', 'level.explore': 'Explorer', 'level.control': 'Contrôler', 'theme.label': 'Thème', 'theme.system': 'Système', 'theme.dark': 'Sombre', 'theme.light': 'Clair', 'reader.title': 'Lire', 'reader.description': 'Lecture conversationnelle de vrais artifacts J-Lens. Les artifacts bruts restent l’autorité.', 'reader.eyebrow': 'Conversation · démo synthétique vérifiée', 'reader.heroTitle': 'Lire ce qui se passe sous la réponse', 'reader.heroSubtitle': 'Suivre un token de réponse générée à travers les couches J-Lens mesurées sans masquer la preuve brute.', 'reader.demoBadge': 'Démo synthétique · manifeste vérifié', 'reader.loadDemo': 'Charger la démo vérifiée', 'reader.openExplorer': 'Ouvrir la preuve complète dans Explorer', 'reader.prompt': 'Prompt / requête', 'reader.output': 'Sortie générée', 'reader.modelSource': 'Modèle / source', 'reader.conversation': 'Conversation', 'reader.user': 'Requête', 'reader.modelAnswer': 'Réponse du modèle', 'reader.tokenHelp': 'Sélectionne un token de réponse pour inspecter ses candidats mesurés.', 'reader.jlensEyebrow': 'Lecture J-Lens mesurée', 'reader.selectedToken': 'Token sélectionné', 'reader.layersMeasured': '{count} couches mesurées', 'reader.noCandidates': 'Aucun candidat n’est mesuré pour ce token et cette couche.', 'reader.noTrajectory': 'Aucune valeur de trajectoire n’est mesurée pour ce candidat.', 'reader.modelUnknown': 'Modèle inconnu', 'reader.sourceUnknown': 'Source inconnue', 'reader.run': 'Exécution', 'reader.modelLabel': 'Modèle', 'reader.source': 'Source', 'reader.gemmaHelp': 'Gemma est à venir et reste désactivé.', 'reader.layers': 'Couches capturées seulement', 'reader.selected': 'Token / couche sélectionnés', 'reader.top8': 'Top-8 candidats réels', 'reader.trajectory': 'Trajectoire du candidat', 'reader.understand': 'Comprendre', 'reader.completeEvidence': 'Ouvrir la preuve complète dans Explorer', 'reader.noLive': 'À venir · désactivé', 'nav.reader': 'Lire', 'nav.conversations': 'Conversations', 'nav.models': 'Modèles', 'nav.settings': 'Réglages', 'nav.protocols': 'Protocoles', 'nav.campaigns': 'Campagnes', 'nav.understand': 'Comprendre', 'nav.ab': 'Comparaison A/B', 'nav.baselines': 'Références', 'nav.interventions': 'Interventions',
-      'nav.dashboard': 'Aperçu', 'nav.experiments': 'Expériences', 'nav.registry': 'Registre des modèles', 'nav.campaign': 'Créateur de campagne', 'nav.fleet': 'Parc GPU / API', 'nav.runs': 'Exécutions', 'nav.inspector': 'Inspecteur d’exécution', 'nav.visualizer': 'Visualiseur humain', 'nav.baseline': 'Laboratoire de référence', 'nav.causal': 'Laboratoire causal', 'nav.compare': 'Studio de comparaison', 'nav.claims': 'Registre des affirmations',
+      'settings.open': 'Réglages', 'settings.title': 'Réglages et compte', 'settings.name': 'Nom ou pseudonyme', 'settings.worker': 'Runtime local (facultatif)', 'settings.key': 'Clé API Neuronpedia', 'settings.secretNote': 'La clé n’est jamais stockée dans localStorage, les logs, les artifacts ou les exports. La démo et les imports fonctionnent sans clé.', 'settings.continue': 'Continuer sans clé — démo et imports', 'settings.test': 'Tester la connexion', 'settings.save': 'Enregistrer pour cette session', 'import.title': 'Importer un export Neuronpedia', 'import.drop': 'Sélectionner un fichier, des fichiers liés ou un dossier exporté', 'import.cancel': 'Annuler', 'import.prepare': 'Préparer l’import', 'composer.send': 'Envoyer', 'status.pending': 'Requête en attente ; aucune mesure n’est encore arrivée.', 'import.loadedLocal': 'Export Neuronpedia local chargé dans Lire ; non archivé sans action distante explicite.', 'nav.dashboard': 'Aperçu', 'nav.experiments': 'Expériences', 'nav.registry': 'Registre des modèles', 'nav.campaign': 'Créateur de campagne', 'nav.fleet': 'Parc GPU / API', 'nav.runs': 'Exécutions', 'nav.inspector': 'Inspecteur d’exécution', 'nav.visualizer': 'Visualiseur humain', 'nav.baseline': 'Laboratoire de référence', 'nav.causal': 'Laboratoire causal', 'nav.compare': 'Studio de comparaison', 'nav.claims': 'Registre des affirmations',
       'understand.title': 'Comprendre', 'understand.badge': 'Résumé par règles, sans LLM', 'understand.demo': 'Charger la démo Build Week', 'understand.empty': 'Charge une comparaison pour voir les faits déterministes.', 'understand.errorTitle': 'Erreur Understand', 'understand.retry': 'Réessaie ou recharge la démo vérifiée.',
       'coverage.source': 'source', 'coverage.transmitted': 'transmis', 'coverage.instrumented': 'instrumentés', 'coverage.generated': 'générés instrumentés', 'coverage.layers': 'couches', 'coverage.unknown': 'inconnu', 'coverage.complete': 'complète', 'coverage.partial': 'partielle',
       'status.demoLoaded': 'Démo Build Week chargée : paire A sélectionnée.', 'status.loadingArtifacts': 'Chargement des deux artifacts…', 'status.comparisonLoaded': 'Comparaison chargée : {a} ↔ {b}.', 'status.probeResults': '{count} résultat(s) J-Lens lisible(s) trouvé(s) dans {files} fichier(s).', 'local.unimportedWarning': 'Fichier local affiché sans import dans l’archive Prismora.', 'error.noRuns': 'Choisis deux exécutions archivées.', 'error.sameRuns': 'A et B doivent être deux exécutions différentes.', 'error.noLens': 'Aucune lentille commune entre A et B.', 'error.demoUnavailable': 'Les artifacts de démo Build Week sont indisponibles.', 'error.localLoadFirst': 'Charge un dossier puis choisis deux résultats locaux.', 'error.localDifferent': 'A et B doivent être différents.',
@@ -79,6 +80,7 @@
     });
   }
   function defaultPanelForLevel(level) { return level === 'explore' ? 'visualizer' : level === 'control' ? 'dashboard' : 'reader'; }
+  function setReaderStage(stage) { document.documentElement.dataset.readerStage = stage; document.body.dataset.stage = stage; }
   function applyI18n() {
     document.documentElement.lang = state.locale;
     document.title = t('app.title');
@@ -159,8 +161,9 @@
 
   document.querySelectorAll('.nav-item').forEach((button) => button.addEventListener('click', () => navigate(button.dataset.panel)));
   document.querySelectorAll('[data-jump]').forEach((button) => button.addEventListener('click', () => navigate(button.dataset.jump)));
+  document.querySelectorAll('[data-action="import-neuronpedia"]').forEach((button) => button.addEventListener('click', () => $('importDialog')?.showModal()));
   document.querySelectorAll('.level-btn').forEach((button) => button.addEventListener('click', () => { state.level = button.dataset.level; localStorage.setItem('prismora.level', state.level); applyLevel(); navigate(defaultPanelForLevel(state.level)); }));
-  $('globalThemeSelect')?.addEventListener('change', () => { state.theme = $('globalThemeSelect').value; localStorage.setItem('prismora.theme', state.theme); applyTheme(); });
+  $('globalThemeSelect')?.addEventListener('change', () => { state.theme = $('globalThemeSelect').value; localStorage.setItem('prismora.theme', state.theme); applyTheme(); renderReader(); });
 
   function fillSelect(select, rows, valueKey, labelFn, includeBlank = false) {
     const previous = select.value;
@@ -178,6 +181,29 @@
       select.append(option);
     });
     if ([...select.options].some((opt) => opt.value === previous)) select.value = previous;
+  }
+
+
+  async function refreshSessionSettings() {
+    try {
+      state.sessionSettings = await api('/api/session/settings');
+      if ($('sessionDisplayName')) $('sessionDisplayName').value = state.sessionSettings.display_name || '';
+      if ($('sessionWorkerUrl')) $('sessionWorkerUrl').value = state.sessionSettings.worker_url || '';
+    } catch (_) {}
+  }
+  async function saveSessionSettings() {
+    const payload = { display_name: $('sessionDisplayName')?.value || '', locale: state.locale, theme: state.theme, worker_url: $('sessionWorkerUrl')?.value || '' };
+    const key = $('sessionNeuronpediaKey')?.value || '';
+    if (key) payload.neuronpedia_api_key = key;
+    state.sessionSettings = await api('/api/session/settings', { method: 'PUT', body: JSON.stringify(payload) });
+    if ($('sessionNeuronpediaKey')) $('sessionNeuronpediaKey').value = '';
+    setStatus('settingsStatus', state.sessionSettings.neuronpedia_connected ? 'Neuronpedia connected' : 'Saved; demo and imports remain available without a key.', 'ok');
+  }
+  async function testNeuronpediaConnection() {
+    const payload = { neuronpedia_api_key: $('sessionNeuronpediaKey')?.value || undefined };
+    const result = await api('/api/session/neuronpedia/test', { method: 'POST', body: JSON.stringify(payload) });
+    setStatus('settingsStatus', result.message, result.neuronpedia_connected ? 'ok' : 'warn');
+    if ($('sessionNeuronpediaKey')) $('sessionNeuronpediaKey').value = '';
   }
 
   async function refreshHealth() {
@@ -427,11 +453,26 @@
       const action = document.createElement('td');
       const button = document.createElement('button'); button.textContent = 'Inspect';
       button.addEventListener('click', async () => { $('inspectRunSelect').value = run.run_id; navigate('inspector'); await loadArtifact(run.run_id); });
-      action.append(button); tr.append(action); body.append(tr);
+      const readButton = document.createElement('button'); readButton.textContent = 'Read'; readButton.className = 'secondary';
+      readButton.addEventListener('click', async () => { await loadArchivedRunInReader(run.run_id); });
+      action.append(button, readButton); tr.append(action); body.append(tr);
     });
   }
   $('refreshRunsBtn').addEventListener('click', () => refreshRuns().catch((error) => toast(error.message, true)));
   $('runsExperimentFilter').addEventListener('change', () => refreshRuns().catch((error) => toast(error.message, true)));
+
+
+  async function loadArchivedRunInReader(runId) {
+    const artifact = await api(`/api/runs/${encodeURIComponent(runId)}`);
+    state.readerArtifact = artifact;
+    state.visualA = artifact;
+    state.artifact = artifact;
+    state.readerSelectedToken = 0;
+    state.readerSelectedLayer = null;
+    renderReader();
+    navigate('reader');
+    return artifact;
+  }
 
   async function loadArtifact(runId) {
     if (!runId) throw new Error('Select a run.');
@@ -1131,7 +1172,7 @@
   function readerBackendId(a) { return a.backend_id || a.request?.backend || a.request?.backend_id || a.result?.meta?.backend_id || ''; }
   function renderReaderEmpty(id, key) { const node = $(id); node.replaceChildren(); const p = document.createElement('p'); p.className = 'reader-empty'; p.textContent = t(key); node.append(p); }
   function renderReader() {
-    const a = state.readerArtifact || state.visualA; if (!a || !$('readerPrompt')) return; state.readerArtifact = a;
+    const a = state.readerArtifact || state.visualA; if (!a || !$('readerPrompt')) { setReaderStage('empty'); return; } state.readerArtifact = a; setReaderStage('measured');
     const tokens = generatedTokens(a); const selected = tokens[Math.min(state.readerSelectedToken, Math.max(0, tokens.length - 1))] || (a.result?.tokens || [])[0];
     const lens = a.result?.meta?.types?.[0] || 'JACOBIAN_LENS'; const layers = lensLayers(a).map(Number).sort((x,y)=>x-y);
     const pos = selected?.position ?? selected?.index ?? 0; const validLayers = readerValidLayers(a, pos);
@@ -1244,7 +1285,36 @@
   }
 
 
+
+  function adoptImportedArtifact(artifact, label) {
+    const wrapped = artifact?.result?.tokens ? artifact : wrapLocalVisualArtifact(artifact?.result || artifact, label, artifact?.request);
+    wrapped.provenance = { ...(wrapped.provenance || {}), source: wrapped.provenance?.source || `local/unarchived Neuronpedia export · ${label}` };
+    state.readerArtifact = wrapped;
+    state.visualA = wrapped;
+    state.artifact = wrapped;
+    state.readerSelectedToken = 0;
+    state.readerSelectedLayer = null;
+    renderReader();
+    navigate('reader');
+    return wrapped;
+  }
+
+  async function importNeuronpediaFiles(files) {
+    const selected = [...files];
+    if (!selected.length) throw new Error('No import files selected.');
+    const parsed = [];
+    for (const file of selected) {
+      if (!file.name.endsWith('.json') && !file.name.endsWith('.raw')) continue;
+      try { parsed.push({ label: file.webkitRelativePath || file.name, value: JSON.parse(await file.text()) }); }
+      catch (_) { /* ignore incompatible sidecars */ }
+    }
+    const artifactLike = parsed.find((item) => item.value?.result?.tokens || item.value?.tokens || item.value?.meta?.layers_by_type);
+    if (!artifactLike) throw new Error('No compatible Neuronpedia/Prismora artifact found.');
+    return adoptImportedArtifact(artifactLike.value, artifactLike.label);
+  }
+
   async function loadBuildWeekDemo() {
+    setReaderStage('pending');
     state.understand = null; renderUnderstand(); clearUnderstandError();
     const payload = await api('/api/demo/build-week');
     state.demoArtifacts = payload.artifacts || [];
@@ -1257,7 +1327,13 @@
     state.readerArtifact = state.visualA; renderReader(); setStatus('visualStatus', t('status.demoLoaded'), 'ok');
   }
 
+  $('composer')?.addEventListener('submit', (event) => { event.preventDefault(); const input = $('message-input'); const request = input?.value?.trim() || ''; if (!request) return; state.readerArtifact = null; $('readerPrompt').textContent = request; $('readerOutput').textContent = t('status.pending'); $('readerTokens').replaceChildren(); setReaderStage('pending'); });
   $('visualCompareStoredBtn').addEventListener('click', () => loadStoredVisualComparison().catch((error) => setStatus('visualStatus', error.message, 'error')));
+  $('openSettingsBtn')?.addEventListener('click', () => $('settingsDialog')?.showModal());
+  $('settingsForm')?.addEventListener('submit', (event) => { if (event.submitter?.value === 'cancel') return; event.preventDefault(); saveSessionSettings().catch((error)=>setStatus('settingsStatus', error.message, 'error')); });
+  $('testNeuronpediaBtn')?.addEventListener('click', () => testNeuronpediaConnection().catch((error)=>setStatus('settingsStatus', error.message, 'error')));
+  $('importFiles')?.addEventListener('change', (event) => { $('importList').textContent = [...event.target.files].map((file) => file.webkitRelativePath || file.name).join('\n') || 'No files selected.'; });
+  $('importForm')?.addEventListener('submit', (event) => { if (event.submitter?.value === 'cancel') return; event.preventDefault(); importNeuronpediaFiles($('importFiles').files).then(() => { $('importDialog')?.close(); toast(t('import.loadedLocal')); }).catch((error) => toast(error.message, true)); });
   $('readerLoadDemoBtn')?.addEventListener('click', () => loadBuildWeekDemo().then(()=>navigate('reader')).catch((error) => toast(error.message, true)));
   $('loadBuildWeekDemoBtn')?.addEventListener('click', () => loadBuildWeekDemo().catch((error) => setStatus('visualStatus', error.message, 'error')));
   $('globalLocaleSelect')?.addEventListener('change', () => { state.locale = $('globalLocaleSelect').value === 'fr' ? 'fr' : 'en'; localStorage.setItem('prismora.locale', state.locale); state.understandRequestSeq += 1; clearUnderstandError(); renderLocalizedVisualState(); });
@@ -1287,7 +1363,7 @@
     if (state.runs.length > 1 && $('visualRunA').value === $('visualRunB').value) $('visualRunB').value = state.runs[1].run_id;
     applyI18n();
     const requestedPanel = window.location.hash ? window.location.hash.slice(1) : 'reader';
-    if (!state.readerArtifact) await loadBuildWeekDemo().catch(()=>{});
+    if (!state.readerArtifact) setReaderStage('empty');
     const targetPanel = requestedPanel === 'visualizer' || requestedPanel === 'human' ? 'visualizer' : requestedPanel;
     if (targetPanel && document.getElementById(`panel-${targetPanel}`)) {
       navigate(targetPanel);
