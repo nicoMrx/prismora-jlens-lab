@@ -37,6 +37,10 @@
       "classification": "exploratory-cross-model",
       "demo_id": "same-question",
       "kind": "pair",
+      "observations_en": [
+        "The user prompt is identical, but tokenization and layer count differ.",
+        "GPT-OSS contains an analysis channel before the final channel; the normalized demo compares final against final."
+      ],
       "observations_fr": [
         "Le prompt utilisateur est identique, mais la tokenisation et le nombre de couches diffèrent.",
         "GPT-OSS contient un canal analysis avant le canal final ; la démo normalisée compare final contre final."
@@ -64,6 +68,10 @@
       },
       "demo_id": "meta-capture",
       "kind": "pair",
+      "observations_en": [
+        "Qwen lexicalizes ‘meta-analysis’ and meta becomes strongly decodable.",
+        "GPT-OSS makes meta top-1 in two Logit Lens cells without lexicalizing the word in the visible surface."
+      ],
       "observations_fr": [
         "Qwen lexicalise « méta-analyse » et meta devient fortement décodable.",
         "GPT-OSS rend meta top-1 dans deux cellules Logit Lens sans lexicaliser le mot dans la surface finale."
