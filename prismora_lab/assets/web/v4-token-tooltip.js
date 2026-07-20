@@ -167,4 +167,20 @@
     polish.dataset.prismoraExplorerPolish = '1';
     document.head.append(polish);
   }
+
+  if (!document.querySelector('link[data-prismora-user-comparison]')) {
+    const styles = document.createElement('link');
+    styles.rel = 'stylesheet';
+    styles.href = '/v4-user-comparison.css?v=1';
+    styles.dataset.prismoraUserComparison = '1';
+    document.head.append(styles);
+  }
+
+  if (!document.querySelector('script[data-prismora-user-comparison]')) {
+    const userComparison = document.createElement('script');
+    userComparison.src = '/v4-user-comparison.js?v=1';
+    userComparison.async = false;
+    userComparison.dataset.prismoraUserComparison = '1';
+    document.head.append(userComparison);
+  }
 })();
