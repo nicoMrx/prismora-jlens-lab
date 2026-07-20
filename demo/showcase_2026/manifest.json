@@ -1,0 +1,52 @@
+{
+  "artifacts": [
+    {"bytes":25425,"path":"showcase-same-question-qwen.json","run_id":"showcase-same-question-qwen","sha256":"1c8a327754c5fc9f6df0a625be81af0f9c56d4cd8cf616dd0abc74e5a0a424ea"},
+    {"bytes":25483,"path":"showcase-same-question-gpt-oss-final.json","run_id":"showcase-same-question-gpt-oss-final","sha256":"e2d796e45af7a15067fe4ea96079da0e061fd34be605c0883d60888243da3b62"},
+    {"bytes":42371,"path":"showcase-meta-qwen-observed.json","run_id":"showcase-meta-qwen-observed","sha256":"7be3f94e3ff316f5d6841e0140efb3150504198b0504b1258cc0a3e663d9bcbb"},
+    {"bytes":34953,"path":"showcase-meta-gpt-oss-observed.json","run_id":"showcase-meta-gpt-oss-observed","sha256":"71e033099f6c15d1ad805e69c97e871b39ee577b9bc51ce88bc0ecdc3a8698fd"}
+  ],
+  "author":"NicoMrx",
+  "cards":[
+    {
+      "artifact_a":"showcase-same-question-qwen",
+      "artifact_b":"showcase-same-question-gpt-oss-final",
+      "classification":"exploratory-cross-model",
+      "demo_id":"same-question",
+      "kind":"pair",
+      "observations_fr":[
+        "Le prompt utilisateur est identique, mais la tokenisation et le nombre de couches diffèrent.",
+        "GPT-OSS contient un canal analysis avant le canal final ; la démo normalisée compare final contre final."
+      ],
+      "title_en":"Qwen ↔ GPT-OSS — same question",
+      "title_fr":"Qwen ↔ GPT-OSS — même question"
+    },
+    {
+      "artifact_a":"showcase-meta-qwen-observed",
+      "artifact_b":"showcase-meta-gpt-oss-observed",
+      "classification":"exploratory-cross-model",
+      "controls":{
+        "gpt_oss_branch_a":{"cells_top8":27,"max_probability":0.0266,"positions":7,"top1_cells":0},
+        "qwen_branch_a":{"cells_top8":13,"max_probability":0.0098,"positions":4,"top1_cells":0}
+      },
+      "demo_id":"meta-capture",
+      "kind":"pair",
+      "observations_fr":[
+        "Qwen lexicalise « méta-analyse » et meta devient fortement décodable.",
+        "GPT-OSS rend meta top-1 dans deux cellules Logit Lens sans lexicaliser le mot dans la surface finale."
+      ],
+      "title_en":"Meta Capture — decodable and lexicalized",
+      "title_fr":"Meta Capture — décodable et lexicalisé"
+    }
+  ],
+  "created_at":"2026-07-20T21:30:00Z",
+  "library_id":"showcase-real-exports-2026",
+  "schema":"prismora.demo-library/v1",
+  "scientific_limits":[
+    "Curated artifacts contain selected positions and layers only.",
+    "Cross-model layer numbers are not assumed to represent equivalent computation.",
+    "A decodable token candidate is not evidence of consciousness, intention or hidden thought.",
+    "Immutable source exports remain the primary evidence and are identified by SHA-256."
+  ],
+  "signature":"NicoMrx",
+  "title":"Prismora real Neuronpedia showcase"
+}
