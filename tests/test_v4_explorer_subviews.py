@@ -6,6 +6,7 @@ PKG = ROOT / "prismora_lab" / "assets" / "web"
 ASSETS = (
     "v4-explorer-subviews.js",
     "v4-explorer-subviews.css",
+    "v4-explorer-polish.js",
     "v4-token-tooltip.js",
 )
 
@@ -51,6 +52,24 @@ def test_v4_explorer_cards_become_keyboard_accessible_real_subviews():
     assert "explorer-causal-guard" in css
 
 
+def test_v4_explorer_polish_preserves_sparse_layers_and_declared_operation():
+    polish = (WEB / "v4-explorer-polish.js").read_text(encoding="utf-8")
+    scrub = (WEB / "v4-layer-scrub.js").read_text(encoding="utf-8")
+
+    assert "compactRanges" in polish
+    assert "ranges.join(', ')" in polish
+    assert "explicit.type" in polish
+    assert "synthetic" in polish
+    assert "if (!node.textContent.trim())" in polish
+    assert "sessionStorage.getItem(SESSION_KEY)" in polish
+    assert "DONNEES" not in polish
+    assert "https://" not in polish
+
+    assert "resetHover" in scrub
+    assert "[data-level], [data-nav], [data-explorer-view]" in scrub
+    assert "window.addEventListener('scroll', resetHover, true)" in scrub
+
+
 def test_v4_explorer_module_has_static_loading_and_dynamic_fallback():
     html = (WEB / "v4.html").read_text(encoding="utf-8")
     packaged_html = (PKG / "v4.html").read_text(encoding="utf-8")
@@ -64,6 +83,9 @@ def test_v4_explorer_module_has_static_loading_and_dynamic_fallback():
 
     assert "/v4-explorer-subviews.css?v=1" in loader
     assert "/v4-explorer-subviews.js?v=1" in loader
+    assert "/v4-explorer-polish.js?v=1" in loader
+    assert "explorer.async = false" in loader
+    assert "polish.async = false" in loader
     assert "v4-explorer-router.js" not in loader
     assert "v4-explorer-reference.js" not in loader
 
