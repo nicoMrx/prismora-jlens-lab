@@ -30,10 +30,12 @@ def _mount_with_prismora_extensions(
     if path == "/" and is_prismora and context is not None and not already_mounted:
         from ..campaign_api import mount_campaign_routes
         from ..demo_library_api import mount_demo_library_routes
+        from ..live_chat import mount_live_chat_routes
         from ..session_security import install_session_security
 
         package_root = Path(__file__).resolve().parents[2]
         install_session_security(self, context)
+        mount_live_chat_routes(self, context)
         mount_campaign_routes(self, context, package_root)
         mount_demo_library_routes(self, package_root)
 
@@ -45,6 +47,7 @@ def _mount_with_prismora_extensions(
         extension_scripts = (
             '<script src="/v4-sidebar-observer-guard.js?v=1"></script>',
             '<script src="/v4-connection-semantics.js?v=1" data-prismora-connection-semantics="1"></script>',
+            '<script src="/v4-live-chat.js?v=1" data-prismora-live-chat="1"></script>',
             '<script src="/v4-campaign-polish.js?v=1" data-prismora-campaign-polish="1"></script>',
             '<script src="/v4-showcase-insights.js?v=1" data-prismora-showcase-insights="1"></script>',
         )
