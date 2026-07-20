@@ -41,6 +41,21 @@ def _run_exists(store: Any, experiment_id: str, run_id: str) -> bool:
         return False
 
 
+def _existing_campaign(context: Any, campaign_id: str) -> dict[str, Any] | None:
+    try:
+        return get_campaign(context.store, campaign_id)
+    except FileNotFoundError:
+        return None
+
+
+def _require_locked(campaign: dict[str, Any]) -> None:
+    if campaign.get("preregistration", {}).get("status") != "locked":
+        raise HTTPException(
+            status_code=409,
+            detail="Campaign must be locked after a successful preflight before batch execution.",
+        )
+
+
 async def _execute_batch(
     context: Any,
     campaign: dict[str, Any],
@@ -153,6 +168,14 @@ def mount_campaign_routes(app: Any, context: Any, package_root: Path) -> None:
             campaign_id = payload.get("campaign_id") if isinstance(payload, dict) else None
             source = payload.get("legacy") if isinstance(payload, dict) and isinstance(payload.get("legacy"), dict) else payload
             plan = legacy_campaign_to_plan(source, campaign_id=campaign_id, author="NicoMrx")
+            existing = _existing_campaign(context, plan["campaign_id"])
+            if existing and existing.get("preregistration", {}).get("status") == "locked":
+                if existing.get("source", {}).get("sha256") != plan.get("source", {}).get("sha256"):
+                    raise HTTPException(
+                        status_code=409,
+                        detail="Locked campaign is immutable. Use a new campaign_id for an amended protocol.",
+                    )
+                return campaign_progress(existing, context.store)
             for spec in plan["specs"]:
                 context.store.save_experiment(spec)
             save_campaign(context.store, plan)
@@ -176,6 +199,14 @@ def mount_campaign_routes(app: Any, context: Any, package_root: Path) -> None:
     async def lock_campaign(campaign_id: str) -> dict[str, Any]:
         try:
             campaign = get_campaign(context.store, campaign_id)
+            current = campaign_progress(campaign, context.store)
+            if current["completed_runs"] < 1:
+                raise HTTPException(
+                    status_code=409,
+                    detail="Complete at least one successful preflight run before locking the campaign.",
+                )
+            if campaign.get("preregistration", {}).get("status") == "locked":
+                return current
             hashes: list[str] = []
             for condition in campaign.get("conditions", []):
                 spec = context.store.get_experiment(condition["experiment_id"])
@@ -214,6 +245,7 @@ def mount_campaign_routes(app: Any, context: Any, package_root: Path) -> None:
     async def execute_campaign(campaign_id: str, payload: dict[str, Any] = Body(default_factory=dict)) -> dict[str, Any]:
         try:
             campaign = get_campaign(context.store, campaign_id)
+            _require_locked(campaign)
             limit = max(1, min(int(payload.get("limit", 1)), context.settings.max_runs_per_request))
             pace_seconds = max(0.0, min(float(payload.get("pace_seconds", 3)), 30.0))
             condition_id = payload.get("condition_id")
