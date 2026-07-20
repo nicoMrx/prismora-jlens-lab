@@ -5,6 +5,29 @@
   const $ = (selector, root = document) => root.querySelector(selector);
   const language = () => document.documentElement.lang === 'fr' ? 'fr' : 'en';
 
+  function ensureStyle(marker, href) {
+    if (document.querySelector(`link[${marker}]`)) return;
+    const link = document.createElement('link');
+    link.rel = 'stylesheet';
+    link.href = href;
+    link.setAttribute(marker, '1');
+    document.head.append(link);
+  }
+
+  function ensureScript(marker, src) {
+    if (document.querySelector(`script[${marker}]`)) return;
+    const script = document.createElement('script');
+    script.src = src;
+    script.async = false;
+    script.setAttribute(marker, '1');
+    document.head.append(script);
+  }
+
+  ensureStyle('data-prismora-campaign-polish', '/v4-campaign-polish.css?v=1');
+  ensureStyle('data-prismora-showcase-insights', '/v4-showcase-insights.css?v=1');
+  ensureScript('data-prismora-campaign-polish', '/v4-campaign-polish.js?v=1');
+  ensureScript('data-prismora-showcase-insights', '/v4-showcase-insights.js?v=1');
+
   const warningTranslations = new Map([
     [
       'Campaign is still draft; lock the compiled experiments before describing results as preregistered.',
