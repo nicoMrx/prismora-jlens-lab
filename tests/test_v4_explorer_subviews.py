@@ -51,8 +51,16 @@ def test_v4_explorer_cards_become_keyboard_accessible_real_subviews():
     assert "explorer-causal-guard" in css
 
 
-def test_v4_explorer_module_is_loaded_by_the_existing_enhancement_loader():
+def test_v4_explorer_module_has_static_loading_and_dynamic_fallback():
+    html = (WEB / "v4.html").read_text(encoding="utf-8")
+    packaged_html = (PKG / "v4.html").read_text(encoding="utf-8")
     loader = (WEB / "v4-token-tooltip.js").read_text(encoding="utf-8")
+
+    assert 'href="/v4-explorer-subviews.css?v=1"' in html
+    assert 'src="/v4-explorer-subviews.js?v=1"' in html
+    assert 'data-prismora-explorer-subviews="1"' in html
+    assert html == packaged_html
+
     assert "/v4-explorer-subviews.css?v=1" in loader
     assert "/v4-explorer-subviews.js?v=1" in loader
     assert "v4-explorer-router.js" not in loader
