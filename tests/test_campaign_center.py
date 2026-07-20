@@ -65,6 +65,10 @@ def test_campaign_api_preview_save_lock_and_resumable_preflight(tmp_path):
     assert listed.status_code == 200
     assert listed.json()["campaigns"][0]["campaign_id"] == "campaign-01"
 
+    # GO/NO-GO: no lock and no batch execution before a successful preflight.
+    assert client.post("/api/campaigns/campaign-01/lock", json={}).status_code == 409
+    assert client.post("/api/campaigns/campaign-01/execute", json={"limit": 3}).status_code == 409
+
     preflight = client.post("/api/campaigns/campaign-01/preflight", json={})
     assert preflight.status_code == 200
     assert len(preflight.json()["completed"]) == 1
@@ -80,3 +84,15 @@ def test_campaign_api_preview_save_lock_and_resumable_preflight(tmp_path):
     assert locked.status_code == 200
     assert locked.json()["preregistration"]["status"] == "locked"
     assert locked.json()["signature"] == "NicoMrx"
+
+    batch = client.post("/api/campaigns/campaign-01/execute", json={"limit": 3, "pace_seconds": 0})
+    assert batch.status_code == 200
+    assert len(batch.json()["completed"]) == 3
+    assert batch.json()["status"]["completed_runs"] == 5
+    assert batch.json()["status"]["remaining_runs"] == 82
+
+    # Re-saving an identical locked source is idempotent and cannot unlock it.
+    resaved = client.post("/api/campaigns/legacy/save", json=payload)
+    assert resaved.status_code == 200
+    assert resaved.json()["preregistration"]["status"] == "locked"
+    assert resaved.json()["completed_runs"] == 5
