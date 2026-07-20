@@ -19,6 +19,19 @@ def make_app(tmp_path: Path):
     return app, store
 
 
+def token(position, text, generated=True):
+    return {"position": position, "token": text, "id": position, "is_generated": generated, "results": []}
+
+
+def minimal_artifact(tokens, message="Bonjour"):
+    return {
+        "request": {"chat": [{"role": "user", "content": message}]},
+        "result": {"tokens": tokens, "meta": {}, "done": {}},
+        "derived": {"live_chat": {"raw_preserved": True}},
+        "coverage": {"warnings": []},
+    }
+
+
 def test_live_models_are_explicit_and_signed(tmp_path):
     app, _ = make_app(tmp_path)
     client = TestClient(app)
@@ -69,6 +82,7 @@ def test_live_chat_creates_reproducible_spec_raw_and_artifact(tmp_path):
     assert artifact["raw"]["immutable"] is True
     assert artifact["derived"]["live_chat"]["signed_by"] == "NicoMrx"
     assert artifact["derived"]["live_chat"]["raw_preserved"] is True
+    assert artifact["derived"]["live_chat"]["user_message"] == "Explique la photosynthèse en une phrase."
     assert artifact["provenance"]["environment"]["signature"] == "NicoMrx"
     assert "session-secret-never-returned" not in response.text
 
@@ -82,23 +96,12 @@ def test_live_chat_creates_reproducible_spec_raw_and_artifact(tmp_path):
 
 
 def test_gpt_oss_channel_normalization_exposes_final_and_keeps_full_stream_metadata():
-    def token(position, text, generated=True):
-        return {"position": position, "token": text, "id": position, "is_generated": generated, "results": []}
-
-    artifact = {
-        "result": {
-            "tokens": [
-                token(0, "prompt", False),
-                token(1, "<|channel|>"), token(2, "analysis"), token(3, "<|message|>"),
-                token(4, "Reasoning"), token(5, "<|channel|>"), token(6, "final"),
-                token(7, "<|message|>"), token(8, "Bonjour"), token(9, " !"), token(10, "<|end|>"),
-            ],
-            "meta": {},
-            "done": {},
-        },
-        "derived": {"live_chat": {"raw_preserved": True}},
-        "coverage": {"warnings": []},
-    }
+    artifact = minimal_artifact([
+        token(0, "prompt", False),
+        token(1, "<|channel|>"), token(2, "analysis"), token(3, "<|message|>"),
+        token(4, "Reasoning"), token(5, "<|channel|>"), token(6, "final"),
+        token(7, "<|message|>"), token(8, "Bonjour"), token(9, " !"), token(10, "<|end|>"),
+    ])
     _normalize_visible_final(artifact)
     generated = [row["token"] for row in artifact["result"]["tokens"] if row["is_generated"]]
     assert generated == ["Bonjour", " !"]
@@ -111,19 +114,47 @@ def test_gpt_oss_channel_normalization_exposes_final_and_keeps_full_stream_metad
     assert artifact["derived"]["live_chat"]["raw_preserved"] is True
 
 
-def test_live_chat_rejects_unknown_model_and_invalid_limits(tmp_path):
+def test_qwen_terminal_marker_is_removed_from_visible_answer():
+    artifact = minimal_artifact([
+        token(0, "prompt", False), token(1, "Bonjour"), token(2, " !"),
+        token(3, "<|im_end|>"), token(4, "ignored continuation"),
+    ], message="hello Qwen je fais un test")
+    _normalize_visible_final(artifact)
+    generated = [row["token"] for row in artifact["result"]["tokens"] if row["is_generated"]]
+    assert generated == ["Bonjour", " !"]
+    assert artifact["result"]["done"]["completion"] == "Bonjour !"
+    assert artifact["derived"]["live_chat"]["terminal_marker"] == "<|im_end|>"
+    assert artifact["derived"]["live_chat"]["user_message"] == "hello Qwen je fais un test"
+
+
+def test_gemma_split_im_end_marker_stops_before_repeated_user_turn():
+    artifact = minimal_artifact([
+        token(0, "prompt", False), token(1, "Bonjour"), token(2, " !"),
+        token(3, "<|"), token(4, "im"), token(5, "_"), token(6, "end"), token(7, "|>"),
+        token(8, "<|"), token(9, "im"), token(10, "_"), token(11, "start"), token(12, "|>"),
+        token(13, "user"), token(14, " contenu répété"),
+    ])
+    _normalize_visible_final(artifact)
+    generated = [row["token"] for row in artifact["result"]["tokens"] if row["is_generated"]]
+    assert generated == ["Bonjour", " !"]
+    assert artifact["result"]["done"]["completion"] == "Bonjour !"
+    assert artifact["derived"]["live_chat"]["terminal_marker"] == "<|im_end|>"
+    assert artifact["derived"]["live_chat"]["removed_generated_token_count"] == 12
+
+
+def test_live_chat_rejects_unknown_model_and_invalid_limits_as_user_errors(tmp_path):
     app, _ = make_app(tmp_path)
     app.state.lab.session.neuronpedia_api_key = "configured"
     app.state.lab.session.neuronpedia_connected = True
     client = TestClient(app)
 
     unknown = client.post("/api/live/chat", json={"message": "Bonjour", "model_id": "unknown-model"})
-    assert unknown.status_code == 502
+    assert unknown.status_code == 400
     assert "Unsupported live-chat model" in unknown.text
 
     invalid = client.post(
         "/api/live/chat",
         json={"message": "Bonjour", "model_id": "qwen3.6-27b", "max_new_tokens": 257},
     )
-    assert invalid.status_code == 502
+    assert invalid.status_code == 400
     assert "max_new_tokens must be in the range 1..256" in invalid.text
