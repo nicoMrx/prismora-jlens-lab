@@ -22,7 +22,10 @@ def test_connection_semantics_ui_distinguishes_saved_tested_and_rejected():
     assert "neuronpedia_key_configured" in source
     assert "neuronpedia_connected" in source
     assert "/api/session/settings" in source
-    assert "Enregistrer ne connecte pas automatiquement" in source
+    assert "Enregistrer et tester" in source
+    assert "effacée à chaque redémarrage de Prismora" in source
+    assert "État de la session" in source
+    assert "connection-session-state" in source
     assert "NEURONPEDIA_API_KEY" not in source
 
 
