@@ -1,29 +1,702 @@
-(()=>{'use strict';
-const $=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)];
-const state={level:localStorage.getItem('prismora.level')||'read',activeNav:null,stage:'empty',artifact:null,sourceType:null,selectedToken:0,selectedLayer:null,theme:localStorage.getItem('prismora.theme')||'dark',lang:localStorage.getItem('prismora.locale')||'fr',connected:false};
-const copy={fr:{read:'Lire',explore:'Explorer',control:'Contrôler',basic:'Basique',confirmed:'Confirmé',expert:'Expert',settings:'Réglages et compte',chat:'Chat',conversations:'Conversations',import:'Importer',models:'Modèles',navSettings:'Réglages',understand:'Comprendre',compare:'Comparaison A/B',baselines:'Références',protocols:'Protocoles',runs:'Exécutions',claims:'Claim Ledger',title:'Lire ce qui se passe sous la réponse d’une IA',lede:'Une conversation, une réponse et la trajectoire interne de chaque mot. Rien d’autre n’est imposé — la profondeur s’ouvre quand vous la demandez.',source:'Source :',sourceOption:'Démo et imports locaux',send:'Envoyer',placeholder:'Écrire un message…',demo:'Charger la démo vérifiée',ready:'Démo et imports disponibles sans clé API.',loading:'Chargement de la démo vérifiée…',loaded:'Démo Build Week vérifiée',imported:'Export local non archivé',you:'Vous',model:'Modèle',choose:'Choisissez un token pour suivre son histoire à travers les couches.',measured:'Couches mesurées',trajectory:'Trajectoire du candidat',details:'Voir les détails dans Explorer →',exploreTitle:'Explorer le même artifact',exploreLede:'Les faits, comparaisons et limites s’ouvrent sans relancer l’analyse ni perdre le token ou la couche sélectionnée.',controlTitle:'Contrôler le même artifact',controlLede:'Protocoles, exécutions, preuves et provenance utilisent exactement le même artifact chargé dans Lire.',legacyExplore:'Ouvrir le Visualiseur humain historique',legacyControl:'Ouvrir le plan de contrôle historique',connectionOff:'Neuronpedia non connecté',connectionOn:'Neuronpedia connecté',themeDark:'Thème : sombre',themeLight:'Thème : clair',pending:'Requête en attente — aucune mesure n’est inventée.',noArtifact:'Aucun artifact chargé. Chargez la démo ou un export local.',generatedOne:'1 token généré',generatedMany:n=>`${n} tokens générés`,noToken:'Aucun token généré instrumenté.',promptMissing:'Prompt non fourni',outputMissing:'Aucune sortie générée',layer:'couche',layersGap:(a,b)=>`couches ${a}–${b} non mesurées`,gap:'silence<br>non mesuré',jlensTitle:t=>`J-Lens du token « ${t} »`,exploreCards:[['Comprendre','Récit déterministe et preuves mesurées.'],['Comparaison A/B','Comparer des trajectoires sans modifier l’artifact chargé.'],['Références','Baselines, répétitions et limites.'],['Interventions','Couche déclarée et contrôles causaux.']],controlCards:[['Protocoles','Préenregistrement, verrouillage et versionnement.'],['Campagnes','Matrices de runs reproductibles.'],['Exécutions','Artifacts, raws exacts et provenance.'],['Claim Ledger','Observations, hypothèses et limites.']],settingsTitle:'Réglages et compte',fieldName:'Nom ou pseudonyme',fieldLanguage:'Langue',fieldAppearance:'Apparence',fieldRuntime:'Runtime local',fieldKey:'Clé API Neuronpedia',secretNote:'La clé reste en mémoire serveur pour cette session. La démo et les imports fonctionnent sans clé.',continueNoKey:'Continuer sans clé',testConnection:'Tester la connexion',save:'Enregistrer',appearanceSystem:'Système',appearanceDark:'Sombre',appearanceLight:'Clair',importTitle:'Importer un export',importPrompt:'Sélectionner un ou plusieurs fichiers JSON',noFiles:'Aucun fichier sélectionné.',cancel:'Annuler',loadInRead:'Charger dans Lire',settingsSaved:'Réglages enregistrés pour cette session.',noCompatible:'Aucun artifact Prismora compatible trouvé.'},en:{read:'Read',explore:'Explore',control:'Control',basic:'Basic',confirmed:'Confirmed',expert:'Expert',settings:'Settings and account',chat:'Chat',conversations:'Conversations',import:'Import',models:'Models',navSettings:'Settings',understand:'Understand',compare:'A/B comparison',baselines:'Baselines',protocols:'Protocols',runs:'Runs',claims:'Claim Ledger',title:'Read what happens beneath an AI answer',lede:'One conversation, one answer and the internal trajectory of each word. Nothing else is imposed — depth opens when you ask for it.',source:'Source:',sourceOption:'Demo and local imports',send:'Send',placeholder:'Write a message…',demo:'Load verified demo',ready:'Demo and imports are available without an API key.',loading:'Loading verified demo…',loaded:'Verified Build Week demo',imported:'Local unarchived export',you:'You',model:'Model',choose:'Choose a token to follow its history through measured layers.',measured:'Measured layers',trajectory:'Candidate trajectory',details:'Open details in Explore →',exploreTitle:'Explore the same artifact',exploreLede:'Facts, comparisons and limitations open without rerunning analysis or losing the selected token and layer.',controlTitle:'Control the same artifact',controlLede:'Protocols, runs, evidence and provenance use the exact same artifact loaded in Read.',legacyExplore:'Open legacy Human Visualizer',legacyControl:'Open legacy control plane',connectionOff:'Neuronpedia not connected',connectionOn:'Neuronpedia connected',themeDark:'Theme: dark',themeLight:'Theme: light',pending:'Request pending — no measurements are invented.',noArtifact:'No artifact loaded. Load the demo or a local export.',generatedOne:'1 generated token',generatedMany:n=>`${n} generated tokens`,noToken:'No instrumented generated token.',promptMissing:'Prompt not provided',outputMissing:'No generated output',layer:'layer',layersGap:(a,b)=>`layers ${a}–${b} unmeasured`,gap:'unmeasured<br>gap',jlensTitle:t=>`J-Lens for token “${t}”`,exploreCards:[['Understand','Deterministic narrative and measured evidence.'],['A/B comparison','Compare trajectories without modifying the loaded artifact.'],['Baselines','Baselines, repetitions and limitations.'],['Interventions','Declared layer and causal controls.']],controlCards:[['Protocols','Preregistration, locking and versioning.'],['Campaigns','Reproducible run matrices.'],['Runs','Artifacts, exact raws and provenance.'],['Claim Ledger','Observations, hypotheses and limitations.']],settingsTitle:'Settings and account',fieldName:'Display name',fieldLanguage:'Language',fieldAppearance:'Appearance',fieldRuntime:'Local runtime',fieldKey:'Neuronpedia API key',secretNote:'The key remains in server memory for this session. Demo and imports work without a key.',continueNoKey:'Continue without key',testConnection:'Test connection',save:'Save',appearanceSystem:'System',appearanceDark:'Dark',appearanceLight:'Light',importTitle:'Import an export',importPrompt:'Select one or more JSON files',noFiles:'No file selected.',cancel:'Cancel',loadInRead:'Load in Read',settingsSaved:'Settings saved for this session.',noCompatible:'No compatible Prismora artifact found.'}};
-const t=k=>copy[state.lang][k]??k;
-async function api(path,options={}){const response=await fetch(path,{...options,headers:{'content-type':'application/json',...(options.headers||{})}}),text=await response.text();let value;try{value=text?JSON.parse(text):null}catch{value=text}if(!response.ok){const message=value?.detail?.message||value?.detail||value?.message||text||`${response.status}`;throw new Error(typeof message==='string'?message:JSON.stringify(message))}return value}
-function setStatus(message,error=false){$('#reader-status').textContent=message;$('#reader-status').style.color=error?'var(--danger)':''}
-function defaultActiveNav(level){return level==='explore'?'understand':level==='control'?'protocols':'read'}
-function screen(level){state.level=level;state.activeNav=defaultActiveNav(level);localStorage.setItem('prismora.level',level);$$('.screen').forEach(node=>node.classList.toggle('active',node.dataset.screen===level));$$('.levels button').forEach(node=>node.classList.toggle('active',node.dataset.level===level));renderNav();renderShared()}
-function navRows(){const common=[['read',t('read')],['conversations',t('conversations')],['import',t('import')]],tail=[['models',t('models')],['settings',t('navSettings')]];if(state.level==='explore')return[...common,['understand',t('understand')],['compare',t('compare')],['baselines',t('baselines')],...tail];if(state.level==='control')return[...common,['protocols',t('protocols')],['runs',t('runs')],['claims',t('claims')],...tail];return[...common,...tail]}
-function renderNav(){const nav=$('#sidebar-nav');nav.replaceChildren(...navRows().map(([id,label])=>{const button=document.createElement('button');button.type='button';button.className='nav-button'+(id===state.activeNav?' active':'')+(id==='import'?' import':'');button.textContent=label;button.dataset.nav=id;return button}))}
-function setStage(stage){state.stage=stage;document.body.dataset.stage=stage;$('#messages').hidden=stage==='empty';$('#jlens').hidden=stage!=='measured';$('#message-input').disabled=stage==='pending'}
-function applyTheme(){let value=state.theme;if(value==='system')value=matchMedia('(prefers-color-scheme: light)').matches?'light':'dark';document.documentElement.dataset.theme=value;$('#theme').value=state.theme;$('#quick-theme').textContent=value==='dark'?t('themeDark'):t('themeLight')}
-function labelText(label,text){if(label?.firstChild?.nodeType===Node.TEXT_NODE)label.firstChild.nodeValue=text}
-function translateCards(selector,rows){$$(selector).forEach((card,index)=>{const row=rows[index];if(!row)return;card.querySelector('h3').textContent=row[0];card.querySelector('p').textContent=row[1]})}
-function translateDialogs(){$('#settings-dialog .modal-head h2').textContent=t('settingsTitle');const settingsLabels=$$('#settings-dialog .field label');[t('fieldName'),t('fieldLanguage'),t('fieldAppearance'),t('fieldRuntime'),t('fieldKey')].forEach((text,index)=>labelText(settingsLabels[index],text));$('#settings-dialog .modal-note').textContent=t('secretNote');const settingsButtons=$$('#settings-dialog .modal-actions button');if(settingsButtons[0])settingsButtons[0].textContent=t('continueNoKey');if(settingsButtons[1])settingsButtons[1].textContent=t('testConnection');if(settingsButtons[2])settingsButtons[2].textContent=t('save');const themeOptions=$$('#theme option');if(themeOptions[0])themeOptions[0].textContent=t('appearanceSystem');if(themeOptions[1])themeOptions[1].textContent=t('appearanceDark');if(themeOptions[2])themeOptions[2].textContent=t('appearanceLight');$('#import-dialog .modal-head h2').textContent=t('importTitle');labelText($('#import-dialog .import-drop'),t('importPrompt'));if(!$('#import-files').files.length)$('#import-list').textContent=t('noFiles');const importButtons=$$('#import-dialog .modal-actions button');if(importButtons[0])importButtons[0].textContent=t('cancel');if(importButtons[1])importButtons[1].textContent=t('loadInRead')}
-function setLanguage(lang){state.lang=lang;localStorage.setItem('prismora.locale',lang);document.documentElement.lang=lang;$('#language').value=lang;$('#quick-lang').textContent=lang.toUpperCase();$('#lvl-read strong').textContent=t('read');$('#lvl-read small').textContent=t('basic');$('#lvl-explore strong').textContent=t('explore');$('#lvl-explore small').textContent=t('confirmed');$('#lvl-control strong').textContent=t('control');$('#lvl-control small').textContent=t('expert');$('#open-settings').textContent=t('settings');$('#hero-title').textContent=t('title');$('#hero-lede').textContent=t('lede');$('#chat-title').textContent=t('chat');$('#source-label').textContent=t('source');$('.model-select option').textContent=t('sourceOption');$('#message-input').placeholder=t('placeholder');$('#send-button').textContent=t('send');$('#load-demo').textContent=t('demo');$('#user-who').textContent=t('you');$('#model-help').textContent=t('choose');$('#badge-measured').textContent=t('measured');$('#trajectory-title').textContent=t('trajectory');$('#details-button').textContent=t('details');$('#explore-title').textContent=t('exploreTitle');$('#explore-lede').textContent=t('exploreLede');$('#control-title').textContent=t('controlTitle');$('#control-lede').textContent=t('controlLede');$('#legacy-explore').textContent=t('legacyExplore');$('#legacy-control').textContent=t('legacyControl');translateCards('.screen[data-screen="explore"] .cards .card',t('exploreCards'));translateCards('.screen[data-screen="control"] .cards .card',t('controlCards'));translateDialogs();renderNav();applyTheme();updateConnection();if(state.artifact)renderArtifact();else{setStatus(t('ready'));renderShared()}}
-function updateConnection(){$('#connection-chip').textContent=state.connected?t('connectionOn'):t('connectionOff');$('#connection-chip').classList.toggle('connected',state.connected)}
-const generated=a=>(a?.result?.tokens||[]).filter(token=>token.is_generated),layers=a=>a?.result?.meta?.layers_by_type?.JACOBIAN_LENS||a?.coverage?.captured_layers||[],result=token=>(token?.results||[]).find(row=>row.type==='JACOBIAN_LENS'),prompt=a=>a?.request?.prompt||'',completion=a=>a?.result?.done?.completion||a?.result?.completion||'';
-function sourceLabel(){if(state.sourceType==='demo')return t('loaded');if(state.sourceType==='import')return t('imported');return'Artifact'}
-function candidates(artifact,token,layer){const measured=layers(artifact),index=measured.indexOf(layer),row=result(token);if(index<0||!row)return[];return(row.top_tokens?.[index]||[]).map((name,candidateIndex)=>[String(name),Number(row.top_probs?.[index]?.[candidateIndex]||0)])}
-function positions(measured){const raw=measured.map((_,index)=>4+(index/Math.max(1,measured.length-1))*92);for(let i=1;i<raw.length;i+=1)if(raw[i]-raw[i-1]<5)raw[i]=raw[i-1]+5;if(raw.length&&raw.at(-1)>96){const overflow=raw.at(-1)-96;for(let i=0;i<raw.length;i+=1)raw[i]-=overflow}return raw}
-function renderArtifact(){const artifact=state.artifact;if(!artifact)return;const tokens=generated(artifact);if(!tokens.length){setStatus(t('noToken'),true);return}state.selectedToken=Math.min(state.selectedToken,tokens.length-1);const token=tokens[state.selectedToken],measured=layers(artifact);if(!measured.includes(state.selectedLayer)||!candidates(artifact,token,state.selectedLayer).length)state.selectedLayer=[...measured].reverse().find(layer=>candidates(artifact,token,layer).length)??measured.at(-1);$('#user-message').textContent=prompt(artifact)||t('promptMissing');$('#model-output').textContent=completion(artifact)||t('outputMissing');$('#model-who').textContent=`${artifact?.request?.model?.model_id||t('model')} · ${sourceLabel()}`;$('#tokens').replaceChildren(...tokens.map((row,index)=>{const button=document.createElement('button');button.type='button';button.className='token'+(index===state.selectedToken?' active':'');button.textContent=row.token;button.onclick=()=>{state.selectedToken=index;state.selectedLayer=null;renderArtifact()};return button}));$('#jlens-title').textContent=t('jlensTitle')(token.token);const xs=positions(measured),rail=$('#layer-rail');rail.replaceChildren();const line=document.createElement('div');line.className='layer-line';rail.append(line);measured.forEach((layer,index)=>{if(index&&layer-measured[index-1]>1){const gap=document.createElement('div');gap.className='layer-gap';gap.style.left=`${xs[index-1]+2}%`;gap.style.width=`${xs[index]-xs[index-1]-4}%`;rail.append(gap);const label=document.createElement('span');label.className='layer-gap-label';label.style.left=`${(xs[index-1]+xs[index])/2}%`;label.textContent=t('layersGap')(measured[index-1]+1,layer-1);rail.append(label)}const button=document.createElement('button');button.type='button';button.className='layer-button'+(layer===state.selectedLayer?' active':'');button.style.left=`${xs[index]}%`;button.setAttribute('aria-label',`${t('layer')} ${layer}`);button.onclick=()=>{state.selectedLayer=layer;renderArtifact()};rail.append(button);const number=document.createElement('span');number.className='layer-number';number.style.left=`${xs[index]}%`;number.textContent=layer;rail.append(number)});const rows=candidates(artifact,token,state.selectedLayer);$('#top-title').textContent=`Top ${Math.min(8,rows.length)} · ${t('layer')} ${state.selectedLayer}`;const list=$('#candidate-list');list.replaceChildren();const max=Math.max(...rows.map(row=>row[1]),.00001);rows.slice(0,8).forEach(([name,probability],index)=>{const candidate=document.createElement('div');candidate.className='candidate';candidate.innerHTML='<span></span><strong></strong><span class="bar-track"><i class="bar"></i></span><span></span>';candidate.children[0].textContent=index+1;candidate.children[1].textContent=name;candidate.querySelector('.bar').style.width=`${Math.max(2,probability/max*100)}%`;candidate.children[3].textContent=probability.toFixed(3);list.append(candidate)});const selectedCandidate=rows[0]?.[0]||token.token,chart=$('#trajectory');chart.replaceChildren();measured.forEach((layer,index)=>{if(index&&layer-measured[index-1]>1){const gap=document.createElement('div');gap.className='trajectory-gap';gap.style.left=`${xs[index-1]+2}%`;gap.style.width=`${xs[index]-xs[index-1]-4}%`;gap.innerHTML=t('gap');chart.append(gap)}const found=candidates(artifact,token,layer).find(row=>row[0]===selectedCandidate);if(found){const point=document.createElement('span');point.className='point';point.style.left=`${xs[index]}%`;point.style.bottom=`${18+Math.min(1,found[1])*145}px`;point.title=`L${layer} · ${found[1].toFixed(4)}`;chart.append(point)}const label=document.createElement('span');label.className='trajectory-label';label.style.left=`${xs[index]}%`;label.textContent=layer;chart.append(label)});setStage('measured');setStatus(`${sourceLabel()} · ${artifact.run_id||'local'}`);renderShared()}
-function renderShared(){let text=t('noArtifact');if(state.artifact){const count=generated(state.artifact).length,generatedLabel=count===1?t('generatedOne'):t('generatedMany')(count);text=`${state.artifact.run_id||'local'} · ${state.artifact?.request?.model?.model_id||'model'} · ${generatedLabel}`}$$('[data-shared-artifact]').forEach(node=>node.textContent=text)}
-async function loadDemo(){try{setStage('pending');setStatus(t('loading'));const payload=await api('/api/demo/build-week');state.artifact=(payload.artifacts||[]).find(row=>row.run_id==='demo-pair-a-shift')||(payload.artifacts||[])[0];if(!state.artifact)throw new Error('Demo unavailable');state.sourceType='demo';state.selectedToken=0;state.selectedLayer=null;renderArtifact()}catch(error){setStage(state.artifact?'measured':'empty');setStatus(error.message,true)}}
-async function importFiles(files){for(const file of files){if(!file.name.toLowerCase().endsWith('.json'))continue;try{const value=JSON.parse(await file.text()),artifact=value?.schema==='prismora.run/v2'?value:value?.artifact||value?.run||value?.data;if(artifact?.schema==='prismora.run/v2'){state.artifact=artifact;state.sourceType='import';state.selectedToken=0;state.selectedLayer=null;renderArtifact();return}}catch{}}throw new Error(t('noCompatible'))}
-async function refreshSettings(){try{const settings=await api('/api/session/settings');state.connected=Boolean(settings.neuronpedia_connected);state.theme=settings.theme||state.theme;state.lang=settings.locale||state.lang;$('#profile-name').value=settings.display_name||'';$('#worker-url').value=settings.worker_url||''}catch{}setLanguage(state.lang);screen(state.level)}
-document.addEventListener('click',event=>{const level=event.target.closest('[data-level]');if(level){event.preventDefault();screen(level.dataset.level);return}const nav=event.target.closest('[data-nav]');if(!nav)return;const id=nav.dataset.nav;state.activeNav=id;if(id==='read')screen('read');else if(id==='import')$('#import-dialog').showModal();else if(id==='settings')$('#settings-dialog').showModal();else if(['understand','compare','baselines'].includes(id)){state.level='explore';$$('.screen').forEach(node=>node.classList.toggle('active',node.dataset.screen==='explore'));$$('.levels button').forEach(node=>node.classList.toggle('active',node.dataset.level==='explore'));renderNav()}else if(['protocols','runs','claims'].includes(id)){state.level='control';$$('.screen').forEach(node=>node.classList.toggle('active',node.dataset.screen==='control'));$$('.levels button').forEach(node=>node.classList.toggle('active',node.dataset.level==='control'));renderNav()}});
-$('#open-settings').onclick=()=>$('#settings-dialog').showModal();$('#load-demo').onclick=loadDemo;$('#details-button').onclick=()=>screen('explore');$('#composer').onsubmit=event=>{event.preventDefault();const text=$('#message-input').value.trim();if(!text)return;$('#user-message').textContent=text;$('#model-output').textContent=t('pending');$('#tokens').replaceChildren();setStage('pending');setStatus(t('pending'))};$('#quick-theme').onclick=()=>{state.theme=document.documentElement.dataset.theme==='dark'?'light':'dark';localStorage.setItem('prismora.theme',state.theme);applyTheme()};$('#quick-lang').onclick=()=>setLanguage(state.lang==='fr'?'en':'fr');$('#language').onchange=event=>setLanguage(event.target.value);$('#theme').onchange=event=>{state.theme=event.target.value;applyTheme()};$('#import-files').onchange=event=>{$('#import-list').textContent=[...event.target.files].map(file=>file.webkitRelativePath||file.name).join('\n')||t('noFiles')};$('#import-form').onsubmit=async event=>{if(event.submitter?.value==='cancel')return;event.preventDefault();try{await importFiles([...$('#import-files').files]);$('#import-dialog').close();screen('read')}catch(error){setStatus(error.message,true)}};$('#settings-form').onsubmit=async event=>{if(event.submitter?.value==='cancel')return;event.preventDefault();const key=$('#neuronpedia-key').value.trim(),payload={display_name:$('#profile-name').value.trim(),locale:$('#language').value,theme:$('#theme').value,worker_url:$('#worker-url').value.trim()};if(key)payload.neuronpedia_api_key=key;try{const settings=await api('/api/session/settings',{method:'PUT',body:JSON.stringify(payload)});state.theme=settings.theme;state.lang=settings.locale;state.connected=Boolean(settings.neuronpedia_connected);$('#neuronpedia-key').value='';setLanguage(state.lang);$('#settings-dialog').close();setStatus(t('settingsSaved'))}catch(error){setStatus(error.message,true)}};$('#test-key').onclick=async()=>{try{const key=$('#neuronpedia-key').value.trim(),result=await api('/api/session/neuronpedia/test',{method:'POST',body:JSON.stringify(key?{neuronpedia_api_key:key}:{})});state.connected=Boolean(result.neuronpedia_connected);updateConnection();setStatus(result.message||'',!state.connected)}catch(error){setStatus(error.message,true)}};refreshSettings();})();
+(() => {
+  'use strict';
+
+  const $ = (selector) => document.querySelector(selector);
+  const $$ = (selector) => [...document.querySelectorAll(selector)];
+  const SESSION_KEY = 'prismora.v4.session';
+  const MAX_SESSION_BYTES = 2_000_000;
+
+  const state = {
+    level: localStorage.getItem('prismora.level') || 'read',
+    activeNav: null,
+    stage: 'empty',
+    artifact: null,
+    sourceType: null,
+    selectedToken: 0,
+    selectedLayer: null,
+    theme: localStorage.getItem('prismora.theme') || 'dark',
+    lang: localStorage.getItem('prismora.locale') || 'fr',
+    connected: false,
+  };
+
+  const copy = {
+    fr: {
+      read: 'Lire', explore: 'Explorer', control: 'Contrôler',
+      basic: 'Basique', confirmed: 'Confirmé', expert: 'Expert',
+      settings: 'Réglages et compte', chat: 'Chat', conversations: 'Conversations',
+      import: 'Importer', models: 'Modèles', navSettings: 'Réglages',
+      understand: 'Comprendre', compare: 'Comparaison A/B', baselines: 'Références',
+      protocols: 'Protocoles', runs: 'Exécutions', claims: 'Claim Ledger',
+      readEyebrow: 'Conversation · démo synthétique',
+      exploreEyebrow: 'Explorer · même artifact',
+      controlEyebrow: 'Contrôler · même artifact',
+      title: 'Lire ce qui se passe sous la réponse d’une IA',
+      lede: 'Une conversation, une réponse et la trajectoire interne de chaque mot. Rien d’autre n’est imposé — la profondeur s’ouvre quand vous la demandez.',
+      source: 'Source :', sourceOption: 'Démo et imports locaux',
+      send: 'Envoyer', placeholder: 'Écrire un message…',
+      demo: 'Charger la démo vérifiée',
+      ready: 'Démo et imports disponibles sans clé API.',
+      loading: 'Chargement de la démo vérifiée…',
+      loaded: 'Démo Build Week vérifiée',
+      imported: 'Export local non archivé',
+      restored: 'Artifact restauré pour cette session',
+      tooLarge: 'Artifact chargé, mais trop volumineux pour être restauré après actualisation.',
+      you: 'Vous', model: 'Modèle',
+      choose: 'Choisissez un token pour suivre son histoire à travers les couches.',
+      measured: 'Couches mesurées', trajectory: 'Trajectoire du candidat',
+      trajectoryHelp: 'La lumière suit ce qui est mesuré. Prismora ne dessine jamais ce qu’il n’a pas observé.',
+      details: 'Voir les détails dans Explorer →',
+      exploreTitle: 'Explorer le même artifact',
+      exploreLede: 'Les faits, comparaisons et limites s’ouvrent sans relancer l’analyse ni perdre le token ou la couche sélectionnée.',
+      controlTitle: 'Contrôler le même artifact',
+      controlLede: 'Protocoles, exécutions, preuves et provenance utilisent exactement le même artifact chargé dans Lire.',
+      legacyExplore: 'Ouvrir le Visualiseur humain historique',
+      legacyControl: 'Ouvrir le plan de contrôle historique',
+      connectionOff: 'Neuronpedia non connecté',
+      connectionOn: 'Neuronpedia connecté',
+      themeDark: 'Thème : sombre', themeLight: 'Thème : clair',
+      pending: 'Requête en attente — aucune mesure n’est inventée.',
+      noArtifact: 'Aucun artifact chargé. Chargez la démo ou un export local.',
+      generatedOne: '1 token généré',
+      generatedMany: (count) => `${count} tokens générés`,
+      noToken: 'Aucun token généré instrumenté.',
+      promptMissing: 'Prompt non fourni',
+      outputMissing: 'Aucune sortie générée',
+      layer: 'couche',
+      layersGap: (start, end) => `couches ${start}–${end} non mesurées`,
+      gap: 'silence<br>non mesuré',
+      jlensTitle: (token) => `J-Lens du token « ${token} »`,
+      exploreCards: [
+        ['Comprendre', 'Récit déterministe et preuves mesurées.'],
+        ['Comparaison A/B', 'Comparer des trajectoires sans modifier l’artifact chargé.'],
+        ['Références', 'Baselines, répétitions et limites.'],
+        ['Interventions', 'Couche déclarée et contrôles causaux.'],
+      ],
+      controlCards: [
+        ['Protocoles', 'Préenregistrement, verrouillage et versionnement.'],
+        ['Campagnes', 'Matrices de runs reproductibles.'],
+        ['Exécutions', 'Artifacts, raws exacts et provenance.'],
+        ['Claim Ledger', 'Observations, hypothèses et limites.'],
+      ],
+      settingsTitle: 'Réglages et compte',
+      fieldName: 'Nom ou pseudonyme', fieldLanguage: 'Langue',
+      fieldAppearance: 'Apparence', fieldRuntime: 'Runtime local',
+      fieldKey: 'Clé API Neuronpedia',
+      secretNote: 'La clé reste en mémoire serveur pour cette session. La démo et les imports fonctionnent sans clé.',
+      continueNoKey: 'Continuer sans clé', testConnection: 'Tester la connexion',
+      save: 'Enregistrer', appearanceSystem: 'Système',
+      appearanceDark: 'Sombre', appearanceLight: 'Clair',
+      importTitle: 'Importer un export',
+      importPrompt: 'Sélectionner un ou plusieurs fichiers JSON',
+      noFiles: 'Aucun fichier sélectionné.', cancel: 'Annuler',
+      loadInRead: 'Charger dans Lire',
+      settingsSaved: 'Réglages enregistrés pour cette session.',
+      noCompatible: 'Aucun artifact Prismora compatible trouvé.',
+    },
+    en: {
+      read: 'Read', explore: 'Explore', control: 'Control',
+      basic: 'Basic', confirmed: 'Confirmed', expert: 'Expert',
+      settings: 'Settings and account', chat: 'Chat', conversations: 'Conversations',
+      import: 'Import', models: 'Models', navSettings: 'Settings',
+      understand: 'Understand', compare: 'A/B comparison', baselines: 'Baselines',
+      protocols: 'Protocols', runs: 'Runs', claims: 'Claim Ledger',
+      readEyebrow: 'Conversation · verified synthetic demo',
+      exploreEyebrow: 'Explore · same artifact',
+      controlEyebrow: 'Control · same artifact',
+      title: 'Read what happens beneath an AI answer',
+      lede: 'One conversation, one answer and the internal trajectory of each word. Nothing else is imposed — depth opens when you ask for it.',
+      source: 'Source:', sourceOption: 'Demo and local imports',
+      send: 'Send', placeholder: 'Write a message…',
+      demo: 'Load verified demo',
+      ready: 'Demo and imports are available without an API key.',
+      loading: 'Loading verified demo…',
+      loaded: 'Verified Build Week demo',
+      imported: 'Local unarchived export',
+      restored: 'Artifact restored for this session',
+      tooLarge: 'Artifact loaded, but too large to restore after a refresh.',
+      you: 'You', model: 'Model',
+      choose: 'Choose a token to follow its history through measured layers.',
+      measured: 'Measured layers', trajectory: 'Candidate trajectory',
+      trajectoryHelp: 'The light follows what was measured. Prismora never draws what it did not observe.',
+      details: 'Open details in Explore →',
+      exploreTitle: 'Explore the same artifact',
+      exploreLede: 'Facts, comparisons and limitations open without rerunning analysis or losing the selected token and layer.',
+      controlTitle: 'Control the same artifact',
+      controlLede: 'Protocols, runs, evidence and provenance use the exact same artifact loaded in Read.',
+      legacyExplore: 'Open legacy Human Visualizer',
+      legacyControl: 'Open legacy control plane',
+      connectionOff: 'Neuronpedia not connected',
+      connectionOn: 'Neuronpedia connected',
+      themeDark: 'Theme: dark', themeLight: 'Theme: light',
+      pending: 'Request pending — no measurements are invented.',
+      noArtifact: 'No artifact loaded. Load the demo or a local export.',
+      generatedOne: '1 generated token',
+      generatedMany: (count) => `${count} generated tokens`,
+      noToken: 'No instrumented generated token.',
+      promptMissing: 'Prompt not provided',
+      outputMissing: 'No generated output',
+      layer: 'layer',
+      layersGap: (start, end) => `layers ${start}–${end} unmeasured`,
+      gap: 'unmeasured<br>gap',
+      jlensTitle: (token) => `J-Lens for token “${token}”`,
+      exploreCards: [
+        ['Understand', 'Deterministic narrative and measured evidence.'],
+        ['A/B comparison', 'Compare trajectories without modifying the loaded artifact.'],
+        ['Baselines', 'Baselines, repetitions and limitations.'],
+        ['Interventions', 'Declared layer and causal controls.'],
+      ],
+      controlCards: [
+        ['Protocols', 'Preregistration, locking and versioning.'],
+        ['Campaigns', 'Reproducible run matrices.'],
+        ['Runs', 'Artifacts, exact raws and provenance.'],
+        ['Claim Ledger', 'Observations, hypotheses and limitations.'],
+      ],
+      settingsTitle: 'Settings and account',
+      fieldName: 'Display name', fieldLanguage: 'Language',
+      fieldAppearance: 'Appearance', fieldRuntime: 'Local runtime',
+      fieldKey: 'Neuronpedia API key',
+      secretNote: 'The key remains in server memory for this session. Demo and imports work without a key.',
+      continueNoKey: 'Continue without key', testConnection: 'Test connection',
+      save: 'Save', appearanceSystem: 'System',
+      appearanceDark: 'Dark', appearanceLight: 'Light',
+      importTitle: 'Import an export',
+      importPrompt: 'Select one or more JSON files',
+      noFiles: 'No file selected.', cancel: 'Cancel',
+      loadInRead: 'Load in Read',
+      settingsSaved: 'Settings saved for this session.',
+      noCompatible: 'No compatible Prismora artifact found.',
+    },
+  };
+
+  const t = (key) => copy[state.lang][key] ?? key;
+
+  async function api(path, options = {}) {
+    const response = await fetch(path, {
+      ...options,
+      headers: { 'content-type': 'application/json', ...(options.headers || {}) },
+    });
+    const text = await response.text();
+    let value;
+    try { value = text ? JSON.parse(text) : null; } catch { value = text; }
+    if (!response.ok) {
+      const message = value?.detail?.message || value?.detail || value?.message || text || `${response.status}`;
+      throw new Error(typeof message === 'string' ? message : JSON.stringify(message));
+    }
+    return value;
+  }
+
+  function setStatus(message, error = false) {
+    $('#reader-status').textContent = message;
+    $('#reader-status').style.color = error ? 'var(--danger)' : '';
+  }
+
+  function defaultActiveNav(level) {
+    return level === 'explore' ? 'understand' : level === 'control' ? 'protocols' : 'read';
+  }
+
+  function screen(level) {
+    state.level = level;
+    state.activeNav = defaultActiveNav(level);
+    localStorage.setItem('prismora.level', level);
+    $$('.screen').forEach((node) => node.classList.toggle('active', node.dataset.screen === level));
+    $$('.levels button').forEach((node) => node.classList.toggle('active', node.dataset.level === level));
+    renderNav();
+    renderShared();
+    persistSessionArtifact();
+  }
+
+  function navRows() {
+    const common = [
+      ['read', t('read')],
+      ['conversations', t('conversations')],
+      ['import', t('import')],
+    ];
+    const tail = [['models', t('models')], ['settings', t('navSettings')]];
+    if (state.level === 'explore') {
+      return [...common, ['understand', t('understand')], ['compare', t('compare')], ['baselines', t('baselines')], ...tail];
+    }
+    if (state.level === 'control') {
+      return [...common, ['protocols', t('protocols')], ['runs', t('runs')], ['claims', t('claims')], ...tail];
+    }
+    return [...common, ...tail];
+  }
+
+  function renderNav() {
+    const nav = $('#sidebar-nav');
+    nav.replaceChildren(...navRows().map(([id, label]) => {
+      const button = document.createElement('button');
+      button.type = 'button';
+      button.className = `nav-button${id === state.activeNav ? ' active' : ''}${id === 'import' ? ' import' : ''}`;
+      button.textContent = label;
+      button.dataset.nav = id;
+      return button;
+    }));
+  }
+
+  function setStage(stage) {
+    state.stage = stage;
+    document.body.dataset.stage = stage;
+    $('#messages').hidden = stage === 'empty';
+    $('#jlens').hidden = stage !== 'measured';
+    $('#message-input').disabled = stage === 'pending';
+  }
+
+  function applyTheme() {
+    let value = state.theme;
+    if (value === 'system') value = matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark';
+    document.documentElement.dataset.theme = value;
+    $('#theme').value = state.theme;
+    $('#quick-theme').textContent = value === 'dark' ? t('themeDark') : t('themeLight');
+  }
+
+  function translateCards(selector, rows) {
+    $$(selector).forEach((card, index) => {
+      const row = rows[index];
+      if (!row) return;
+      card.querySelector('h3').textContent = row[0];
+      card.querySelector('p').textContent = row[1];
+    });
+  }
+
+  function translateDialogs() {
+    $('#settings-title').textContent = t('settingsTitle');
+    $('#label-name').textContent = t('fieldName');
+    $('#label-language').textContent = t('fieldLanguage');
+    $('#label-theme').textContent = t('fieldAppearance');
+    $('#label-runtime').textContent = t('fieldRuntime');
+    $('#label-key').textContent = t('fieldKey');
+    $('#secret-note').textContent = t('secretNote');
+    $('#continue-no-key').textContent = t('continueNoKey');
+    $('#test-key').textContent = t('testConnection');
+    $('#save-settings').textContent = t('save');
+    const themeOptions = $$('#theme option');
+    themeOptions[0].textContent = t('appearanceSystem');
+    themeOptions[1].textContent = t('appearanceDark');
+    themeOptions[2].textContent = t('appearanceLight');
+    $('#import-title').textContent = t('importTitle');
+    $('#import-prompt').textContent = t('importPrompt');
+    if (!$('#import-files').files.length) $('#import-list').textContent = t('noFiles');
+    $('#cancel-import').textContent = t('cancel');
+    $('#load-import').textContent = t('loadInRead');
+  }
+
+  function setLanguage(lang) {
+    state.lang = lang;
+    localStorage.setItem('prismora.locale', lang);
+    document.documentElement.lang = lang;
+    $('#language').value = lang;
+    $('#quick-lang').textContent = lang.toUpperCase();
+    $('#lvl-read strong').textContent = t('read');
+    $('#lvl-read small').textContent = t('basic');
+    $('#lvl-explore strong').textContent = t('explore');
+    $('#lvl-explore small').textContent = t('confirmed');
+    $('#lvl-control strong').textContent = t('control');
+    $('#lvl-control small').textContent = t('expert');
+    $('#open-settings').textContent = t('settings');
+    $('#read-eyebrow').textContent = t('readEyebrow');
+    $('#explore-eyebrow').textContent = t('exploreEyebrow');
+    $('#control-eyebrow').textContent = t('controlEyebrow');
+    $('#hero-title').textContent = t('title');
+    $('#hero-lede').textContent = t('lede');
+    $('#chat-title').textContent = t('chat');
+    $('#source-label').textContent = t('source');
+    $('.model-select option').textContent = t('sourceOption');
+    $('#message-input').placeholder = t('placeholder');
+    $('#send-button').textContent = t('send');
+    $('#load-demo').textContent = t('demo');
+    $('#user-who').textContent = t('you');
+    $('#model-help').textContent = t('choose');
+    $('#badge-measured').textContent = t('measured');
+    $('#trajectory-title').textContent = t('trajectory');
+    $('#trajectory-help').textContent = t('trajectoryHelp');
+    $('#details-button').textContent = t('details');
+    $('#explore-title').textContent = t('exploreTitle');
+    $('#explore-lede').textContent = t('exploreLede');
+    $('#control-title').textContent = t('controlTitle');
+    $('#control-lede').textContent = t('controlLede');
+    $('#legacy-explore').textContent = t('legacyExplore');
+    $('#legacy-control').textContent = t('legacyControl');
+    translateCards('.screen[data-screen="explore"] .cards .card', t('exploreCards'));
+    translateCards('.screen[data-screen="control"] .cards .card', t('controlCards'));
+    translateDialogs();
+    renderNav();
+    applyTheme();
+    updateConnection();
+    if (state.artifact) renderArtifact({ persist: false });
+    else {
+      setStatus(t('ready'));
+      renderShared();
+    }
+  }
+
+  function updateConnection() {
+    $('#connection-chip').textContent = state.connected ? t('connectionOn') : t('connectionOff');
+    $('#connection-chip').classList.toggle('connected', state.connected);
+  }
+
+  const generated = (artifact) => (artifact?.result?.tokens || []).filter((token) => token.is_generated);
+  const layers = (artifact) => artifact?.result?.meta?.layers_by_type?.JACOBIAN_LENS || artifact?.coverage?.captured_layers || [];
+  const result = (token) => (token?.results || []).find((row) => row.type === 'JACOBIAN_LENS');
+  const prompt = (artifact) => artifact?.request?.prompt || '';
+  const completion = (artifact) => artifact?.result?.done?.completion || artifact?.result?.completion || '';
+
+  function sourceLabel() {
+    if (state.sourceType === 'demo') return t('loaded');
+    if (state.sourceType === 'import') return t('imported');
+    return 'Artifact';
+  }
+
+  function candidates(artifact, token, layer) {
+    const measured = layers(artifact);
+    const index = measured.indexOf(layer);
+    const row = result(token);
+    if (index < 0 || !row) return [];
+    return (row.top_tokens?.[index] || []).map((name, candidateIndex) => [String(name), Number(row.top_probs?.[index]?.[candidateIndex] || 0)]);
+  }
+
+  function positions(measured) {
+    const raw = measured.map((_, index) => 4 + (index / Math.max(1, measured.length - 1)) * 92);
+    for (let index = 1; index < raw.length; index += 1) {
+      if (raw[index] - raw[index - 1] < 5) raw[index] = raw[index - 1] + 5;
+    }
+    if (raw.length && raw.at(-1) > 96) {
+      const overflow = raw.at(-1) - 96;
+      for (let index = 0; index < raw.length; index += 1) raw[index] -= overflow;
+    }
+    return raw;
+  }
+
+  function persistSessionArtifact() {
+    if (!state.artifact) {
+      sessionStorage.removeItem(SESSION_KEY);
+      return;
+    }
+    try {
+      const payload = JSON.stringify({
+        version: 1,
+        artifact: state.artifact,
+        sourceType: state.sourceType,
+        selectedToken: state.selectedToken,
+        selectedLayer: state.selectedLayer,
+        level: state.level,
+      });
+      if (new Blob([payload]).size > MAX_SESSION_BYTES) {
+        sessionStorage.removeItem(SESSION_KEY);
+        setStatus(t('tooLarge'));
+        return;
+      }
+      sessionStorage.setItem(SESSION_KEY, payload);
+    } catch {
+      sessionStorage.removeItem(SESSION_KEY);
+    }
+  }
+
+  function restoreSessionArtifact() {
+    const raw = sessionStorage.getItem(SESSION_KEY);
+    if (!raw) return false;
+    try {
+      const saved = JSON.parse(raw);
+      if (saved?.version !== 1 || saved?.artifact?.schema !== 'prismora.run/v2') throw new Error('invalid');
+      state.artifact = saved.artifact;
+      state.sourceType = saved.sourceType || null;
+      state.selectedToken = Number.isInteger(saved.selectedToken) ? saved.selectedToken : 0;
+      state.selectedLayer = Number.isInteger(saved.selectedLayer) ? saved.selectedLayer : null;
+      state.level = ['read', 'explore', 'control'].includes(saved.level) ? saved.level : state.level;
+      renderArtifact({ persist: false });
+      screen(state.level);
+      setStatus(`${t('restored')} · ${state.artifact.run_id || 'local'}`);
+      return true;
+    } catch {
+      sessionStorage.removeItem(SESSION_KEY);
+      return false;
+    }
+  }
+
+  function renderArtifact({ persist = true } = {}) {
+    const artifact = state.artifact;
+    if (!artifact) return;
+    const tokens = generated(artifact);
+    if (!tokens.length) {
+      setStatus(t('noToken'), true);
+      return;
+    }
+
+    state.selectedToken = Math.min(state.selectedToken, tokens.length - 1);
+    const token = tokens[state.selectedToken];
+    const measured = layers(artifact);
+    if (!measured.includes(state.selectedLayer) || !candidates(artifact, token, state.selectedLayer).length) {
+      state.selectedLayer = [...measured].reverse().find((layer) => candidates(artifact, token, layer).length) ?? measured.at(-1);
+    }
+
+    $('#user-message').textContent = prompt(artifact) || t('promptMissing');
+    $('#model-output').textContent = completion(artifact) || t('outputMissing');
+    $('#model-who').textContent = `${artifact?.request?.model?.model_id || t('model')} · ${sourceLabel()}`;
+    $('#tokens').replaceChildren(...tokens.map((row, index) => {
+      const button = document.createElement('button');
+      button.type = 'button';
+      button.className = `token${index === state.selectedToken ? ' active' : ''}`;
+      button.textContent = row.token;
+      button.onclick = () => {
+        state.selectedToken = index;
+        state.selectedLayer = null;
+        renderArtifact();
+      };
+      return button;
+    }));
+
+    $('#jlens-title').textContent = t('jlensTitle')(token.token);
+    const measuredPositions = positions(measured);
+    const rail = $('#layer-rail');
+    rail.replaceChildren();
+    const line = document.createElement('div');
+    line.className = 'layer-line';
+    rail.append(line);
+
+    measured.forEach((layer, index) => {
+      if (index && layer - measured[index - 1] > 1) {
+        const gap = document.createElement('div');
+        gap.className = 'layer-gap';
+        gap.style.left = `${measuredPositions[index - 1] + 2}%`;
+        gap.style.width = `${measuredPositions[index] - measuredPositions[index - 1] - 4}%`;
+        rail.append(gap);
+        const label = document.createElement('span');
+        label.className = 'layer-gap-label';
+        label.style.left = `${(measuredPositions[index - 1] + measuredPositions[index]) / 2}%`;
+        label.textContent = t('layersGap')(measured[index - 1] + 1, layer - 1);
+        rail.append(label);
+      }
+      const button = document.createElement('button');
+      button.type = 'button';
+      button.className = `layer-button${layer === state.selectedLayer ? ' active' : ''}`;
+      button.style.left = `${measuredPositions[index]}%`;
+      button.setAttribute('aria-label', `${t('layer')} ${layer}`);
+      button.onclick = () => {
+        state.selectedLayer = layer;
+        renderArtifact();
+      };
+      rail.append(button);
+      const number = document.createElement('span');
+      number.className = 'layer-number';
+      number.style.left = `${measuredPositions[index]}%`;
+      number.textContent = layer;
+      rail.append(number);
+    });
+
+    const rows = candidates(artifact, token, state.selectedLayer);
+    $('#top-title').textContent = `Top ${Math.min(8, rows.length)} · ${t('layer')} ${state.selectedLayer}`;
+    const list = $('#candidate-list');
+    list.replaceChildren();
+    const max = Math.max(...rows.map((row) => row[1]), 0.00001);
+    rows.slice(0, 8).forEach(([name, probability], index) => {
+      const candidate = document.createElement('div');
+      candidate.className = 'candidate';
+      candidate.innerHTML = '<span></span><strong></strong><span class="bar-track"><i class="bar"></i></span><span></span>';
+      candidate.children[0].textContent = index + 1;
+      candidate.children[1].textContent = name;
+      candidate.querySelector('.bar').style.width = `${Math.max(2, probability / max * 100)}%`;
+      candidate.children[3].textContent = probability.toFixed(3);
+      list.append(candidate);
+    });
+
+    const selectedCandidate = rows[0]?.[0] || token.token;
+    const chart = $('#trajectory');
+    chart.replaceChildren();
+    measured.forEach((layer, index) => {
+      if (index && layer - measured[index - 1] > 1) {
+        const gap = document.createElement('div');
+        gap.className = 'trajectory-gap';
+        gap.style.left = `${measuredPositions[index - 1] + 2}%`;
+        gap.style.width = `${measuredPositions[index] - measuredPositions[index - 1] - 4}%`;
+        gap.innerHTML = t('gap');
+        chart.append(gap);
+      }
+      const found = candidates(artifact, token, layer).find((row) => row[0] === selectedCandidate);
+      if (found) {
+        const point = document.createElement('span');
+        point.className = 'point';
+        point.style.left = `${measuredPositions[index]}%`;
+        point.style.bottom = `${18 + Math.min(1, found[1]) * 145}px`;
+        point.title = `L${layer} · ${found[1].toFixed(4)}`;
+        chart.append(point);
+      }
+      const label = document.createElement('span');
+      label.className = 'trajectory-label';
+      label.style.left = `${measuredPositions[index]}%`;
+      label.textContent = layer;
+      chart.append(label);
+    });
+
+    setStage('measured');
+    setStatus(`${sourceLabel()} · ${artifact.run_id || 'local'}`);
+    renderShared();
+    if (persist) persistSessionArtifact();
+  }
+
+  function renderShared() {
+    let text = t('noArtifact');
+    if (state.artifact) {
+      const count = generated(state.artifact).length;
+      const generatedLabel = count === 1 ? t('generatedOne') : t('generatedMany')(count);
+      text = `${state.artifact.run_id || 'local'} · ${state.artifact?.request?.model?.model_id || 'model'} · ${generatedLabel}`;
+    }
+    $$('[data-shared-artifact]').forEach((node) => { node.textContent = text; });
+  }
+
+  async function loadDemo() {
+    try {
+      setStage('pending');
+      setStatus(t('loading'));
+      const payload = await api('/api/demo/build-week');
+      state.artifact = (payload.artifacts || []).find((row) => row.run_id === 'demo-pair-a-shift') || (payload.artifacts || [])[0];
+      if (!state.artifact) throw new Error('Demo unavailable');
+      state.sourceType = 'demo';
+      state.selectedToken = 0;
+      state.selectedLayer = null;
+      renderArtifact();
+    } catch (error) {
+      setStage(state.artifact ? 'measured' : 'empty');
+      setStatus(error.message, true);
+    }
+  }
+
+  async function importFiles(files) {
+    for (const file of files) {
+      if (!file.name.toLowerCase().endsWith('.json')) continue;
+      try {
+        const value = JSON.parse(await file.text());
+        const artifact = value?.schema === 'prismora.run/v2' ? value : value?.artifact || value?.run || value?.data;
+        if (artifact?.schema === 'prismora.run/v2') {
+          state.artifact = artifact;
+          state.sourceType = 'import';
+          state.selectedToken = 0;
+          state.selectedLayer = null;
+          renderArtifact();
+          return;
+        }
+      } catch {
+        // Continue through the selected files.
+      }
+    }
+    throw new Error(t('noCompatible'));
+  }
+
+  async function refreshSettings() {
+    try {
+      const settings = await api('/api/session/settings');
+      state.connected = Boolean(settings.neuronpedia_connected);
+      state.theme = settings.theme || state.theme;
+      state.lang = settings.locale || state.lang;
+      $('#profile-name').value = settings.display_name || '';
+      $('#worker-url').value = settings.worker_url || '';
+    } catch {
+      // Local UI remains usable without the session service.
+    }
+    setLanguage(state.lang);
+    state.activeNav = defaultActiveNav(state.level);
+    screen(state.level);
+    if (!restoreSessionArtifact()) setStage('empty');
+  }
+
+  document.addEventListener('click', (event) => {
+    const level = event.target.closest('[data-level]');
+    if (level) {
+      event.preventDefault();
+      screen(level.dataset.level);
+      return;
+    }
+    const nav = event.target.closest('[data-nav]');
+    if (!nav) return;
+    const id = nav.dataset.nav;
+    state.activeNav = id;
+    if (id === 'read') screen('read');
+    else if (id === 'import') $('#import-dialog').showModal();
+    else if (id === 'settings') $('#settings-dialog').showModal();
+    else if (['understand', 'compare', 'baselines'].includes(id)) {
+      state.level = 'explore';
+      $$('.screen').forEach((node) => node.classList.toggle('active', node.dataset.screen === 'explore'));
+      $$('.levels button').forEach((node) => node.classList.toggle('active', node.dataset.level === 'explore'));
+      renderNav();
+    } else if (['protocols', 'runs', 'claims'].includes(id)) {
+      state.level = 'control';
+      $$('.screen').forEach((node) => node.classList.toggle('active', node.dataset.screen === 'control'));
+      $$('.levels button').forEach((node) => node.classList.toggle('active', node.dataset.level === 'control'));
+      renderNav();
+    }
+  });
+
+  $('#open-settings').onclick = () => $('#settings-dialog').showModal();
+  $('#load-demo').onclick = loadDemo;
+  $('#details-button').onclick = () => screen('explore');
+  $('#composer').onsubmit = (event) => {
+    event.preventDefault();
+    const text = $('#message-input').value.trim();
+    if (!text) return;
+    $('#user-message').textContent = text;
+    $('#model-output').textContent = t('pending');
+    $('#tokens').replaceChildren();
+    setStage('pending');
+    setStatus(t('pending'));
+  };
+  $('#quick-theme').onclick = () => {
+    state.theme = document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark';
+    localStorage.setItem('prismora.theme', state.theme);
+    applyTheme();
+  };
+  $('#quick-lang').onclick = () => setLanguage(state.lang === 'fr' ? 'en' : 'fr');
+  $('#language').onchange = (event) => setLanguage(event.target.value);
+  $('#theme').onchange = (event) => { state.theme = event.target.value; applyTheme(); };
+  $('#import-files').onchange = (event) => {
+    $('#import-list').textContent = [...event.target.files].map((file) => file.webkitRelativePath || file.name).join('\n') || t('noFiles');
+  };
+  $('#import-form').onsubmit = async (event) => {
+    if (event.submitter?.value === 'cancel') return;
+    event.preventDefault();
+    try {
+      await importFiles([...$('#import-files').files]);
+      $('#import-dialog').close();
+      screen('read');
+    } catch (error) {
+      setStatus(error.message, true);
+    }
+  };
+  $('#settings-form').onsubmit = async (event) => {
+    if (event.submitter?.value === 'cancel') return;
+    event.preventDefault();
+    const key = $('#neuronpedia-key').value.trim();
+    const payload = {
+      display_name: $('#profile-name').value.trim(),
+      locale: $('#language').value,
+      theme: $('#theme').value,
+      worker_url: $('#worker-url').value.trim(),
+    };
+    if (key) payload.neuronpedia_api_key = key;
+    try {
+      const settings = await api('/api/session/settings', { method: 'PUT', body: JSON.stringify(payload) });
+      state.theme = settings.theme;
+      state.lang = settings.locale;
+      state.connected = Boolean(settings.neuronpedia_connected);
+      $('#neuronpedia-key').value = '';
+      setLanguage(state.lang);
+      $('#settings-dialog').close();
+      setStatus(t('settingsSaved'));
+    } catch (error) {
+      setStatus(error.message, true);
+    }
+  };
+  $('#test-key').onclick = async () => {
+    try {
+      const key = $('#neuronpedia-key').value.trim();
+      const result = await api('/api/session/neuronpedia/test', {
+        method: 'POST',
+        body: JSON.stringify(key ? { neuronpedia_api_key: key } : {}),
+      });
+      state.connected = Boolean(result.neuronpedia_connected);
+      updateConnection();
+      setStatus(result.message || '', !state.connected);
+    } catch (error) {
+      setStatus(error.message, true);
+    }
+  };
+
+  refreshSettings();
+})();
