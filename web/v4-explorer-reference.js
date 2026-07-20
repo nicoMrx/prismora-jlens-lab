@@ -17,6 +17,7 @@
       node.id = 'explorer-references-view';
       node.className = 'explorer-subview card';
       node.dataset.explorerPanel = 'baselines';
+      node.hidden = true;
       host.append(node);
     }
     return node;
@@ -63,7 +64,9 @@
   }
 
   document.addEventListener('prismora:explorer-view', (event) => {
-    panel();
+    const node = panel();
+    if (node) node.hidden = event.detail?.view !== 'baselines';
     if (event.detail?.view === 'baselines') render(event.detail);
   });
+  document.dispatchEvent(new CustomEvent('prismora:explorer-refresh'));
 })();
