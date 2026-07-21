@@ -1,0 +1,1 @@
+@media (min-width:1400px){body[data-stage=empty] .hero-copy{max-width:none}body[data-stage=empty] #hero-title{white-space:nowrap;font-size:clamp(2.15rem,3vw,3.25rem);letter-spacing:-.02em}}
