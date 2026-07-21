@@ -41,6 +41,7 @@ def _mount_with_prismora_extensions(
 
         static_root = Path(getattr(app, "directory", package_root / "web"))
         extension_styles = (
+            '<link rel="stylesheet" href="/v4-contest-title.css?v=1" data-prismora-contest-title="1">',
             '<link rel="stylesheet" href="/v4-live-chat.css?v=1" data-prismora-live-chat-style="1">',
             '<link rel="stylesheet" href="/v4-campaign-polish.css?v=1" data-prismora-campaign-polish="1">',
             '<link rel="stylesheet" href="/v4-showcase-insights.css?v=1" data-prismora-showcase-insights="1">',
