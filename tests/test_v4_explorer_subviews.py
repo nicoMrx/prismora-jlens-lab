@@ -1,3 +1,4 @@
+import re
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -75,10 +76,14 @@ def test_v4_explorer_module_has_static_loading_and_dynamic_fallback():
     packaged_html = (PKG / "v4.html").read_text(encoding="utf-8")
     loader = (WEB / "v4-token-tooltip.js").read_text(encoding="utf-8")
 
-    assert 'href="/v4-explorer-subviews.css?v=1"' in html
-    assert 'src="/v4-explorer-subviews.js?v=1"' in html
+    explorer_css = re.search(r'href="/v4-explorer-subviews\.css\?v=\d+"', html)
+    explorer_script = re.search(r'src="/v4-explorer-subviews\.js\?v=\d+"', html)
+    tooltip_script = re.search(r'src="/v4-token-tooltip\.js\?v=\d+"', html)
+    assert explorer_css is not None
+    assert explorer_script is not None
+    assert tooltip_script is not None
     assert 'data-prismora-explorer-subviews="1"' in html
-    assert html.index('/v4-explorer-subviews.js?v=1') < html.index('/v4-token-tooltip.js?v=1')
+    assert explorer_script.start() < tooltip_script.start()
     assert html == packaged_html
 
     assert "/v4-explorer-subviews.css?v=1" in loader
