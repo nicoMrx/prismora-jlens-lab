@@ -72,11 +72,15 @@ def test_session_settings_never_return_neuronpedia_api_key(tmp_path):
     response = client.put('/api/session/settings', json={"display_name": "Nico", "locale": "fr", "theme": "dark", "neuronpedia_api_key": secret})
     assert response.status_code == 200
     body = response.json()
-    assert body["neuronpedia_connected"] is True
+    assert body["neuronpedia_key_configured"] is True
+    assert body["neuronpedia_connected"] is False
     assert secret not in json.dumps(body)
     fetched = client.get('/api/session/settings').json()
+    assert fetched["neuronpedia_key_configured"] is True
+    assert fetched["neuronpedia_connected"] is False
     assert secret not in json.dumps(fetched)
     deleted = client.delete('/api/session/neuronpedia-key').json()
+    assert deleted["neuronpedia_key_configured"] is False
     assert deleted["neuronpedia_connected"] is False
     assert secret not in json.dumps(deleted)
 

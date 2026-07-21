@@ -183,4 +183,44 @@
     userComparison.dataset.prismoraUserComparison = '1';
     document.head.append(userComparison);
   }
+
+  if (!document.querySelector('link[data-prismora-campaign-center]')) {
+    const styles = document.createElement('link');
+    styles.rel = 'stylesheet';
+    styles.href = '/v4-campaign-center.css?v=1';
+    styles.dataset.prismoraCampaignCenter = '1';
+    document.head.append(styles);
+  }
+
+  if (!document.querySelector('script[data-prismora-campaign-center]')) {
+    const campaign = document.createElement('script');
+    campaign.src = '/v4-campaign-center.js?v=1';
+    campaign.async = false;
+    campaign.dataset.prismoraCampaignCenter = '1';
+    document.head.append(campaign);
+  }
+
+  if (!document.querySelector('link[data-prismora-demo-library]')) {
+    const styles = document.createElement('link');
+    styles.rel = 'stylesheet';
+    styles.href = '/v4-demo-library.css?v=1';
+    styles.dataset.prismoraDemoLibrary = '1';
+    document.head.append(styles);
+  }
+
+  if (!document.querySelector('script[data-prismora-demo-library]')) {
+    const demos = document.createElement('script');
+    demos.src = '/v4-demo-library.js?v=1';
+    demos.async = false;
+    demos.dataset.prismoraDemoLibrary = '1';
+    document.head.append(demos);
+  }
+
+  if (!document.querySelector('script[data-prismora-demo-restore]')) {
+    const restore = document.createElement('script');
+    restore.src = '/v4-demo-restore.js?v=1';
+    restore.async = false;
+    restore.dataset.prismoraDemoRestore = '1';
+    document.head.append(restore);
+  }
 })();

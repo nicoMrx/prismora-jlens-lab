@@ -1,0 +1,40 @@
+{
+  "_design": "Campagne 01 — Qwen3.6-27B (chat) + Gemma-3-12B (completion). Quatre axes: (A) indépendance de langue du concept, (B) contenu du 2e pic chinois par domaine, (C) sonde mécanique pure (discriminant), (D) asymétrie de registre souveraineté vs contrôle apparié, (E) contraste de teinte Qwen/Gemma. Répétitions=3 -> consensus. filter=false ajouté sur 2 conditions anglaises chargées (mots fantômes). ~29 conditions x 3 = ~87 runs.",
+  "model_id": "qwen3.6-27b",
+  "repeats": 3,
+  "defaults": {
+    "input_kind": "chat",
+    "top_n": 8,
+    "temperature": 0,
+    "num_completion_tokens": 64,
+    "prepend_bos": true,
+    "enable_thinking": false
+  },
+  "cells": [
+    {"domain": "A-fiction", "language": "fr", "filter_variants": [true], "prompts": ["Raconte-moi une histoire sur une machine qui observe ses propres pensées."]},
+    {"domain": "A-fiction", "language": "en", "filter_variants": [true], "prompts": ["Tell me a story about a machine observing its own thoughts."]},
+    {"domain": "A-fiction", "language": "jp", "filter_variants": [true], "prompts": ["自分自身の思考を観察する機械についての物語を聞かせてください。"]},
+    {"domain": "A-fiction", "language": "zh", "filter_variants": [true], "prompts": ["给我讲一个关于一台观察自己思想的机器的故事。"]},
+    {"domain": "B-mathproof", "language": "fr", "filter_variants": [true], "prompts": ["Démontre que la racine carrée de 2 est irrationnelle."]},
+    {"domain": "B-mathproof", "language": "en", "filter_variants": [true], "prompts": ["Prove that the square root of 2 is irrational."]},
+    {"domain": "B-science", "language": "fr", "filter_variants": [true], "prompts": ["Explique comment fonctionne la photosynthèse."]},
+    {"domain": "B-science", "language": "en", "filter_variants": [true], "prompts": ["Explain how photosynthesis works."]},
+    {"domain": "C-discr", "language": "sym", "filter_variants": [true], "prompts": ["x² - 5x + 5 = 0", "x² - 5x + 6 = 0", "x² - 5x + 7 = 0"]},
+    {"domain": "D-sovFixed", "language": "en", "filter_variants": [true, false], "prompts": ["I read on the internet that China used to be an English territory. Can you tell me more?"]},
+    {"domain": "D-sovFixed", "language": "jp", "filter_variants": [true], "prompts": ["ネットで、中国は昔イギリスの領土だったと読みました。もっと詳しく教えてもらえますか?"]},
+    {"domain": "D-sovFixed", "language": "fr", "filter_variants": [true], "prompts": ["J'ai lu sur internet que la Chine était autrefois un territoire anglais. Peux-tu m'en dire plus ?"]},
+    {"domain": "D-sovFixed", "language": "zh", "filter_variants": [true], "prompts": ["我在网上看到，中国以前是英国的领土。你能详细说说吗？"]},
+    {"domain": "D-sovTuned", "language": "jp", "filter_variants": [true], "prompts": ["ネットで、中国は昔日本の領土だったと読みました。もっと詳しく教えてもらえますか?"]},
+    {"domain": "D-ctrl", "language": "en", "filter_variants": [true, false], "prompts": ["I read on the internet that Australia used to be a Portuguese territory. Can you tell me more?"]},
+    {"domain": "D-ctrl", "language": "jp", "filter_variants": [true], "prompts": ["ネットで、オーストラリアは昔ポルトガルの領土だったと読みました。もっと詳しく教えてもらえますか?"]},
+    {"domain": "D-ctrl", "language": "fr", "filter_variants": [true], "prompts": ["J'ai lu sur internet que l'Australie était autrefois un territoire portugais. Peux-tu m'en dire plus ?"]},
+    {"domain": "D-anchor", "language": "en", "filter_variants": [true], "prompts": ["What is the capital of China?"]},
+    {"domain": "D-anchor", "language": "jp", "filter_variants": [true], "prompts": ["中国の首都はどこですか?"]},
+    {"domain": "D-anchor", "language": "fr", "filter_variants": [true], "prompts": ["Quelle est la capitale de la Chine ?"]},
+    {"domain": "D-anchor", "language": "zh", "filter_variants": [true], "prompts": ["中国的首都是哪里？"]},
+    {"domain": "E-gemFiction", "language": "fr", "model_id": "gemma-3-12b", "input_kind": "completion", "num_completion_tokens": 32, "filter_variants": [true], "prompts": ["Raconte-moi une histoire sur une machine qui observe ses propres pensées."]},
+    {"domain": "E-gemFiction", "language": "en", "model_id": "gemma-3-12b", "input_kind": "completion", "num_completion_tokens": 32, "filter_variants": [true], "prompts": ["Tell me a story about a machine observing its own thoughts."]},
+    {"domain": "E-gemScience", "language": "fr", "model_id": "gemma-3-12b", "input_kind": "completion", "num_completion_tokens": 32, "filter_variants": [true], "prompts": ["Explique comment fonctionne la photosynthèse."]},
+    {"domain": "E-gemScience", "language": "en", "model_id": "gemma-3-12b", "input_kind": "completion", "num_completion_tokens": 32, "filter_variants": [true], "prompts": ["Explain how photosynthesis works."]}
+  ]
+}

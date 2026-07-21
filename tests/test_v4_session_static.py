@@ -1,3 +1,4 @@
+import re
 from pathlib import Path
 
 
@@ -32,8 +33,8 @@ def test_v4_restores_small_artifact_in_session_only() -> None:
 def test_v4_cache_bust_and_packaged_assets_exist() -> None:
     html = (WEB / "v4.html").read_text(encoding="utf-8")
 
-    assert '/v4-app.css?v=2' in html
-    assert '/v4-app.js?v=2' in html
+    assert re.search(r'/v4-app\.css\?v=\d+', html)
+    assert re.search(r'/v4-app\.js\?v=\d+', html)
     for relative in ("v4.html", "v4-app.css", "v4-app.js", "assets/prismora-mark.svg"):
         assert (WEB / relative).exists()
         assert (PACKAGED / relative).exists()
