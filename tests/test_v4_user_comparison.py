@@ -14,6 +14,9 @@ def test_user_selected_comparison_is_local_deterministic_and_guarded():
     assert "generatedPairs" in script
     assert "commonLayers" in script
     assert "probability" in script
+    assert "strictCellChanged" in script
+    assert "sameArray(left.top_tokens, right.top_tokens)" in script
+    assert "sameNumericArrayWithinTolerance(left.top_probs, right.top_probs, tolerance)" in script
     assert "interventionLayers" in script
     assert "preuve causale" in script
     assert "Aucun export n’est archivé automatiquement" in script
@@ -40,3 +43,19 @@ def test_user_comparison_assets_are_loaded_after_explorer_and_packaged():
 
     for name in ("v4-user-comparison.js", "v4-user-comparison.css", "v4-token-tooltip.js"):
         assert (WEB / name).read_text(encoding="utf-8") == (PKG / name).read_text(encoding="utf-8")
+
+
+def test_frontend_dynamic_html_is_escaped_or_built_with_text_content():
+    legacy = (WEB / "app.js").read_text(encoding="utf-8")
+    showcase = (WEB / "v4-showcase-insights.js").read_text(encoding="utf-8")
+    assert "replace(/[&<>\"']/g" in legacy
+    coverage = legacy.split("function renderUnderstand()", 1)[1].split("function clearUnderstandError", 1)[0]
+    for value in (
+        "statusLabel(status)", "c.source_tokens_total", "c.transmitted_tokens",
+        "c.instrumented_tokens", "c.instrumented_generated_tokens",
+    ):
+        assert f"escapeText({value}" in coverage
+    assert "escapeText((c.captured_layers" in coverage
+    assert "control.innerHTML" not in showcase
+    assert "label.textContent = t('control')" in showcase
+    assert "detail.textContent = t('controlText')" in showcase

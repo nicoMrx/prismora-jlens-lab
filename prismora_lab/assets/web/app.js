@@ -148,7 +148,11 @@
     return String(value);
   }
   function shortHash(value) { return value ? `${value.slice(0, 10)}…${value.slice(-6)}` : '—'; }
-  function escapeText(value) { return String(value ?? ''); }
+  function escapeText(value) {
+    return String(value ?? '').replace(/[&<>"']/g, (character) => ({
+      '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;',
+    })[character]);
+  }
 
   function navigate(panel) {
     const compatible = { human: 'visualizer' };
@@ -1216,7 +1220,7 @@
     const statusLabel = (status) => labels[status] || labels.unknown;
     const cards = [state.visualA, state.visualB].filter(Boolean).map((run, idx) => {
       const c = run.coverage || {}; const status = c.status || 'unknown'; const unknown = labels.unknown;
-      return `<article class="coverage-card ${status !== 'complete' ? 'warn' : ''}"><strong>${idx === 0 ? 'A' : 'B'} · ${statusLabel(status)}</strong><span>${labels.source} ${c.source_tokens_total ?? unknown}</span><span>${labels.transmitted} ${c.transmitted_tokens ?? unknown}</span><span>${labels.instrumented} ${c.instrumented_tokens ?? unknown}</span><span>${labels.generated} ${c.instrumented_generated_tokens ?? unknown}</span><span>${labels.layers} ${(c.captured_layers || []).join(', ') || unknown}</span></article>`;
+      return `<article class="coverage-card ${status !== 'complete' ? 'warn' : ''}"><strong>${idx === 0 ? 'A' : 'B'} · ${escapeText(statusLabel(status))}</strong><span>${escapeText(labels.source)} ${escapeText(c.source_tokens_total ?? unknown)}</span><span>${escapeText(labels.transmitted)} ${escapeText(c.transmitted_tokens ?? unknown)}</span><span>${escapeText(labels.instrumented)} ${escapeText(c.instrumented_tokens ?? unknown)}</span><span>${escapeText(labels.generated)} ${escapeText(c.instrumented_generated_tokens ?? unknown)}</span><span>${escapeText(labels.layers)} ${escapeText((c.captured_layers || []).join(', ') || unknown)}</span></article>`;
     }).join('');
     cov.innerHTML = cards || `<p class="muted-copy">${t('understand.empty')}</p>`;
     const sentences = state.understand?.sentences || [];

@@ -163,7 +163,14 @@
       if (controls) {
         const control = document.createElement('p');
         control.className = 'showcase-control';
-        control.innerHTML = `<strong>${t('control')}</strong><span>${t('controlText')(controls.qwen_branch_a?.top1_cells ?? '—', controls.gpt_oss_branch_a?.top1_cells ?? '—')}</span>`;
+        const label = document.createElement('strong');
+        label.textContent = t('control');
+        const detail = document.createElement('span');
+        detail.textContent = t('controlText')(
+          controls.qwen_branch_a?.top1_cells ?? '—',
+          controls.gpt_oss_branch_a?.top1_cells ?? '—',
+        );
+        control.append(label, detail);
         panel.append(control);
       }
     }

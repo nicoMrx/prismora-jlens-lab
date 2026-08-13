@@ -7,6 +7,7 @@ from fastapi import Request
 from fastapi.responses import JSONResponse, Response
 
 from .backends.neuronpedia import NeuronpediaBackend
+from .backends.worker_http import WorkerHTTPBackend
 
 
 CallNext = Callable[[Request], Awaitable[Response]]
@@ -34,6 +35,15 @@ def _replace_neuronpedia_backend(context: Any, api_key: str | None) -> None:
         base_url=context.settings.neuronpedia_base_url,
         timeout_seconds=context.settings.neuronpedia_timeout_seconds,
         max_retries=context.settings.neuronpedia_max_retries,
+    )
+
+
+def _replace_worker_backend(context: Any, worker_url: str | None) -> None:
+    if "worker" not in context.backends:
+        return
+    context.backends["worker"] = WorkerHTTPBackend(
+        base_url=worker_url,
+        token=context.settings.worker_token,
     )
 
 
@@ -79,6 +89,7 @@ def install_session_security(app: Any, context: Any) -> None:
                 context.session.theme = payload["theme"]
             if "worker_url" in payload:
                 context.session.worker_url = str(payload.get("worker_url") or "").strip() or None
+                _replace_worker_backend(context, context.session.worker_url)
             if "neuronpedia_api_key" in payload:
                 api_key = str(payload.get("neuronpedia_api_key") or "").strip() or None
                 context.session.neuronpedia_api_key = api_key

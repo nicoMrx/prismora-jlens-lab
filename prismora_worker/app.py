@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import argparse
+import asyncio
 import os
 from typing import Any
 
@@ -11,10 +12,11 @@ from .runtime import load_runtime
 
 TOKEN = os.getenv("PRISMORA_WORKER_TOKEN", "").strip() or None
 RUNTIME = load_runtime()
+RUN_LOCK = asyncio.Lock()
 
 app = FastAPI(
     title="Prismora GPU Worker Contract",
-    version="0.2.0",
+    version="0.2.1",
     description="Vendor-neutral worker API for mock or pinned open-weight J-Lens runtimes.",
 )
 
@@ -43,7 +45,11 @@ async def run(payload: dict[str, Any] = Body(...), authorization: str | None = H
     if not isinstance(request, dict):
         raise HTTPException(status_code=422, detail="Body must contain request object")
     try:
-        raw = await RUNTIME.run(request)
+        # Runtime implementations own shared model weights, hooks and random
+        # number generators. The public max_batch_runs=1 contract is enforced
+        # here for every plugin, not merely advertised in capabilities.
+        async with RUN_LOCK:
+            raw = await RUNTIME.run(request)
     except NotImplementedError as exc:
         raise HTTPException(status_code=501, detail=str(exc)) from exc
     except ValueError as exc:

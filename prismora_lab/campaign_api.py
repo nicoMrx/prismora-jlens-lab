@@ -149,6 +149,8 @@ def mount_campaign_routes(app: Any, context: Any, package_root: Path) -> None:
     async def demo_campaign_01() -> dict[str, Any]:
         path = package_root / "demo" / "campaign_01_2026" / "campaign_01.json"
         if not path.exists():
+            path = Path(__file__).resolve().parent / "assets" / "demo" / "campaign_01_2026" / "campaign_01.json"
+        if not path.exists():
             raise HTTPException(status_code=404, detail="Campaign 01 demo is not packaged.")
         return json.loads(path.read_text(encoding="utf-8"))
 

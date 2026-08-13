@@ -339,6 +339,15 @@ def mount_live_chat_routes(app: Any, context: Any) -> None:
                     f"Raw result is {len(backend_result.raw_bytes)} bytes, above "
                     f"PRISMORA_MAX_RAW_BYTES={context.settings.max_raw_bytes}."
                 )
+
+            def prepare_live_artifact(value: dict[str, Any]) -> None:
+                value.setdefault("derived", {})["live_chat"] = {
+                    "single_turn": True,
+                    "signed_by": "NicoMrx",
+                    "raw_preserved": True,
+                }
+                _normalize_visible_final(value)
+
             artifact = create_run_artifact(
                 store=context.store,
                 experiment_id=planned.experiment_id,
@@ -354,15 +363,8 @@ def mount_live_chat_routes(app: Any, context: Any) -> None:
                     "signature": "NicoMrx",
                     "session_locale": context.session.locale,
                 },
+                artifact_transform=prepare_live_artifact,
             )
-            artifact.setdefault("derived", {})["live_chat"] = {
-                "single_turn": True,
-                "signed_by": "NicoMrx",
-                "raw_preserved": True,
-            }
-            _normalize_visible_final(artifact)
-            validate("run", artifact)
-            context.store.save_run(artifact)
             return artifact
         except HTTPException:
             raise

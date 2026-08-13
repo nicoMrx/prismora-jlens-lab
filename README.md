@@ -1,4 +1,4 @@
-# Prismora J-Lens Lab v0.2.0
+# Prismora J-Lens Lab v0.2.1 (corrected audit pass)
 
 A local-first, backend-neutral laboratory for reproducible J-Lens experiments.
 The same `ExperimentSpec v2` can target:
@@ -80,9 +80,12 @@ The adapter sends `stream: false`, parses `{meta, tokens, done}` for the normali
 | `readout.top_k` | `topN` |
 | `generation.temperature` | `temperature` |
 | `generation.max_new_tokens` | `numCompletionTokens` |
+| `generation.seed` | `seed` |
 | `generation.prepend_bos` | `prependBos` |
 | `generation.enable_thinking` | `enableThinking` |
+| `generation.frequency_penalty` | `frequencyPenalty` |
 | `readout.filter_nonword_tokens` | `filterNonWordTokens` |
+| `readout.exclude_first_n_positions` | `excludeFirstNPositions` |
 | `readout.input_token_ids` | `inputTokenIds` |
 | intervention source/layers/strength | `steerTokens` / `steerLayers` / `steerStrength` |
 | ablation / swap | `steerAblate` / `swapToken` |

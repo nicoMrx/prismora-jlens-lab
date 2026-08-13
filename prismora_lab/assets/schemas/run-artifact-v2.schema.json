@@ -21,12 +21,14 @@
     "run_id": {
       "type": "string",
       "minLength": 8,
-      "maxLength": 160
+      "maxLength": 160,
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{7,159}$"
     },
     "experiment_id": {
       "type": "string",
       "minLength": 3,
-      "maxLength": 80
+      "maxLength": 80,
+      "pattern": "^[a-z0-9][a-z0-9._-]{2,79}$"
     },
     "status": {
       "type": "string",

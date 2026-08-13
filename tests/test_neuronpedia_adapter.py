@@ -28,6 +28,8 @@ def test_payload_matches_documented_buffered_api_shape():
         "prependBos": True,
         "enableThinking": False,
         "filterNonWordTokens": True,
+        "frequencyPenalty": 0,
+        "excludeFirstNPositions": 0,
         "stream": False,
         "chat": [{"role": "user", "content": "Hello"}],
     }
@@ -48,6 +50,28 @@ def test_swap_payload():
     assert payload["swapToken"]["token"] == " factor"
     assert payload["steerLayers"] == [30, 31]
     assert payload["steerGeneratedTokens"] is True
+
+
+def test_declared_generation_and_readout_parameters_reach_wire_payload():
+    request = dict(REQUEST)
+    request["generation"] = {
+        **REQUEST["generation"],
+        "seed": 123,
+        "frequency_penalty": 0.75,
+    }
+    request["readout"] = {**REQUEST["readout"], "exclude_first_n_positions": 7}
+    payload = NeuronpediaBackend.build_payload(request)
+    assert payload["seed"] == 123
+    assert payload["frequencyPenalty"] == 0.75
+    assert payload["excludeFirstNPositions"] == 7
+
+
+@pytest.mark.parametrize("field,value", [("top_k", True), ("top_k", 1.5)])
+def test_neuronpedia_rejects_non_integer_limits(field, value):
+    request = dict(REQUEST)
+    request["readout"] = {**REQUEST["readout"], field: value}
+    with pytest.raises(Exception, match="must be integers"):
+        NeuronpediaBackend.build_payload(request)
 
 
 @pytest.mark.asyncio

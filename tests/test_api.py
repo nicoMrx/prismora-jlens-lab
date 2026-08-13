@@ -94,6 +94,14 @@ def test_neuronpedia_connection_test_allows_continue_without_key(tmp_path):
     assert "imports remain available" in body["message"]
 
 
+def test_session_worker_url_reconfigures_the_effective_backend(tmp_path):
+    client = make_client(tmp_path)
+    response = client.put('/api/session/settings', json={"worker_url": "https://worker.example.test/"})
+    assert response.status_code == 200
+    assert response.json()["worker_url"] == "https://worker.example.test/"
+    assert client.app.state.lab.backends["worker"].base_url == "https://worker.example.test"
+
+
 def test_session_secret_not_persisted_to_artifacts_exports_or_next_process(tmp_path):
     secret = "np_test_redacted_secret"
     client = make_client(tmp_path)

@@ -7,6 +7,8 @@ from dataclasses import dataclass
 from typing import Any, Iterable
 
 from .canonical import sha256_json
+from .identifiers import validate_identifier
+from .schema import SchemaValidationError, validate
 
 
 _TEMPLATE = re.compile(r"\{\{\s*([A-Za-z0-9_.-]+)\s*\}\}")
@@ -85,7 +87,25 @@ def planned_request_identity(request: dict[str, Any]) -> dict[str, Any]:
     return request
 
 
+def _bounded_run_id(experiment_id: str, alias: str, prompt_id: str, repeat: int, digest: str) -> str:
+    suffix = f"__r{repeat}__{digest[:12]}"
+    components = [experiment_id, alias, prompt_id]
+    available = 160 - len(suffix) - 4
+    while sum(len(item) for item in components) > available:
+        longest = max(range(len(components)), key=lambda index: len(components[index]))
+        if len(components[longest]) <= 1:
+            raise MatrixError("Cannot construct a valid bounded run identifier.")
+        components[longest] = components[longest][:-1]
+    run_id = "__".join(components) + suffix
+    validate_identifier(run_id, "run")
+    return run_id
+
+
 def expand_experiment(spec: dict[str, Any]) -> list[PlannedRun]:
+    try:
+        validate("experiment", spec)
+    except SchemaValidationError as exc:
+        raise MatrixError(str(exc)) from exc
     matrix = spec.get("matrix", {})
     factors = matrix.get("factors", {})
     bindings = matrix.get("bindings", {})
@@ -115,8 +135,17 @@ def expand_experiment(spec: dict[str, Any]) -> list[PlannedRun]:
                 raise MatrixError(f"Binding refers to missing factor: {factor_name}")
             _set_path(request, path, factor_values[factor_name])
 
+        bound_spec = copy.deepcopy(spec)
+        bound_spec["generation"] = copy.deepcopy(request["generation"])
+        bound_spec["readout"] = copy.deepcopy(request["readout"])
+        bound_spec["intervention"] = copy.deepcopy(request["intervention"])
+        try:
+            validate("experiment", bound_spec)
+        except SchemaValidationError as exc:
+            raise MatrixError(f"Bound request is invalid for factors {factor_values}: {exc}") from exc
+
         digest = sha256_json({"experiment_id": spec["experiment_id"], "request": planned_request_identity(request)})
-        run_id = f"{spec['experiment_id']}__{model['alias']}__{prompt_spec['prompt_id']}__r{repeat}__{digest[:12]}"
+        run_id = _bounded_run_id(spec["experiment_id"], model["alias"], prompt_spec["prompt_id"], repeat, digest)
         if run_id in seen:
             raise MatrixError(f"Duplicate planned run identity: {run_id}")
         seen.add(run_id)

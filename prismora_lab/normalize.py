@@ -1,11 +1,12 @@
 from __future__ import annotations
 
 import copy
+import json
 import platform
-from typing import Any
+from typing import Any, Callable
 
 from . import __version__
-from .canonical import sha256_json
+from .canonical import canonical_json_bytes, sha256_bytes, sha256_json
 from .coverage import derive_coverage
 from .schema import validate
 from .store import LabStore
@@ -90,24 +91,26 @@ def create_run_artifact(
     raw_bytes: bytes | None = None,
     raw_content_type: str = "application/json",
     backend_environment: dict[str, Any] | None = None,
+    artifact_transform: Callable[[dict[str, Any]], None] | None = None,
 ) -> dict[str, Any]:
     warnings = validate_raw_shape(raw)
-    raw_info = (
-        store.write_raw_bytes(experiment_id, run_id, raw_bytes)
-        if raw_bytes is not None
-        else store.write_raw(experiment_id, run_id, raw)
-    )
-    canonical_result_hash = sha256_json({"meta": raw["meta"], "tokens": raw["tokens"], "done": raw["done"]})
+    exact_raw = bytes(raw_bytes) if raw_bytes is not None else canonical_json_bytes(raw)
+    if raw_bytes is not None and ("json" in raw_content_type.lower() or "json" in raw_format.lower()):
+        try:
+            parsed = json.loads(exact_raw)
+        except (UnicodeDecodeError, json.JSONDecodeError) as exc:
+            raise RawShapeError("raw_bytes is declared as JSON but cannot be parsed.") from exc
+        parsed_result = parsed.get("result") if isinstance(parsed, dict) and isinstance(parsed.get("result"), dict) else parsed
+        if not isinstance(parsed_result, dict) or sha256_json(parsed_result) != sha256_json(raw):
+            raise RawShapeError("Parsed raw_bytes does not match the raw object supplied for normalization.")
+
+    raw_path = store.run_dir(experiment_id, run_id) / "raw.json"
+    raw_info = {
+        "relative_path": str(raw_path.relative_to(store.root)),
+        "sha256": sha256_bytes(exact_raw),
+        "byte_length": len(exact_raw),
+    }
     execution_request_hash = sha256_json(execution_request_identity(request))
-    duplicate_of = store.find_duplicate(
-        canonical_result_hash,
-        execution_request_sha256=execution_request_hash,
-        exclude_run_id=run_id,
-    )
-    if duplicate_of:
-        warnings.append(
-            "Canonical result duplicates a stored run; it is retained but does not count as an independent observation."
-        )
     model = request.get("model", {})
     artifact: dict[str, Any] = {
         "schema": "prismora.run/v2",
@@ -121,7 +124,7 @@ def create_run_artifact(
             "request_sha256": sha256_json(request),
             "execution_request_sha256": execution_request_hash,
             "raw_sha256": raw_info["sha256"],
-            "canonical_result_sha256": canonical_result_hash,
+            "canonical_result_sha256": "0" * 64,
             "code_version": __version__,
             "model_revision": model.get("revision"),
             "tokenizer_revision": model.get("tokenizer_revision"),
@@ -147,8 +150,8 @@ def create_run_artifact(
         },
         "coverage": derive_coverage(request, raw, backend_environment),
         "quality": {
-            "independent_observation": duplicate_of is None,
-            "duplicate_of": duplicate_of,
+            "independent_observation": True,
+            "duplicate_of": None,
             "warnings": sorted(set(warnings)),
             "validation": "warning" if warnings else "passed",
             "prompt_copy_terms": [],
@@ -156,6 +159,26 @@ def create_run_artifact(
         "error": None,
         "derived": {},
     }
+    if artifact_transform is not None:
+        artifact_transform(artifact)
+    result_identity = {
+        "meta": artifact["result"]["meta"],
+        "tokens": artifact["result"]["tokens"],
+        "done": artifact["result"]["done"],
+    }
+    canonical_result_hash = sha256_json(result_identity)
+    artifact["provenance"]["canonical_result_sha256"] = canonical_result_hash
+    duplicate_of = store.find_duplicate(
+        canonical_result_hash,
+        execution_request_sha256=execution_request_hash,
+        exclude_run_id=run_id,
+    )
+    if duplicate_of:
+        warning = "Canonical result duplicates a stored run; it is retained but does not count as an independent observation."
+        artifact["quality"]["warnings"] = sorted(set([*artifact["quality"]["warnings"], warning]))
+        artifact["quality"]["validation"] = "warning"
+        artifact["quality"]["independent_observation"] = False
+        artifact["quality"]["duplicate_of"] = duplicate_of
     validate("run", artifact)
-    store.save_run(artifact)
+    store.commit_run(artifact, exact_raw)
     return artifact

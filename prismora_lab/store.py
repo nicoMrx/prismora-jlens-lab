@@ -1,11 +1,16 @@
 from __future__ import annotations
 
 import json
+import os
+import shutil
+import tempfile
 import zipfile
 from pathlib import Path
 from typing import Any, Iterable
 
-from .canonical import atomic_write_bytes, atomic_write_json, canonical_json_bytes, read_json, sha256_bytes
+from .canonical import atomic_write_bytes, atomic_write_json, canonical_json_bytes, read_json, sha256_bytes, sha256_json
+from .identifiers import validate_identifier
+from .preregistration import verify_locked_spec
 from .schema import validate
 from .timeutil import utc_now_iso
 
@@ -25,7 +30,7 @@ class LabStore:
             atomic_write_json(self.models_path, {"schema": "prismora.model-registry/v1", "models": []})
 
     def experiment_dir(self, experiment_id: str) -> Path:
-        return self.experiments_dir / experiment_id
+        return self.experiments_dir / validate_identifier(experiment_id, "experiment")
 
     def experiment_path(self, experiment_id: str) -> Path:
         return self.experiment_dir(experiment_id) / "spec.json"
@@ -34,6 +39,20 @@ class LabStore:
         validate("experiment", spec)
         path = self.experiment_path(spec["experiment_id"])
         path.parent.mkdir(parents=True, exist_ok=True)
+        incoming_locked = spec.get("preregistration", {}).get("status") == "locked"
+        if incoming_locked and not verify_locked_spec(spec):
+            raise ValueError("Locked experiment hash does not match the document.")
+        if path.exists():
+            existing = read_json(path)
+            validate("experiment", existing)
+            if existing.get("preregistration", {}).get("status") == "locked":
+                if not verify_locked_spec(existing):
+                    raise ValueError("Stored locked experiment hash does not match the document.")
+                if canonical_json_bytes(existing) != canonical_json_bytes(spec):
+                    raise FileExistsError(
+                        "Locked experiment is immutable. Use a new experiment_id or a documented amendment."
+                    )
+                return path
         atomic_write_json(path, spec)
         return path
 
@@ -41,7 +60,11 @@ class LabStore:
         path = self.experiment_path(experiment_id)
         if not path.exists():
             raise FileNotFoundError(experiment_id)
-        return read_json(path)
+        spec = read_json(path)
+        validate("experiment", spec)
+        if spec.get("preregistration", {}).get("status") == "locked" and not verify_locked_spec(spec):
+            raise ValueError("Stored locked experiment hash does not match the document.")
+        return spec
 
     def list_experiments(self) -> list[dict[str, Any]]:
         records: list[dict[str, Any]] = []
@@ -63,7 +86,7 @@ class LabStore:
         return records
 
     def run_dir(self, experiment_id: str, run_id: str) -> Path:
-        return self.experiment_dir(experiment_id) / "runs" / run_id
+        return self.experiment_dir(experiment_id) / "runs" / validate_identifier(run_id, "run")
 
     def write_raw_bytes(self, experiment_id: str, run_id: str, raw_bytes: bytes) -> dict[str, Any]:
         """Write exact response bytes once. Existing different bytes are rejected."""
@@ -78,7 +101,11 @@ class LabStore:
             if existing != exact_bytes:
                 raise FileExistsError(f"Immutable raw already exists with different bytes: {path}")
         else:
-            atomic_write_bytes(path, exact_bytes, overwrite=False)
+            try:
+                atomic_write_bytes(path, exact_bytes, overwrite=False)
+            except FileExistsError:
+                if path.read_bytes() != exact_bytes:
+                    raise FileExistsError(f"Immutable raw already exists with different bytes: {path}") from None
         return {
             "path": path,
             "relative_path": str(path.relative_to(self.root)),
@@ -91,13 +118,96 @@ class LabStore:
         return self.write_raw_bytes(experiment_id, run_id, canonical_json_bytes(raw_value))
 
     def save_run(self, artifact: dict[str, Any]) -> Path:
-        validate("run", artifact)
+        self.verify_run_document(artifact, verify_raw_if_present=True)
         path = self.run_dir(artifact["experiment_id"], artifact["run_id"]) / "artifact.json"
         path.parent.mkdir(parents=True, exist_ok=True)
-        atomic_write_json(path, artifact)
+        if path.exists():
+            if canonical_json_bytes(read_json(path)) == canonical_json_bytes(artifact):
+                return path
+            raise FileExistsError(f"Immutable run artifact already exists: {path}")
+        atomic_write_json(path, artifact, overwrite=False)
         return path
 
+    def verify_run_document(self, artifact: dict[str, Any], *, verify_raw_if_present: bool) -> None:
+        validate("run", artifact)
+        validate_identifier(artifact.get("experiment_id"), "experiment")
+        validate_identifier(artifact.get("run_id"), "run")
+        provenance = artifact["provenance"]
+        if provenance.get("request_sha256") != sha256_json(artifact["request"]):
+            raise ValueError("Run artifact request_sha256 does not match request.")
+        result_identity = {
+            "meta": artifact["result"]["meta"],
+            "tokens": artifact["result"]["tokens"],
+            "done": artifact["result"]["done"],
+        }
+        if provenance.get("canonical_result_sha256") != sha256_json(result_identity):
+            raise ValueError("Run artifact canonical_result_sha256 does not match result.")
+        relative = Path(str(artifact["raw"]["relative_path"]))
+        raw_path = (self.root / relative).resolve()
+        root = self.root.resolve()
+        if raw_path == root or root not in raw_path.parents:
+            raise ValueError("Run artifact raw.relative_path escapes the store root.")
+        if verify_raw_if_present and raw_path.exists():
+            raw_bytes = raw_path.read_bytes()
+            if provenance.get("raw_sha256") != sha256_bytes(raw_bytes):
+                raise ValueError("Run artifact raw_sha256 does not match stored raw bytes.")
+            if artifact["raw"].get("byte_length") != len(raw_bytes):
+                raise ValueError("Run artifact raw.byte_length does not match stored raw bytes.")
+
+    def commit_run(self, artifact: dict[str, Any], raw_bytes: bytes) -> Path:
+        """Atomically publish an immutable raw/artifact pair as one run directory."""
+        exact_raw = bytes(raw_bytes)
+        self.verify_run_document(artifact, verify_raw_if_present=False)
+        final_dir = self.run_dir(artifact["experiment_id"], artifact["run_id"])
+        expected_raw = final_dir / "raw.json"
+        expected_relative = str(expected_raw.relative_to(self.root))
+        if artifact["raw"]["relative_path"] != expected_relative:
+            raise ValueError("Run artifact raw.relative_path does not match its run identity.")
+        if artifact["provenance"]["raw_sha256"] != sha256_bytes(exact_raw):
+            raise ValueError("Run artifact raw_sha256 does not match supplied raw bytes.")
+        if artifact["raw"].get("byte_length") != len(exact_raw):
+            raise ValueError("Run artifact raw.byte_length does not match supplied raw bytes.")
+
+        runs_dir = final_dir.parent
+        runs_dir.mkdir(parents=True, exist_ok=True)
+        if final_dir.exists():
+            existing_raw = final_dir / "raw.json"
+            existing_artifact = final_dir / "artifact.json"
+            if (
+                existing_raw.exists()
+                and existing_artifact.exists()
+                and existing_raw.read_bytes() == exact_raw
+                and canonical_json_bytes(read_json(existing_artifact)) == canonical_json_bytes(artifact)
+            ):
+                return existing_artifact
+            raise FileExistsError(f"Immutable run already exists: {final_dir}")
+
+        stage = Path(tempfile.mkdtemp(prefix=".run-stage-", dir=runs_dir))
+        try:
+            atomic_write_bytes(stage / "raw.json", exact_raw, overwrite=False)
+            atomic_write_json(stage / "artifact.json", artifact, overwrite=False)
+            try:
+                stage_fd = os.open(stage, os.O_RDONLY)
+            except OSError:
+                stage_fd = None
+            if stage_fd is not None:
+                try:
+                    os.fsync(stage_fd)
+                finally:
+                    os.close(stage_fd)
+            try:
+                os.rename(stage, final_dir)
+            except OSError:
+                if final_dir.exists():
+                    raise FileExistsError(f"Immutable run already exists: {final_dir}") from None
+                raise
+            return final_dir / "artifact.json"
+        finally:
+            if stage.exists():
+                shutil.rmtree(stage)
+
     def get_run(self, run_id: str, experiment_id: str | None = None) -> dict[str, Any]:
+        validate_identifier(run_id, "run")
         candidates: Iterable[Path]
         if experiment_id:
             candidates = [self.run_dir(experiment_id, run_id) / "artifact.json"]
@@ -105,7 +215,9 @@ class LabStore:
             candidates = self.experiments_dir.glob(f"*/runs/{run_id}/artifact.json")
         for path in candidates:
             if path.exists():
-                return read_json(path)
+                artifact = read_json(path)
+                self.verify_run_document(artifact, verify_raw_if_present=True)
+                return artifact
         raise FileNotFoundError(run_id)
 
     def list_runs(self, experiment_id: str | None = None) -> list[dict[str, Any]]:
@@ -171,7 +283,7 @@ class LabStore:
         atomic_write_json(self.models_path, registry)
 
     def claim_path(self, claim_id: str) -> Path:
-        return self.claims_dir / f"{claim_id}.json"
+        return self.claims_dir / f"{validate_identifier(claim_id, 'claim')}.json"
 
     def save_claim(self, claim: dict[str, Any]) -> Path:
         validate("claim", claim)

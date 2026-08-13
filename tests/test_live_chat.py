@@ -5,6 +5,7 @@ from fastapi.testclient import TestClient
 from prismora_lab.api.app import create_app
 from prismora_lab.backends.mock import MockBackend
 from prismora_lab.config import Settings
+from prismora_lab.canonical import sha256_json
 from prismora_lab.live_chat import _normalize_visible_final
 from prismora_lab.store import LabStore
 
@@ -84,6 +85,9 @@ def test_live_chat_creates_reproducible_spec_raw_and_artifact(tmp_path):
     assert artifact["derived"]["live_chat"]["raw_preserved"] is True
     assert artifact["derived"]["live_chat"]["user_message"] == "Explique la photosynthèse en une phrase."
     assert artifact["provenance"]["environment"]["signature"] == "NicoMrx"
+    assert artifact["provenance"]["canonical_result_sha256"] == sha256_json(
+        {key: artifact["result"][key] for key in ("meta", "tokens", "done")}
+    )
     assert "session-secret-never-returned" not in response.text
 
     stored = store.get_run(artifact["run_id"], artifact["experiment_id"])

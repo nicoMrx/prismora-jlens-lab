@@ -40,6 +40,15 @@ def test_run_schema_backward_compatible_and_coverage_validates():
     bad = copy.deepcopy(new['coverage']); bad['source_tokens_total'] = None
     with pytest.raises(ValueError):
         validate_coverage(bad)
+    bad = copy.deepcopy(new['coverage']); bad['truncated_tokens'] = 1
+    with pytest.raises(ValueError, match='source_tokens_total'):
+        validate_coverage(bad)
+    bad = copy.deepcopy(new['coverage']); bad['instrumented_tokens'] = 1
+    with pytest.raises(ValueError, match='every transmitted context token'):
+        validate_coverage(bad)
+    bad = copy.deepcopy(new['coverage']); bad['transmitted_tokens'] = True
+    with pytest.raises(ValueError, match='non-negative integer'):
+        validate_coverage(bad)
 
 
 def test_understand_deterministic_bilingual_and_evidence():
@@ -156,7 +165,7 @@ def test_visualizer_static_regressions_for_demo_i18n_errors_and_sparse_chart():
     assert "Charger la démo Build Week" in app_js and "Langue" in app_js and "Résumé par règles, sans LLM" in app_js
     assert 'point.layer - previousLayer > 1' in app_js
     assert 'Intervention synthétique de démonstration' in app_js
-    assert 'lab-v0.3.0-buildweek' in html
+    assert 'lab-v0.2.1-corrected' in html
     assert 'globalLocaleSelect' in html and 'understandLocale' not in html
     assert 'const I18N' in app_js and 'function t(key' in app_js and 'prismora.locale' in app_js
     assert 'understandRequestSeq' in app_js and 'requestedLocale !== state.locale' in app_js

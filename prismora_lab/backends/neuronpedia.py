@@ -51,8 +51,12 @@ class NeuronpediaBackend(ExecutionBackend):
         generation = request.get("generation", {})
         readout = request.get("readout", {})
         intervention = request.get("intervention") or {}
-        top_k = int(readout.get("top_k", 8))
-        max_new = int(generation.get("max_new_tokens", 128))
+        top_k_value = readout.get("top_k", 8)
+        max_new_value = generation.get("max_new_tokens", 128)
+        if type(top_k_value) is not int or type(max_new_value) is not int:
+            raise BackendError("top_k and max_new_tokens must be integers.")
+        top_k = top_k_value
+        max_new = max_new_value
         if not 1 <= top_k <= 8:
             raise BackendError("Neuronpedia documents top_k in the range 1..8.")
         if not 0 <= max_new <= 256:
@@ -69,6 +73,22 @@ class NeuronpediaBackend(ExecutionBackend):
             "filterNonWordTokens": readout.get("filter_nonword_tokens", True),
             "stream": False,
         }
+
+        seed = generation.get("seed")
+        if seed is not None:
+            if type(seed) is not int:
+                raise BackendError("seed must be an integer or null.")
+            payload["seed"] = seed
+        frequency_penalty = generation.get("frequency_penalty", 0)
+        if isinstance(frequency_penalty, bool) or not isinstance(frequency_penalty, (int, float)):
+            raise BackendError("frequency_penalty must be a number.")
+        if not -2 <= float(frequency_penalty) <= 2:
+            raise BackendError("frequency_penalty must be in the range -2..2.")
+        payload["frequencyPenalty"] = frequency_penalty
+        excluded = readout.get("exclude_first_n_positions", 0)
+        if type(excluded) is not int or not 0 <= excluded <= 4096:
+            raise BackendError("exclude_first_n_positions must be an integer in the range 0..4096.")
+        payload["excludeFirstNPositions"] = excluded
 
         input_ids = readout.get("input_token_ids")
         if input_ids:

@@ -121,10 +121,27 @@
     const index = measured.indexOf(layer);
     const result = resultFor(token, lens);
     if (index < 0 || !result) return null;
-    const name = result.top_tokens?.[index]?.[0];
-    const probability = result.top_probs?.[index]?.[0];
-    if (name === undefined || probability === undefined) return null;
-    return { token: String(name), probability: Number(probability) };
+    const names = result.top_tokens?.[index];
+    const probabilities = result.top_probs?.[index];
+    if (!Array.isArray(names) || !names.length || !Array.isArray(probabilities) || !probabilities.length) return null;
+    const topTokens = names.map((name) => String(name));
+    const topProbs = probabilities.map((probability) => Number(probability));
+    if (topProbs.some((probability) => !Number.isFinite(probability))) return null;
+    return { token: topTokens[0], probability: topProbs[0], top_tokens: topTokens, top_probs: topProbs };
+  }
+
+  function sameArray(left, right) {
+    return left.length === right.length && left.every((value, index) => value === right[index]);
+  }
+
+  function sameNumericArrayWithinTolerance(left, right, tolerance) {
+    return left.length === right.length
+      && left.every((value, index) => Math.abs(value - right[index]) <= tolerance);
+  }
+
+  function strictCellChanged(left, right, tolerance) {
+    return !sameArray(left.top_tokens, right.top_tokens)
+      || !sameNumericArrayWithinTolerance(left.top_probs, right.top_probs, tolerance);
   }
 
   function promptPairs(a, b) {
@@ -172,7 +189,7 @@
         if (!left || !right) { missing += 1; continue; }
         const evidence = { layer, scope: pair.scope, position: pair.position, a: left, b: right };
         if (!firstTop1 && left.token !== right.token) firstTop1 = evidence;
-        if (!firstStrict && (left.token !== right.token || Math.abs(left.probability - right.probability) > tolerance)) firstStrict = evidence;
+        if (!firstStrict && strictCellChanged(left, right, tolerance)) firstStrict = evidence;
       }
     }
 

@@ -162,6 +162,7 @@ def bridge_equivalence(
     total_cells = total_top1 = total_topk = total_prob = total_prob_within = 0
     global_max_delta = 0.0
     missing_cells = 0
+    probability_shape_mismatches = 0
     for layer in shared_layers:
         cells = top1_equal = topk_equal = prob_values = prob_within = 0
         max_delta = 0.0
@@ -188,6 +189,9 @@ def bridge_equivalence(
             cells += 1
             top1_equal += int(candidates_a[0] == candidates_b[0])
             topk_equal += int(candidates_a == candidates_b)
+            if not isinstance(probs_a, list) or not isinstance(probs_b, list) or len(probs_a) != len(probs_b):
+                probability_shape_mismatches += 1
+                continue
             for pa, pb in zip(probs_a, probs_b, strict=False):
                 delta = abs(float(pa) - float(pb))
                 prob_values += 1
@@ -224,6 +228,7 @@ def bridge_equivalence(
         and topk_rate == 1.0
         and probability_rate == 1.0
         and missing_cells == 0
+        and probability_shape_mismatches == 0
     )
     warnings: list[str] = []
     if not token_ids_identical:
@@ -232,6 +237,10 @@ def bridge_equivalence(
         warnings.append("Actual layer lists differ; only shared layers were compared.")
     if missing_cells:
         warnings.append(f"{missing_cells} aligned layer-position cells were missing or malformed.")
+    if probability_shape_mismatches:
+        warnings.append(
+            f"{probability_shape_mismatches} aligned cells had different probability-vector lengths."
+        )
     warnings.append(
         "Candidate read-out IDs are unavailable in the public export contract; exact top-k comparison uses decoded token strings."
     )
@@ -248,6 +257,7 @@ def bridge_equivalence(
         "shared_layers": shared_layers,
         "cells_compared": total_cells,
         "missing_cells": missing_cells,
+        "probability_shape_mismatches": probability_shape_mismatches,
         "top1_agreement": top1_rate,
         "exact_topk_rate": topk_rate,
         "probability_values_compared": total_prob,

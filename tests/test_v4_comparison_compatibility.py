@@ -14,6 +14,14 @@ def test_v4_comparison_classifies_strict_partial_and_cross_model_pairs_locally()
     assert "Compatibilité partielle" in script
     assert "promptTokenIds" in script
     assert "sameArray" in script
+    assert "comparabilityConfiguration" in script
+    assert "sameConfiguration" in script
+    for field in (
+        "revision", "tokenizer_revision", "lens_revision", "precision", "quantization",
+        "generation", "readout", "transmitted_tokens", "instrumented_tokens", "captured_layers",
+    ):
+        assert field in script
+    assert "Compatibilité partielle · configuration différente" in script
     assert "modelId" in script
     assert "user-comparison-compatibility" in script
     assert ".user-comparison-compatibility" in css

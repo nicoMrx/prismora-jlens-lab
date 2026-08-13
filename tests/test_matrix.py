@@ -1,7 +1,11 @@
 import json
 from pathlib import Path
 
-from prismora_lab.matrix import expand_experiment
+import copy
+
+import pytest
+
+from prismora_lab.matrix import MatrixError, expand_experiment
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -27,3 +31,25 @@ def test_filter_binding_changes_readout_setting():
     spec["prompts"][0]["chat"][0]["content"] = "test"
     runs = expand_experiment(spec)
     assert [run.request["readout"]["filter_nonword_tokens"] for run in runs] == [False, True]
+
+
+def test_bound_matrix_values_are_revalidated_after_assignment():
+    spec = json.loads((ROOT / "examples" / "strategy_quadratic_mock.json").read_text())
+    spec["matrix"] = {
+        "factors": {"constant": [5], "invalid_top_k": [0]},
+        "bindings": {"invalid_top_k": "readout.top_k"},
+        "repeats": 1,
+    }
+    with pytest.raises(MatrixError, match="Bound request is invalid"):
+        expand_experiment(spec)
+
+
+def test_run_id_is_bounded_even_when_every_valid_component_is_maximal():
+    spec = json.loads((ROOT / "examples" / "strategy_quadratic_mock.json").read_text())
+    spec = copy.deepcopy(spec)
+    spec["experiment_id"] = "e" * 80
+    spec["models"][0]["alias"] = "M" * 64
+    spec["prompts"][0]["prompt_id"] = "P" * 80
+    runs = expand_experiment(spec)
+    assert runs
+    assert all(8 <= len(run.run_id) <= 160 for run in runs)

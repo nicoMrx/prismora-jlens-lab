@@ -1,7 +1,10 @@
-include README.md LICENSE KNOWN_LIMITATIONS.md ARCHITECTURE.md CLOUD_GPU_GUIDE.md GPU_RUNTIME_REFERENCE.md CAMPAIGN_CATALOG.md SECURITY.md CHANGELOG.md DEMARRAGE_RAPIDE_FR.md TEST_REPORT.md requirements-gpu.txt RELEASE_NOTES_FR.md FIRST_REAL_RUN_CHECKLIST_FR.md
+include README.md LICENSE KNOWN_LIMITATIONS.md ARCHITECTURE.md CLOUD_GPU_GUIDE.md GPU_RUNTIME_REFERENCE.md CAMPAIGN_CATALOG.md SECURITY.md CHANGELOG.md VERSIONING.md DEMARRAGE_RAPIDE_FR.md TEST_REPORT.md requirements-gpu.txt RELEASE_NOTES_FR.md FIRST_REAL_RUN_CHECKLIST_FR.md
 recursive-include schemas *.json
 recursive-include examples *.json
+recursive-include demo *.json
 recursive-include web *
 recursive-include prismora_lab/assets *
+recursive-include scripts *.py
 
 include Dockerfile Dockerfile.gpu.reference docker-compose.yml docker-compose.gpu.reference.yml .env.example .env.gpu.example requirements.txt requirements-dev.txt
+include ASSEMBLY.md CORRECTION_REPORT.md SOURCE_ARCHIVES_SHA256.txt

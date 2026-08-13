@@ -12,26 +12,30 @@
       layers: 'Couches capturées', operation: 'Opération', unavailable: 'non disponible',
       synthetic: 'synthétique', steer: 'steer', swap: 'swap', ablation: 'ablation',
       strictBadge: 'Paire A/B stricte',
-      strictText: 'Même modèle, même prompt et mêmes identifiants de tokens du prompt. Les divergences peuvent être étudiées comme effet de la variable modifiée, sous réserve du protocole.',
+      strictText: 'Même identité de modèle, même backend, mêmes paramètres de génération et de lecture, même couverture, même prompt et mêmes identifiants de tokens du prompt.',
       crossBadge: 'Comparaison exploratoire inter-modèles',
       crossText: 'Les couches portant le même numéro ne sont pas supposées équivalentes entre ces modèles. La première divergence ne doit pas être interprétée comme un effet causal comparable.',
       promptBadge: 'Comparaison exploratoire · contexte différent',
       promptText: 'Le modèle est identique, mais le prompt ou le contexte diffère. Les divergences mélangent l’effet du contexte et celui des autres paramètres.',
       tokenBadge: 'Compatibilité partielle · tokenisation différente',
       tokenText: 'Le modèle et le prompt textuel correspondent, mais les identifiants des tokens du prompt diffèrent. L’alignement strict n’est pas garanti.',
+      configBadge: 'Compatibilité partielle · configuration différente',
+      configText: 'Le modèle textuel et le prompt correspondent, mais les révisions, paramètres de génération, paramètres de lecture ou la couverture diffèrent.',
       modelA: 'Modèle A', modelB: 'Modèle B',
     },
     en: {
       layers: 'Captured layers', operation: 'Operation', unavailable: 'unavailable',
       synthetic: 'synthetic', steer: 'steer', swap: 'swap', ablation: 'ablation',
       strictBadge: 'Strict A/B pair',
-      strictText: 'Same model, same prompt and identical prompt-token identifiers. Divergences may be studied as effects of the modified variable, subject to the protocol.',
+      strictText: 'Same model identity, backend, generation and readout settings, coverage, prompt, and prompt-token identifiers.',
       crossBadge: 'Exploratory cross-model comparison',
       crossText: 'Layers sharing a number are not assumed to be equivalent across these models. The first divergence must not be interpreted as a comparable causal effect.',
       promptBadge: 'Exploratory comparison · different context',
       promptText: 'The model is identical, but the prompt or context differs. Divergences mix context effects with other parameter changes.',
       tokenBadge: 'Partial compatibility · different tokenization',
       tokenText: 'The model and prompt text match, but prompt-token identifiers differ. Strict alignment is not guaranteed.',
+      configBadge: 'Partial compatibility · different configuration',
+      configText: 'The model label and prompt match, but revisions, generation settings, readout settings, or coverage differ.',
       modelA: 'Model A', modelB: 'Model B',
     },
   };
@@ -126,8 +130,10 @@
 
   function promptText(value) {
     if (typeof value?.request?.prompt === 'string') return value.request.prompt;
-    const messages = Array.isArray(value?.request?.messages) ? value.request.messages : [];
-    return [...messages].reverse().find((message) => message?.role === 'user')?.content || '';
+    const messages = Array.isArray(value?.request?.chat)
+      ? value.request.chat
+      : (Array.isArray(value?.request?.messages) ? value.request.messages : []);
+    return JSON.stringify(messages.map((message) => ({ role: message?.role, content: message?.content })));
   }
 
   function promptTokenIds(value) {
@@ -140,6 +146,50 @@
     return left.length === right.length && left.every((value, index) => value === right[index]);
   }
 
+  function stableValue(value) {
+    if (Array.isArray(value)) return value.map(stableValue);
+    if (value && typeof value === 'object') {
+      return Object.fromEntries(Object.keys(value).sort().map((key) => [key, stableValue(value[key])]));
+    }
+    return value;
+  }
+
+  function sameValue(left, right) {
+    return JSON.stringify(stableValue(left)) === JSON.stringify(stableValue(right));
+  }
+
+  function comparabilityConfiguration(value) {
+    const request = value?.request || {};
+    const model = request.model || {};
+    const provenance = value?.provenance || {};
+    const meta = value?.result?.meta || {};
+    const coverage = value?.coverage || {};
+    return {
+      backend: request.backend,
+      model: {
+        model_id: model.model_id,
+        revision: model.revision ?? provenance.model_revision ?? meta.model_revision,
+        tokenizer_revision: model.tokenizer_revision ?? provenance.tokenizer_revision ?? meta.tokenizer_revision,
+        lens_id: model.lens_id ?? provenance.lens_id ?? meta.lens_name_or_path,
+        lens_revision: model.lens_revision ?? provenance.lens_revision ?? meta.lens_revision,
+        precision: model.precision ?? meta.precision,
+        quantization: model.quantization ?? meta.quantization,
+      },
+      generation: request.generation || {},
+      readout: request.readout || {},
+      coverage: {
+        status: coverage.status,
+        source_tokens_total: coverage.source_tokens_total,
+        transmitted_tokens: coverage.transmitted_tokens,
+        instrumented_tokens: coverage.instrumented_tokens,
+        instrumented_generated_tokens: coverage.instrumented_generated_tokens,
+        truncated_tokens: coverage.truncated_tokens,
+        requested_layers: coverage.requested_layers || [],
+        captured_layers: coverage.captured_layers || [],
+      },
+    };
+  }
+
   function compatibility() {
     if (!comparison.a || !comparison.b) return null;
     const sameModel = modelId(comparison.a) === modelId(comparison.b);
@@ -147,9 +197,14 @@
     const leftIds = promptTokenIds(comparison.a);
     const rightIds = promptTokenIds(comparison.b);
     const sameTokens = leftIds.length > 0 && sameArray(leftIds, rightIds);
-    if (sameModel && samePrompt && sameTokens) return { kind: 'strict', badge: t('strictBadge'), text: t('strictText') };
+    const sameConfiguration = sameValue(
+      comparabilityConfiguration(comparison.a),
+      comparabilityConfiguration(comparison.b),
+    );
+    if (sameModel && samePrompt && sameTokens && sameConfiguration) return { kind: 'strict', badge: t('strictBadge'), text: t('strictText') };
     if (!sameModel) return { kind: 'exploratory', badge: t('crossBadge'), text: t('crossText') };
     if (!samePrompt) return { kind: 'exploratory', badge: t('promptBadge'), text: t('promptText') };
+    if (!sameConfiguration) return { kind: 'partial', badge: t('configBadge'), text: t('configText') };
     return { kind: 'partial', badge: t('tokenBadge'), text: t('tokenText') };
   }
 

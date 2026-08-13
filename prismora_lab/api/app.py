@@ -73,6 +73,8 @@ def _http_error(exc: Exception) -> HTTPException:
             status_code=exc.status_code or 502,
             detail={"message": str(exc), "details": exc.details},
         )
+    if isinstance(exc, FileExistsError):
+        return HTTPException(status_code=409, detail=str(exc))
     if isinstance(exc, FileNotFoundError):
         return HTTPException(status_code=404, detail=str(exc))
     return HTTPException(status_code=500, detail=f"{type(exc).__name__}: {exc}")
@@ -99,11 +101,12 @@ def create_app(
         store=store,
         backends=backends or _default_backends(settings),
         examples_dir=examples_dir,
+        session=SessionSettings(worker_url=settings.worker_url),
     )
 
     app = FastAPI(
         title="Prismora J-Lens Lab",
-        version="0.2.0",
+        version="0.2.1",
         description="Backend-neutral control plane for reproducible J-Lens experiments.",
     )
     app.state.lab = context
@@ -119,6 +122,7 @@ def create_app(
             "locale": context.session.locale,
             "theme": context.session.theme,
             "worker_url": context.session.worker_url,
+            "neuronpedia_key_configured": bool(context.session.neuronpedia_api_key),
             "neuronpedia_connected": context.session.neuronpedia_connected,
             "backends": sorted(context.backends),
             "models": [],
@@ -138,10 +142,15 @@ def create_app(
             context.session.theme = payload["theme"]
         if "worker_url" in payload:
             context.session.worker_url = str(payload.get("worker_url") or "") or None
+            if "worker" in context.backends:
+                context.backends["worker"] = WorkerHTTPBackend(
+                    base_url=context.session.worker_url,
+                    token=context.settings.worker_token,
+                )
         api_key = payload.get("neuronpedia_api_key")
         if api_key is not None:
             context.session.neuronpedia_api_key = str(api_key) or None
-            context.session.neuronpedia_connected = bool(context.session.neuronpedia_api_key)
+            context.session.neuronpedia_connected = False
             if "neuronpedia" in context.backends:
                 context.backends["neuronpedia"] = NeuronpediaBackend(
                     api_key=context.session.neuronpedia_api_key,
@@ -184,7 +193,7 @@ def create_app(
     async def health() -> dict[str, Any]:
         return {
             "ok": True,
-            "version": "0.2.0",
+            "version": "0.2.1",
             "data_dir": str(context.settings.data_dir),
             "localhost_default": context.settings.host in {"127.0.0.1", "localhost", "::1"},
         }
@@ -243,6 +252,8 @@ def create_app(
         try:
             demo_dir = package_root / "demo" / "build_week_2026"
             if not demo_dir.exists():
+                demo_dir = package_dir / "assets" / "demo" / "build_week_2026"
+            if not demo_dir.exists():
                 raise FileNotFoundError("Build Week demo directory not found")
             payload = verify_demo_manifest(demo_dir)
             return {"schema": "prismora.demo_loader/v1", **payload}
@@ -253,6 +264,8 @@ def create_app(
     async def compare_build_week_demo(payload: dict[str, Any] = Body(...)) -> dict[str, Any]:
         try:
             demo_dir = package_root / "demo" / "build_week_2026"
+            if not demo_dir.exists():
+                demo_dir = package_dir / "assets" / "demo" / "build_week_2026"
             verified = verify_demo_manifest(demo_dir)
             artifacts = {artifact["run_id"]: artifact for artifact in verified["artifacts"]}
             for required in ("run_a", "run_b", "lens", "scope", "probability_abs_tolerance"):
@@ -614,4 +627,3 @@ def create_app(
 
     app.mount("/", StaticFiles(directory=web_root, html=True), name="web")
     return app
-

@@ -18,7 +18,9 @@ _FIELDS = (
 def _nonnull_int(value: Any, name: str) -> int | None:
     if value is None:
         return None
-    if not isinstance(value, int) or value < 0:
+    # ``bool`` is a subclass of ``int`` in Python, but accepting true/false as
+    # token counts would make malformed coverage records appear valid.
+    if type(value) is not int or value < 0:
         raise ValueError(f"coverage.{name} must be a non-negative integer or null")
     return value
 
@@ -45,6 +47,15 @@ def validate_coverage(coverage: dict[str, Any]) -> dict[str, Any]:
         out["source_tokens_total"] is None or out["transmitted_tokens"] is None or out["instrumented_tokens"] is None or out["truncated_tokens"] is None
     ):
         raise ValueError("coverage.status complete requires known source, transmitted, instrumented, and truncated token counts")
+    if status == "complete":
+        if out["source_tokens_total"] != out["transmitted_tokens"] + out["truncated_tokens"]:
+            raise ValueError(
+                "coverage.status complete requires source_tokens_total == transmitted_tokens + truncated_tokens"
+            )
+        if out["instrumented_tokens"] != out["transmitted_tokens"]:
+            raise ValueError(
+                "coverage.status complete requires every transmitted context token to be instrumented"
+            )
     out["status"] = status
     for key in ("truncated_message_indices", "requested_layers", "captured_layers", "warnings"):
         value = out.get(key, [])
@@ -72,8 +83,15 @@ def derive_coverage(request: dict[str, Any], raw: dict[str, Any], backend_enviro
 
     prompt_tokens = [t for t in tokens if not t.get("is_generated")]
     generated_tokens = [t for t in tokens if t.get("is_generated")]
-    instrumented_context = sum(1 for t in prompt_tokens if t.get("results"))
-    instrumented_generated = sum(1 for t in generated_tokens if t.get("results"))
+    def has_measurements(token: dict[str, Any]) -> bool:
+        return any(
+            isinstance(result, dict)
+            and any(isinstance(row, list) and row for row in result.get("top_tokens", []))
+            for result in token.get("results", [])
+        )
+
+    instrumented_context = sum(1 for t in prompt_tokens if has_measurements(t))
+    instrumented_generated = sum(1 for t in generated_tokens if has_measurements(t))
     is_mock = raw.get("meta", {}).get("mock") or raw.get("done", {}).get("mock") or request.get("backend") == "mock"
     cov = {
         "source_tokens_total": len(prompt_tokens) if is_mock else None,

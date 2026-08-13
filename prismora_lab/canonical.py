@@ -34,17 +34,29 @@ def read_json(path: Path) -> Any:
 
 def atomic_write_bytes(path: Path, data: bytes, *, overwrite: bool = True) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
-    if path.exists() and not overwrite:
-        raise FileExistsError(path)
     fd, tmp_name = tempfile.mkstemp(prefix=f".{path.name}.", dir=path.parent)
     try:
         with os.fdopen(fd, "wb") as handle:
             handle.write(data)
             handle.flush()
             os.fsync(handle.fileno())
-        if not overwrite and path.exists():
-            raise FileExistsError(path)
-        os.replace(tmp_name, path)
+        if overwrite:
+            os.replace(tmp_name, path)
+        else:
+            # Publishing a completed temporary inode with a hard link gives
+            # true create-if-absent semantics. A pre-check followed by
+            # os.replace() races and can overwrite a concurrent writer.
+            os.link(tmp_name, path)
+            os.unlink(tmp_name)
+        try:
+            directory_fd = os.open(path.parent, os.O_RDONLY)
+        except OSError:
+            directory_fd = None
+        if directory_fd is not None:
+            try:
+                os.fsync(directory_fd)
+            finally:
+                os.close(directory_fd)
     finally:
         try:
             os.unlink(tmp_name)

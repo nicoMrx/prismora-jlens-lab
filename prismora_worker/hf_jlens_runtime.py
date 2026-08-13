@@ -18,9 +18,13 @@ Anthropic in July 2026. It is not imported by the base installation; install
 from __future__ import annotations
 
 import asyncio
+import hashlib
+import json
+import math
 import os
+import re
 import unicodedata
-from dataclasses import dataclass
+from dataclasses import asdict, dataclass
 from typing import Any
 
 
@@ -69,7 +73,19 @@ class HFJLENSConfig:
                 return False
             raise RuntimeConfigurationError(f"{name} must be true/false")
 
-        return cls(
+        def positive_integer(name: str, default: int) -> int:
+            try:
+                value = int(os.getenv(name, str(default)))
+            except ValueError as exc:
+                raise RuntimeConfigurationError(f"{name} must be a positive integer") from exc
+            if value <= 0:
+                raise RuntimeConfigurationError(f"{name} must be a positive integer")
+            return value
+
+        def is_local(reference: str) -> bool:
+            return reference.startswith(("/", "./", "../"))
+
+        config = cls(
             model_id=required("PRISMORA_HF_MODEL_ID"),
             model_revision=optional("PRISMORA_HF_MODEL_REVISION"),
             tokenizer_revision=optional("PRISMORA_HF_TOKENIZER_REVISION") or optional("PRISMORA_HF_MODEL_REVISION"),
@@ -81,11 +97,18 @@ class HFJLENSConfig:
             trust_remote_code=boolean("PRISMORA_HF_TRUST_REMOTE_CODE", False),
             force_bos=boolean("PRISMORA_HF_FORCE_BOS", True),
             allow_cpu=boolean("PRISMORA_HF_ALLOW_CPU", False),
-            max_input_tokens=int(os.getenv("PRISMORA_HF_MAX_INPUT_TOKENS", "512")),
-            max_new_tokens=int(os.getenv("PRISMORA_HF_MAX_NEW_TOKENS", "512")),
-            max_top_k=int(os.getenv("PRISMORA_HF_MAX_TOP_K", "16")),
+            max_input_tokens=positive_integer("PRISMORA_HF_MAX_INPUT_TOKENS", 512),
+            max_new_tokens=positive_integer("PRISMORA_HF_MAX_NEW_TOKENS", 512),
+            max_top_k=positive_integer("PRISMORA_HF_MAX_TOP_K", 16),
             attn_implementation=optional("PRISMORA_HF_ATTN_IMPLEMENTATION"),
         )
+        if not is_local(config.model_id) and not config.model_revision:
+            raise RuntimeConfigurationError("PRISMORA_HF_MODEL_REVISION is required for a remote model")
+        if not is_local(config.model_id) and not config.tokenizer_revision:
+            raise RuntimeConfigurationError("PRISMORA_HF_TOKENIZER_REVISION is required for a remote tokenizer")
+        if not is_local(config.lens_name_or_path) and not config.lens_revision:
+            raise RuntimeConfigurationError("PRISMORA_JLENS_REVISION is required for a remote lens")
+        return config
 
 
 class HFJacobianLensRuntime:
@@ -164,9 +187,19 @@ class HFJacobianLensRuntime:
         if output_embeddings is None or not hasattr(output_embeddings, "weight"):
             raise RuntimeConfigurationError("Could not determine the model output vocabulary size")
         self.vocab_size = int(output_embeddings.weight.shape[0])
-        self.runtime_id = f"hf-jlens:{self.config.model_id}"
+        identity = json.dumps(asdict(self.config), ensure_ascii=False, sort_keys=True, separators=(",", ":"))
+        identity_hash = hashlib.sha256(identity.encode("utf-8")).hexdigest()[:16]
+        self.runtime_id = (
+            f"hf-jlens:{self.config.model_id}@{self.config.model_revision or 'local'}:{identity_hash}"
+        )
+        self._run_lock = asyncio.Lock()
         self._decoded_vocab: list[str] | None = None
         self._word_mask_by_device: dict[str, Any] = {}
+        self.software_versions = {
+            "torch": getattr(torch, "__version__", None),
+            "transformers": getattr(transformers, "__version__", None),
+            "jlens": getattr(jlens, "__version__", None),
+        }
 
     async def capabilities(self) -> dict[str, Any]:
         return {
@@ -198,49 +231,117 @@ class HFJacobianLensRuntime:
                 "source_layers": list(self.lens.source_layers),
                 "n_layers": self.model.n_layers,
                 "d_model": self.model.d_model,
+                "software_versions": self.software_versions,
             },
             "notes": [
                 "Reference readout-only runtime built around Anthropic jlens.",
                 "Generation and exact-token replay are supported; interventions and lens fitting are rejected.",
-                "filter_nonword_tokens uses Prismora unicode-word-mask/v1, not an assumed Neuronpedia-identical filter.",
+                "filter_nonword_tokens uses Prismora unicode-word-mask/v2-keep-raw-top1, not an assumed Neuronpedia-identical filter.",
             ],
         }
 
     async def run(self, request: dict[str, Any]) -> dict[str, Any]:
-        return await asyncio.to_thread(self._run_sync, request)
+        async with self._run_lock:
+            return await asyncio.to_thread(self._run_sync, request)
 
-    def _validate_request(self, request: dict[str, Any]) -> tuple[list[str], int, bool]:
-        model_id = request.get("model", {}).get("model_id")
+    def _validate_request(self, request: dict[str, Any]) -> tuple[list[str], int, bool, int]:
+        model = request.get("model")
+        if not isinstance(model, dict):
+            raise ValueError("request.model must be an object")
+        model_id = model.get("model_id")
         if model_id != self.config.model_id:
             raise ValueError(f"Worker is pinned to {self.config.model_id!r}, not {model_id!r}")
+        declared_identity = {
+            "revision": self.config.model_revision,
+            "tokenizer_revision": self.config.tokenizer_revision,
+            "lens_id": self.config.lens_name_or_path,
+            "lens_revision": self.config.lens_revision,
+        }
+        for field, actual in declared_identity.items():
+            declared = model.get(field)
+            if declared is not None and declared != actual:
+                raise ValueError(f"Requested model.{field}={declared!r} does not match pinned {actual!r}")
+        precision_aliases = {
+            "float32": "float32", "fp32": "float32",
+            "float16": "float16", "fp16": "float16",
+            "bfloat16": "bfloat16", "bf16": "bfloat16",
+        }
+        declared_precision = model.get("precision")
+        if declared_precision is not None:
+            actual_precision = precision_aliases.get(self.config.dtype)
+            requested_precision = precision_aliases.get(str(declared_precision).lower())
+            if requested_precision is None or requested_precision != actual_precision:
+                raise ValueError(
+                    f"Requested model.precision={declared_precision!r} does not match pinned {self.config.dtype!r}"
+                )
+        if model.get("quantization") not in (None, "", "none"):
+            raise ValueError("This runtime is not quantized; model.quantization must be null or 'none'")
         intervention = request.get("intervention")
         if intervention and intervention.get("mode", "none") != "none":
             raise ValueError("This reference runtime is readout-only and rejects interventions")
         generation = request.get("generation", {})
+        if not isinstance(generation, dict):
+            raise ValueError("request.generation must be an object")
         if float(generation.get("frequency_penalty", 0) or 0) != 0:
             raise ValueError("frequency_penalty is unsupported and will not be approximated")
-        max_new = int(generation.get("max_new_tokens", 0))
+        max_new_value = generation.get("max_new_tokens", 0)
+        if type(max_new_value) is not int:
+            raise ValueError("max_new_tokens must be an integer")
+        max_new = max_new_value
         if not 0 <= max_new <= self.config.max_new_tokens:
             raise ValueError(f"max_new_tokens must be in [0,{self.config.max_new_tokens}]")
+        temperature = generation.get("temperature", 0)
+        if isinstance(temperature, bool) or not isinstance(temperature, (int, float)) or not math.isfinite(float(temperature)):
+            raise ValueError("temperature must be a finite number")
+        if not 0 <= float(temperature) <= 2:
+            raise ValueError("temperature must be in [0,2]")
+        seed = generation.get("seed")
+        if seed is not None and type(seed) is not int:
+            raise ValueError("seed must be an integer or null")
+        for field in ("prepend_bos", "enable_thinking"):
+            if field in generation and not isinstance(generation[field], bool):
+                raise ValueError(f"{field} must be a boolean")
         readout = request.get("readout", {})
-        top_k = int(readout.get("top_k", 8))
+        if not isinstance(readout, dict):
+            raise ValueError("request.readout must be an object")
+        top_k_value = readout.get("top_k", 8)
+        if type(top_k_value) is not int:
+            raise ValueError("top_k must be an integer")
+        top_k = top_k_value
         if not 1 <= top_k <= self.config.max_top_k:
             raise ValueError(f"top_k must be in [1,{self.config.max_top_k}]")
-        types = list(readout.get("types") or ["JACOBIAN_LENS", "LOGIT_LENS"])
+        types_value = readout.get("types") or ["JACOBIAN_LENS", "LOGIT_LENS"]
+        if not isinstance(types_value, list) or not types_value or not all(isinstance(item, str) for item in types_value):
+            raise ValueError("readout.types must be a non-empty string array")
+        types = list(types_value)
+        if len(types) != len(set(types)):
+            raise ValueError("readout.types must not contain duplicates")
         unknown = set(types) - {"JACOBIAN_LENS", "LOGIT_LENS"}
         if unknown:
             raise ValueError(f"Unsupported readout types: {sorted(unknown)}")
-        return types, top_k, bool(readout.get("filter_nonword_tokens", True))
+        filter_nonword = readout.get("filter_nonword_tokens", True)
+        if not isinstance(filter_nonword, bool):
+            raise ValueError("filter_nonword_tokens must be a boolean")
+        excluded = readout.get("exclude_first_n_positions", 0)
+        if type(excluded) is not int or excluded < 0:
+            raise ValueError("exclude_first_n_positions must be a non-negative integer")
+        cached = readout.get("cached_token_ids")
+        if cached not in (None, []):
+            raise ValueError("cached_token_ids is unsupported by this reference runtime")
+        return types, top_k, filter_nonword, excluded
 
     def _input_ids(self, request: dict[str, Any]):
         torch = self.torch
         readout = request.get("readout", {})
         forced = readout.get("input_token_ids")
         if forced is not None:
-            if not isinstance(forced, list) or not forced or not all(isinstance(item, int) for item in forced):
+            if not isinstance(forced, list) or not forced or not all(type(item) is int for item in forced):
                 raise ValueError("readout.input_token_ids must be a non-empty integer array")
             if len(forced) > self.config.max_input_tokens:
                 raise ValueError("input_token_ids exceeds configured max input length")
+            invalid = [item for item in forced if not 0 <= item < self.vocab_size]
+            if invalid:
+                raise ValueError(f"input_token_ids contains IDs outside vocabulary: {invalid[:8]}")
             return torch.tensor([forced], dtype=torch.long, device=self.model.input_device)
 
         generation = request.get("generation", {})
@@ -266,21 +367,21 @@ class HFJacobianLensRuntime:
             encoded = self.tokenizer(
                 request["prompt"],
                 return_tensors="pt",
-                truncation=True,
-                max_length=self.config.max_input_tokens,
+                truncation=False,
                 add_special_tokens=prepend_bos,
             )
             ids = encoded.input_ids
         else:
             raise ValueError("Request needs prompt, chat or input_token_ids")
-        ids = ids.to(self.model.input_device)
         if ids.shape[1] > self.config.max_input_tokens:
             raise ValueError("Tokenized input exceeds configured max input length")
         bos = getattr(self.tokenizer, "bos_token_id", None)
         if prepend_bos and bos is not None and int(ids[0, 0]) != int(bos):
+            if ids.shape[1] >= self.config.max_input_tokens:
+                raise ValueError("Prepending BOS would exceed configured max input length")
             prefix = torch.tensor([[bos]], dtype=ids.dtype, device=ids.device)
             ids = torch.cat([prefix, ids], dim=1)
-        return ids
+        return ids.to(self.model.input_device)
 
     def _generate(self, request: dict[str, Any], input_ids):
         torch = self.torch
@@ -337,6 +438,8 @@ class HFJacobianLensRuntime:
         cleaned = token.replace("▁", " ").replace("Ġ", " ").strip()
         if not cleaned:
             return False
+        if re.fullmatch(r"<\|[^|>]+\|>|<[^<>]+>", cleaned):
+            return False
         return any(unicodedata.category(char)[0] in {"L", "N"} for char in cleaned)
 
     def _word_mask(self, device):
@@ -365,9 +468,28 @@ class HFJacobianLensRuntime:
         probs = torch.exp(values - log_norm)
         return ids.cpu(), probs.cpu()
 
+    def _validated_layers(self, requested_layers: Any, types: list[str]) -> list[int]:
+        if not requested_layers:
+            return (
+                list(self.lens.source_layers)
+                if "JACOBIAN_LENS" in types
+                else list(range(self.model.n_layers))
+            )
+        if not isinstance(requested_layers, list) or not all(type(layer) is int for layer in requested_layers):
+            raise ValueError("readout.layers must be an integer array")
+        layers = sorted(set(requested_layers))
+        out_of_range = [layer for layer in layers if not 0 <= layer < self.model.n_layers]
+        if out_of_range:
+            raise ValueError(f"Requested layers out of range: {out_of_range}")
+        if "JACOBIAN_LENS" in types:
+            unavailable = set(layers) - set(self.lens.source_layers)
+            if unavailable:
+                raise ValueError(f"Requested layers not in fitted lens: {sorted(unavailable)}")
+        return layers
+
     def _run_sync(self, request: dict[str, Any]) -> dict[str, Any]:
         torch = self.torch
-        types, top_k, filter_nonword = self._validate_request(request)
+        types, top_k, filter_nonword, excluded = self._validate_request(request)
         input_ids = self._input_ids(request)
         prompt_len = int(input_ids.shape[1])
         full_ids = self._generate(request, input_ids)
@@ -396,21 +518,7 @@ class HFJacobianLensRuntime:
         ]
 
         requested_layers = request.get("readout", {}).get("layers")
-        if not requested_layers:
-            layers = (
-                list(self.lens.source_layers)
-                if "JACOBIAN_LENS" in types
-                else list(range(self.model.n_layers))
-            )
-        else:
-            layers = sorted({int(layer) for layer in requested_layers})
-        out_of_range = [layer for layer in layers if not 0 <= layer < self.model.n_layers]
-        if out_of_range:
-            raise ValueError(f"Requested layers out of range: {out_of_range}")
-        if "JACOBIAN_LENS" in types:
-            unavailable = set(layers) - set(self.lens.source_layers)
-            if unavailable:
-                raise ValueError(f"Requested layers not in fitted lens: {sorted(unavailable)}")
+        layers = self._validated_layers(requested_layers, types)
         final_layer = self.model.n_layers - 1
         record_at = sorted(set(layers) | {final_layer})
         exact_ids = full_ids.to(self.model.input_device)
@@ -426,6 +534,8 @@ class HFJacobianLensRuntime:
                 logits = self.model.unembed(residual)
                 ids, probs = self._topk(logits, top_k, filter_nonword)
                 for position in range(positions):
+                    if position < excluded:
+                        continue
                     result_maps[position][lens_type]["top_tokens"].append(
                         [decoded[int(token_id)] for token_id in ids[position].tolist()]
                     )
@@ -465,6 +575,8 @@ class HFJacobianLensRuntime:
                 "filter_nonword_tokens": filter_nonword,
                 "filter_implementation": "prismora-unicode-word-mask/v2-keep-raw-top1" if filter_nonword else None,
                 "exact_token_replay": request.get("readout", {}).get("input_token_ids") is not None,
+                "exclude_first_n_positions": excluded,
+                "software_versions": self.software_versions,
             },
             "tokens": token_rows,
             "done": {
@@ -473,6 +585,24 @@ class HFJacobianLensRuntime:
                 "prompt_len": prompt_len,
                 "vocab_size": self.vocab_size,
                 "completion": completion,
+            },
+            "coverage": {
+                "source_tokens_total": prompt_len,
+                "transmitted_tokens": prompt_len,
+                "instrumented_tokens": max(0, prompt_len - excluded),
+                "instrumented_generated_tokens": max(0, len(generated_ids) - max(0, excluded - prompt_len)),
+                "truncated_tokens": 0,
+                "source_messages_total": len(request.get("chat", [])) if "chat" in request else 1,
+                "transmitted_messages": len(request.get("chat", [])) if "chat" in request else 1,
+                "truncated_message_indices": [],
+                "context_window_limit": self.config.max_input_tokens,
+                "capture_mode": "full_returned_positions" if excluded == 0 else "exclude_first_n_positions",
+                "requested_layers": layers,
+                "captured_layers": layers,
+                "status": "complete" if excluded == 0 else "partial",
+                "warnings": [] if excluded == 0 else [
+                    f"The first {excluded} sequence positions were intentionally excluded from readout capture."
+                ],
             },
         }
 

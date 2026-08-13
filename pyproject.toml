@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "prismora-jlens-lab"
-version = "0.2.0"
+version = "0.2.1"
 description = "Backend-neutral experiment control plane and cockpit for J-Lens research."
 readme = "README.md"
 requires-python = ">=3.11"
@@ -42,4 +42,11 @@ addopts = "-q"
 pythonpath = ["."]
 
 [tool.setuptools.package-data]
-prismora_lab = ["assets/schemas/*.json", "assets/examples/*.json", "assets/web/*"]
+prismora_lab = [
+  "assets/schemas/*.json",
+  "assets/examples/*.json",
+  "assets/web/*",
+  "assets/web/assets/*",
+  "assets/web/assets/fonts/*",
+  "assets/demo/*/*.json"
+]

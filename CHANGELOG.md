@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.2.1 — 2026-08-13
+
+- Reconstructed the six-source distribution into one installable project tree.
+- Hardened storage identifiers, immutable run publication and locked protocols.
+- Bound raw bytes, normalized results and stored hashes with regression tests.
+- Revalidated matrix bindings and complete-coverage arithmetic.
+- Corrected strict comparison semantics in Core and frontend.
+- Transmitted declared Neuronpedia parameters and hardened the GPU worker.
+- Packaged frontend and demo assets in wheels and source distributions.
+- See `CORRECTION_REPORT.md` for scope limits and compatibility notes.
+
 ## 0.2.0 — 2026-07-14
 
 - Added four versioned schemas.

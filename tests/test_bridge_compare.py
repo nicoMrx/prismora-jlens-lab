@@ -58,3 +58,26 @@ def test_bridge_equivalence_identical_and_probability_tolerance(tmp_path):
     loose = bridge_equivalence(a, c, "JACOBIAN_LENS", probability_abs_tolerance=0.01)
     assert strict["equivalent_under_declared_tolerance"] is False
     assert loose["equivalent_under_declared_tolerance"] is True
+
+
+def test_bridge_rejects_probability_vector_prefix_matches(tmp_path):
+    import asyncio
+
+    request = {
+        "backend": "mock",
+        "model": {"alias": "M", "model_id": "mock/12-layer-lab-model"},
+        "prompt_id": "p",
+        "prompt": "x^2 - 5x + 6 = 0",
+        "factors": {}, "repeat": 1,
+        "generation": {"temperature": 0, "max_new_tokens": 4},
+        "readout": {"types": ["JACOBIAN_LENS"], "top_k": 4, "filter_nonword_tokens": True},
+        "intervention": None,
+    }
+    raw = asyncio.run(MockBackend().run(request)).value
+    shortened = copy.deepcopy(raw)
+    shortened["tokens"][0]["results"][0]["top_probs"][0].pop()
+    a = _artifact(tmp_path / "a", "run-a-0002", raw)
+    b = _artifact(tmp_path / "b", "run-b-0002", shortened)
+    result = bridge_equivalence(a, b, "JACOBIAN_LENS", probability_abs_tolerance=1)
+    assert result["equivalent_under_declared_tolerance"] is False
+    assert result["probability_shape_mismatches"] >= 1
