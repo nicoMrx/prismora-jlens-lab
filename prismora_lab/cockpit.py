@@ -10,7 +10,7 @@ _HAN = re.compile(r"[\u3400-\u4dbf\u4e00-\u9fff]")
 _CYRILLIC = re.compile(r"[\u0400-\u04ff]")
 
 
-def _entropy(probs: list[float]) -> float:
+def _topk_truncated_entropy(probs: list[float]) -> float:
     return -sum(value * math.log(value) for value in probs if value > 0)
 
 
@@ -49,7 +49,7 @@ def to_cockpit_v1(artifact: dict[str, Any]) -> dict[str, Any]:
             val_hit: list[int] = []
             for candidates, probs in zip(top_tokens, top_probs, strict=False):
                 top1_prob.append(float(probs[0]) if probs else float("nan"))
-                entropy.append(_entropy([float(value) for value in probs]))
+                entropy.append(_topk_truncated_entropy([float(value) for value in probs]))
                 top1_lang.append(_script_code(str(candidates[0])) if candidates else 0)
                 val_hit.append(0)
             per_lens[lens] = {
@@ -58,7 +58,7 @@ def to_cockpit_v1(artifact: dict[str, Any]) -> dict[str, Any]:
                 "top_probs": top_probs,
                 "m": {
                     "top1_prob": top1_prob,
-                    "entropy": entropy,
+                    "topk_truncated_entropy": entropy,
                     "top1_lang": top1_lang,
                     "val_hit": val_hit,
                 },

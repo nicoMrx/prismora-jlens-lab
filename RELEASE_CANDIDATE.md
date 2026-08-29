@@ -1,51 +1,24 @@
-# Prismora J-Lens Lab — Contest Release Candidate 1
+# Prismora J-Lens Lab — 0.2.1 release-candidate state
 
-**Signature:** NicoMrx  
-**Frozen on:** 2026-07-21  
-**Source branch:** `nicomrx/campaign-center-demo-library`
+Date: 2026-08-29
+Base lineage: WorkFix `a39ebf45`
 
-## Validation evidence
+## Software gate
 
-- Full automated suite: **128 passed**, with one known non-blocking Starlette deprecation warning.
-- `git diff --check`: clean.
-- Local working tree at validation: clean.
-- Live Neuronpedia chat verified with Qwen3.6-27B, GPT-OSS-20B and Gemma-3-12B.
-- Live run UX verified with an honest elapsed timer; observed Qwen response time: approximately **21 seconds** in the validation environment.
-- Campaign 01 preview: **29 conditions**, **3 repetitions**, **87 planned runs**, **2 models**, approximately **324 MB** estimated raw storage.
-- Campaign 01 real preflight: **1 completed**, **0 errors**, **86 remaining**.
-- The preflight raw and normalized artifact were archived locally through the Prismora campaign pipeline.
+- 171/171 automated tests pass.
+- Five external Fable/Cowork regression contracts are integrated under `tests/` and pass.
+- Filesystem confinement, observed revision provenance, live-chat post-transform hashing, locked preregistration integrity, baseline identity/immutability, GPU execution locking, top-1 tie handling, truncated-top-k entropy naming, public bundle privacy, and source/package web parity are covered by code/tests.
 
-## Frozen contest scope
+## Historical provenance
 
-- Progressive Read / Explore / Control interface.
-- Local import of Prismora and Neuronpedia artifacts.
-- Live single-turn Neuronpedia runs.
-- Qwen, GPT-OSS and Gemma live model selection.
-- Immutable raw preservation and normalized human-readable artifacts.
-- Technical channel-marker separation, including GPT-OSS analysis/final handling and chat-template terminator trimming.
-- Layer scrubbing and sparse-layer disclosure.
-- Jacobian Lens and Logit Lens inspection and controlled overlay.
-- User-selected A/B comparison with compatibility guards.
-- Verified synthetic demo, same-question Qwen ↔ GPT-OSS demo, Meta Capture demo and Campaign 01 demo.
-- Campaign compilation, preview, save, preflight, protocol gates and resumable missing-run execution.
-- Session-only Neuronpedia key handling with explicit connection testing.
-- Research signature and authorship: **NicoMrx**.
+`BUILD_MANIFEST.json` and `BASELINE_MANIFEST_SHA256.json` are retained as historical Build Week/pre-Build Week snapshots. They are not the manifest of this RC and contain an explicit `superseded_by` pointer to `RC_0.2.1_SHA256.json`.
 
-## Explicitly deferred after the contest
+## Typography decision — resolved
 
-- True multi-turn live conversations with preserved conversational context.
-- Full execution of the remaining 86 Campaign 01 runs.
-- Optional secure key persistence across server restarts.
-- Advanced live-chat generation controls in the primary interface.
-- Non-blocking visual refinements that do not affect the presentation path.
+The author chose the original UI typography: **Spectral / Albert Sans / Spline Sans Mono**. The CSS now declares local `@font-face` sources and keeps system fallbacks only as graceful degradation. `FINALISER_POLICES_ET_RELEASE.command` vendors the exact OFL font assets from a pinned `google/fonts` commit, verifies their Git blob hashes, mirrors them into the packaged web tree, regenerates the RC manifest, and emits the tag-ready ZIP.
 
-## Freeze policy
+## External smoke gates still required
 
-This branch is frozen for contest video production. Changes are limited to:
-
-1. crash fixes;
-2. incorrect scientific data presentation;
-3. secret exposure or security defects;
-4. blockers in the recorded presentation path.
-
-No new feature work is accepted into RC1.
+- one live Neuronpedia smoke run if provider access is part of the release claim;
+- target-GPU numerical CUDA/J-Lens validation if the GPU runtime is part of the release claim;
+- git tag/push/public release only after the author explicitly approves publication.

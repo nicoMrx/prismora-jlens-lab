@@ -45,6 +45,12 @@
           "default": []
         }
       },
+      "allOf": [
+        {
+          "if": {"properties": {"status": {"const": "locked"}}, "required": ["status"]},
+          "then": {"required": ["spec_sha256"], "properties": {"spec_sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"}}}
+        }
+      ],
       "additionalProperties": false
     },
     "models": {

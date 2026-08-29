@@ -1,6 +1,14 @@
-@font-face{font-family:Spectral;src:url('/assets/fonts/Spectral-Regular.woff2') format('woff2');font-display:swap;font-weight:300 500}
-@font-face{font-family:"Albert Sans";src:url('/assets/fonts/AlbertSans-Regular.woff2') format('woff2');font-display:swap;font-weight:400 600}
-@font-face{font-family:"Spline Sans Mono";src:url('/assets/fonts/SplineSansMono-Regular.woff2') format('woff2');font-display:swap;font-weight:400 500}
+/* ---------- TYPOGRAPHIE LOCALE — OFL, restauration release 0.2.1 ---------- */
+@font-face{font-family:"Spectral";src:url("assets/fonts/Spectral-Light.ttf") format("truetype");font-style:normal;font-weight:300;font-display:swap}
+@font-face{font-family:"Spectral";src:url("assets/fonts/Spectral-Regular.ttf") format("truetype");font-style:normal;font-weight:400;font-display:swap}
+@font-face{font-family:"Spectral";src:url("assets/fonts/Spectral-Medium.ttf") format("truetype");font-style:normal;font-weight:500;font-display:swap}
+@font-face{font-family:"Spectral";src:url("assets/fonts/Spectral-LightItalic.ttf") format("truetype");font-style:italic;font-weight:300;font-display:swap}
+@font-face{font-family:"Spectral";src:url("assets/fonts/Spectral-Italic.ttf") format("truetype");font-style:italic;font-weight:400 500;font-display:swap}
+@font-face{font-family:"Albert Sans";src:url("assets/fonts/AlbertSans-wght.ttf") format("truetype");font-style:normal;font-weight:100 900;font-display:swap}
+@font-face{font-family:"Albert Sans";src:url("assets/fonts/AlbertSans-Italic-wght.ttf") format("truetype");font-style:italic;font-weight:100 900;font-display:swap}
+@font-face{font-family:"Spline Sans Mono";src:url("assets/fonts/SplineSansMono-wght.ttf") format("truetype");font-style:normal;font-weight:100 900;font-display:swap}
+@font-face{font-family:"Spline Sans Mono";src:url("assets/fonts/SplineSansMono-Italic-wght.ttf") format("truetype");font-style:italic;font-weight:100 900;font-display:swap}
+
 /* ============================================================
    PRISMORA — DESIGN TOKENS v1 · chantier UI Build Week
    Source : maquette « trois niveaux » validée par NicoMrx
@@ -87,7 +95,7 @@
 /* ---------- TYPOGRAPHIE — trois rôles ----------
    Spectral parle · Albert Sans guide · Spline Sans Mono mesure.
    Les trois familles sont sous licence OFL : à vendorer en local
-   (woff2 dans web/assets/fonts/ + fichiers de licence), aucune
+   (fichiers locaux dans web/assets/fonts/ + licences OFL), aucune
    dépendance réseau — la démo juge doit fonctionner hors ligne. */
 :root {
   --pz-f-voix:  'Spectral', Georgia, serif;            /* titres h1/h2, phrases-clefs, annotations italiques */

@@ -85,8 +85,16 @@ class LabStore:
             )
         return records
 
+    def _confined(self, path: Path) -> Path:
+        resolved = path.resolve()
+        root = self.root.resolve()
+        if resolved == root or root not in resolved.parents:
+            raise ValueError(f"Storage path escapes store root: {path}")
+        return path
+
     def run_dir(self, experiment_id: str, run_id: str) -> Path:
-        return self.experiment_dir(experiment_id) / "runs" / validate_identifier(run_id, "run")
+        path = self.experiment_dir(experiment_id) / "runs" / validate_identifier(run_id, "run")
+        return self._confined(path)
 
     def write_raw_bytes(self, experiment_id: str, run_id: str, raw_bytes: bytes) -> dict[str, Any]:
         """Write exact response bytes once. Existing different bytes are rejected."""
@@ -306,8 +314,13 @@ class LabStore:
     def save_derived(self, experiment_id: str, category: str, record_id: str, value: dict[str, Any]) -> Path:
         safe_category = category.replace("/", "_").replace("..", "_")
         safe_id = record_id.replace("/", "_").replace("..", "_")
-        path = self.experiment_dir(experiment_id) / "derived" / safe_category / f"{safe_id}.json"
-        atomic_write_json(path, value)
+        path = self._confined(self.experiment_dir(experiment_id) / "derived" / safe_category / f"{safe_id}.json")
+        if path.exists():
+            existing = read_json(path)
+            if canonical_json_bytes(existing) == canonical_json_bytes(value):
+                return path
+            raise FileExistsError(f"Derived record already exists with different content: {path}")
+        atomic_write_json(path, value, overwrite=False)
         return path
 
     def build_bundle(self, experiment_id: str) -> Path:
@@ -319,8 +332,19 @@ class LabStore:
         destination = bundle_dir / f"{experiment_id}-{stamp}.zip"
         manifest: list[dict[str, Any]] = []
         candidates = [self.experiment_path(experiment_id)]
-        candidates.extend(sorted((exp_dir / "runs").glob("*/artifact.json")))
-        candidates.extend(sorted((exp_dir / "runs").glob("*/raw.json")))
+        excluded_live_chat_runs: list[str] = []
+        for artifact_path in sorted((exp_dir / "runs").glob("*/artifact.json")):
+            try:
+                artifact = read_json(artifact_path)
+            except (OSError, json.JSONDecodeError):
+                continue
+            if isinstance(artifact.get("derived", {}).get("live_chat"), dict):
+                excluded_live_chat_runs.append(str(artifact.get("run_id") or artifact_path.parent.name))
+                continue
+            candidates.append(artifact_path)
+            raw_path = artifact_path.parent / "raw.json"
+            if raw_path.exists():
+                candidates.append(raw_path)
         candidates.extend(sorted((exp_dir / "derived").glob("**/*.json")))
         for claim in self.list_claims(experiment_id):
             candidates.append(self.claim_path(claim["claim_id"]))
@@ -337,6 +361,11 @@ class LabStore:
                 "experiment_id": experiment_id,
                 "created_at": utc_now_iso(),
                 "preregistration_sha256": spec.get("preregistration", {}).get("spec_sha256"),
+                "privacy": {
+                    "policy": "public-default",
+                    "excluded_live_chat_runs": excluded_live_chat_runs,
+                    "note": "Live-chat artifacts and raws are excluded from public bundles by default.",
+                },
                 "files": manifest,
             }
             archive.writestr("MANIFEST.json", json.dumps(manifest_value, ensure_ascii=False, indent=2, sort_keys=True) + "\n")

@@ -1,8 +1,8 @@
 cff-version: 1.2.0
 message: "If you use this software, cite the repository release and the exact experiment bundle hash."
 title: "Prismora J-Lens Lab"
-version: 0.2.0
-date-released: 2026-07-14
+version: 0.2.1
+date-released: 2026-08-28
 authors:
   - name: "NicoMrx / Prismora"
 license: Apache-2.0

@@ -1,0 +1,6 @@
+Prismora J-Lens Lab 0.2.1
+Typography decision: original families restored locally.
+Families: Spectral / Albert Sans / Spline Sans Mono.
+Source: google/fonts pinned commit ade3d1533e06b2b1462ffcde8e08b129627ca360.
+License: SIL Open Font License 1.1; exact upstream OFL files are vendored with the fonts.
+No CDN/runtime network dependency is used by the UI.

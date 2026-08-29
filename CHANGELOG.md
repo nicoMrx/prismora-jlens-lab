@@ -32,3 +32,13 @@
 - Scope duplicate observations by executable request identity, avoiding false collapse across different prompts/models/settings.
 - Add v0.1 legacy campaign importer with chain reconstruction and source-byte SHA-256 verification.
 - Add ready-to-review Neuronpedia campaign suite and a causal GPU-worker template.
+
+## 0.2.1 RC — 2026-08-28
+
+- hardened filesystem confinement and derived-record immutability;
+- preserved declared and observed model/tokenizer/lens revisions;
+- required `spec_sha256` for locked preregistrations;
+- corrected baseline identity, top-1 tie handling and entropy naming;
+- excluded live-chat evidence from public bundles by default;
+- removed zero-byte font binaries and aligned release metadata;
+- full suite: 166/166 passed.

@@ -1,0 +1,3 @@
+# Vendored upstream SIL OFL license texts: preserve exact upstream bytes.
+web/assets/fonts/OFL-*.txt whitespace=-trailing-space
+prismora_lab/assets/web/assets/fonts/OFL-*.txt whitespace=-trailing-space

@@ -514,5 +514,9 @@
       "sha256": "85bd9ae90499bce8e71fd3166d6cee375383c303c125dfb35791db56f81d6911"
     }
   ],
-  "note": "BUILD_MANIFEST.json intentionally omits its own hash."
+  "note": "BUILD_MANIFEST.json intentionally omits its own hash.",
+  "historical_snapshot": true,
+  "superseded_by": "RC_0.2.1_SHA256.json",
+  "superseded_on": "2026-08-29",
+  "supersession_note": "Historical Build Week / pre-Build Week manifest preserved unchanged in scope; use RC_0.2.1_SHA256.json for the 0.2.1 release-candidate tree."
 }

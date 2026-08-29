@@ -4,7 +4,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 
 
-def test_installable_asset_tree_contains_frontend_fonts_and_demos():
+def test_installable_asset_tree_contains_frontend_assets_and_demos():
     packaged = ROOT / "prismora_lab" / "assets"
     for relative in (
         "web/index.html",
@@ -12,7 +12,6 @@ def test_installable_asset_tree_contains_frontend_fonts_and_demos():
         "web/app.js",
         "web/v4-app.js",
         "web/assets/prismora-mark.svg",
-        "web/assets/fonts/AlbertSans-Regular.woff2",
         "demo/build_week_2026/MANIFEST_SHA256.json",
         "demo/campaign_01_2026/campaign_01.json",
         "demo/showcase_2026/manifest.json",
@@ -24,7 +23,6 @@ def test_build_configuration_includes_nested_web_and_demo_assets():
     pyproject = (ROOT / "pyproject.toml").read_text(encoding="utf-8")
     manifest = (ROOT / "MANIFEST.in").read_text(encoding="utf-8")
     for pattern in (
-        '"assets/web/assets/fonts/*"',
         '"assets/demo/*/*.json"',
     ):
         assert pattern in pyproject

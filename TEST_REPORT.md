@@ -1,55 +1,32 @@
-# Validation report — v0.2.0
+# Validation report — v0.2.1 RC2 pre-typography decision
 
-Build date: 2026-07-14
+Build date: 2026-08-29
+Base: WorkFix `a39ebf45` + Pepper release hardening + Fable regression suite
 
 ## Automated tests
 
 ```text
-20 passed
+171 collected
+171 passed
 ```
 
-Covered paths:
+The complete suite includes the pre-existing Prismora tests, the 0.2.1 release-hardening tests, and the five Fable/Cowork regression contracts covering traversal, observed-vs-declared revision provenance, live-chat post-transform hashing, baseline identity, and top-1 tie handling.
 
-- all example ExperimentSpec documents validate and expand;
-- canonical JSON and SHA-256 identities;
-- deterministic run IDs and factor bindings;
-- documented Neuronpedia buffered payload mapping;
-- steer/swap field mapping;
-- mocked Neuronpedia HTTP response and API-key header;
-- immutable raw storage;
-- executable-condition-scoped duplicate detection and non-independence marking;
-- cockpit v1 compatibility export;
-- exact-token filter replay generation;
-- empirical top-1 baseline provenance;
-- complete FastAPI mock campaign, lock, plan, run, inspect, compare and bundle;
-- locked protocol edit rejection;
-- worker capability and run contract;
-- optional HuggingFace/J-Lens runtime configuration and Unicode filter helpers;
-- strict public/private bridge equivalence and declared probability tolerance;
-- non-destructive GPU worker preflight report.
+## Static/build checks
 
-## Additional smoke checks
+- `python3 -m compileall prismora_lab prismora_worker`: passed.
+- source/package frontend trees remain byte-identical.
+- source/package schema trees remain byte-identical.
+- historical Build Week / pre-Build Week manifests are preserved and explicitly marked as superseded by the RC manifest.
+- `.pytest_cache`, `.git`, virtual environments and other local caches are excluded from the RC manifest/package.
 
-- CLI validation: passed.
-- CLI deterministic planning: passed, 3 mock runs.
-- CLI execution and evidence bundle: passed.
-- JavaScript syntax check with Node: passed.
-- Local Uvicorn launch, `/api/health` and root interface fetch: passed.
-- Wheel build: passed.
-- Wheel installation into an isolated target: passed.
-- Installed-package access to bundled schemas, examples and web assets: passed.
-
-## Not validated in this environment
+## Not validated in this container
 
 - live Neuronpedia authentication or inference;
-- current server-side model availability/quotas;
-- numerical execution of the supplied open-weight GPU/J-Lens runtime;
-- public/private numerical bridge equivalence;
-- provider billing, preemption and automatic GPU shutdown.
+- current provider-side availability/quotas;
+- numerical CUDA/open-weight J-Lens execution on target GPU hardware;
+- external publication/tag/push.
 
-## Added integrity coverage
+## Open author decision before final release candidate
 
-- exact HTTP/source-byte archival rather than parsed JSON reserialization;
-- duplicate scoping by executable request identity;
-- legacy `protocol.csv + raw/` import, including multi-turn chain reconstruction;
-- validation and expansion of every campaign catalog example.
+Typography policy remains to be chosen: embed the intended OFL fonts (Spectral, Albert Sans, Spline Sans Mono), or keep the current system-font fallback and document the visual deviation from the Build Week/video typography.

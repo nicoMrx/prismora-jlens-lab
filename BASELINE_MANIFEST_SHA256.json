@@ -537,5 +537,9 @@
       "bytes": 13788,
       "sha256": "b9092e85c16b14b4335cab62423db4fb3bc15fe89cee79076c9653757fa650fb"
     }
-  ]
+  ],
+  "historical_snapshot": true,
+  "superseded_by": "RC_0.2.1_SHA256.json",
+  "superseded_on": "2026-08-29",
+  "supersession_note": "Historical Build Week / pre-Build Week manifest preserved unchanged in scope; use RC_0.2.1_SHA256.json for the 0.2.1 release-candidate tree."
 }

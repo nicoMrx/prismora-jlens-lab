@@ -79,6 +79,7 @@ def build_top1_reference_distribution(
         "lens": lens,
         "position_scope": position_scope,
         "filter_values": sorted(filter_values),
+        "max_tokens_per_layer": max_tokens_per_layer,
     }
     return {
         "schema": "prismora.baseline/top1-reference-v1",
@@ -91,6 +92,7 @@ def build_top1_reference_distribution(
         "model_ids": sorted(model_ids),
         "lens_ids": sorted(lens_ids),
         "filter_nonword_values": sorted(filter_values),
+        "max_tokens_per_layer": max_tokens_per_layer,
         "mixed_filter_warning": len(filter_values) > 1,
         "per_layer": per_layer,
         "interpretation_limit": "A frequent token is part of an empirical readout background. Its mechanistic origin is not inferred by this baseline.",

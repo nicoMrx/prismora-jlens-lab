@@ -112,6 +112,21 @@ def create_run_artifact(
     }
     execution_request_hash = sha256_json(execution_request_identity(request))
     model = request.get("model", {})
+    raw_meta = raw.get("meta", {}) if isinstance(raw.get("meta"), dict) else {}
+
+    def observed_or_declared(*keys: str, declared: Any = None) -> Any:
+        for key in keys:
+            value = raw_meta.get(key)
+            if value not in (None, ""):
+                return value
+        return declared
+
+    observed_revisions = {
+        "model_revision": observed_or_declared("model_revision", "revision", declared=model.get("revision")),
+        "tokenizer_revision": observed_or_declared("tokenizer_revision", declared=model.get("tokenizer_revision")),
+        "lens_id": observed_or_declared("lens_id", declared=model.get("lens_id")),
+        "lens_revision": observed_or_declared("lens_revision", declared=model.get("lens_revision")),
+    }
     artifact: dict[str, Any] = {
         "schema": "prismora.run/v2",
         "run_id": run_id,
@@ -126,10 +141,17 @@ def create_run_artifact(
             "raw_sha256": raw_info["sha256"],
             "canonical_result_sha256": "0" * 64,
             "code_version": __version__,
-            "model_revision": model.get("revision"),
-            "tokenizer_revision": model.get("tokenizer_revision"),
-            "lens_id": model.get("lens_id"),
-            "lens_revision": model.get("lens_revision"),
+            "model_revision": observed_revisions["model_revision"],
+            "tokenizer_revision": observed_revisions["tokenizer_revision"],
+            "lens_id": observed_revisions["lens_id"],
+            "lens_revision": observed_revisions["lens_revision"],
+            "declared_revisions": {
+                "model_revision": model.get("revision"),
+                "tokenizer_revision": model.get("tokenizer_revision"),
+                "lens_id": model.get("lens_id"),
+                "lens_revision": model.get("lens_revision"),
+            },
+            "observed_revisions": copy.deepcopy(observed_revisions),
             "environment": {
                 "python": platform.python_version(),
                 "platform": platform.platform(),

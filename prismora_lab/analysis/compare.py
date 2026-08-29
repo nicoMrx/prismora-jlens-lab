@@ -11,6 +11,22 @@ def _result_for_lens(token: dict[str, Any], lens: str) -> dict[str, Any] | None:
     return None
 
 
+
+
+def _top_tie_set(candidates: list[Any], probs: list[Any], *, epsilon: float = 1e-12) -> set[str]:
+    if not candidates:
+        return set()
+    if not probs:
+        return {str(candidates[0])}
+    values = [float(v) for v in probs[:len(candidates)]]
+    if not values:
+        return {str(candidates[0])}
+    maximum = max(values)
+    return {str(candidates[i]) for i, value in enumerate(values) if abs(value - maximum) <= epsilon}
+
+def _top1_agrees(ca: list[Any], pa: list[Any], cb: list[Any], pb: list[Any]) -> bool:
+    return bool(_top_tie_set(ca, pa) & _top_tie_set(cb, pb))
+
 def _generated_tokens(artifact: dict[str, Any]) -> list[dict[str, Any]]:
     return [token for token in artifact["result"]["tokens"] if token.get("is_generated")]
 
@@ -39,10 +55,12 @@ def top1_agreement_by_layer(a: dict[str, Any], b: dict[str, Any], lens: str) -> 
                 continue
             candidates_a = result_a.get("top_tokens", [])[map_a[layer]]
             candidates_b = result_b.get("top_tokens", [])[map_b[layer]]
+            probs_a = result_a.get("top_probs", [])[map_a[layer]] if result_a.get("top_probs") else []
+            probs_b = result_b.get("top_probs", [])[map_b[layer]] if result_b.get("top_probs") else []
             if not candidates_a or not candidates_b:
                 continue
             compared += 1
-            agreements += int(candidates_a[0] == candidates_b[0])
+            agreements += int(_top1_agrees(candidates_a, probs_a, candidates_b, probs_b))
             set_a, set_b = set(candidates_a), set(candidates_b)
             union = set_a | set_b
             jaccards.append(len(set_a & set_b) / len(union) if union else 1.0)
@@ -187,7 +205,7 @@ def bridge_equivalence(
                 missing_cells += 1
                 continue
             cells += 1
-            top1_equal += int(candidates_a[0] == candidates_b[0])
+            top1_equal += int(_top1_agrees(candidates_a, probs_a, candidates_b, probs_b))
             topk_equal += int(candidates_a == candidates_b)
             if not isinstance(probs_a, list) or not isinstance(probs_b, list) or len(probs_a) != len(probs_b):
                 probability_shape_mismatches += 1
@@ -321,7 +339,7 @@ def strict_comparison_facts(
                 missing.append({"layer": layer, "position": ta.get("position", ordinal), "reason": "empty_topk"})
                 continue
             cells += 1
-            top1_changed = ca[0] != cb[0]
+            top1_changed = not _top1_agrees(ca, pa, cb, pb)
             prob_changed = any(abs(float(x)-float(y)) > probability_abs_tolerance for x,y in zip(pa, pb, strict=False)) or len(pa) != len(pb)
             strict_changed = top1_changed or ca != cb or prob_changed
             top1_div += int(top1_changed); strict_div += int(strict_changed)

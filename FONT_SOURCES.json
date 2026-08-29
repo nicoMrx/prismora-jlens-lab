@@ -1,0 +1,23 @@
+{
+  "schema": "prismora.font-sources/v1",
+  "decision": "restore-original-typography",
+  "source_repository": "google/fonts",
+  "source_commit": "ade3d1533e06b2b1462ffcde8e08b129627ca360",
+  "license": "SIL Open Font License 1.1",
+  "assets": [
+    {"family":"Spectral","path":"ofl/spectral/Spectral-Light.ttf","local":"Spectral-Light.ttf","git_blob_sha1":"852e7d67ad79d72bd5b0ded7242991483c999df0"},
+    {"family":"Spectral","path":"ofl/spectral/Spectral-Regular.ttf","local":"Spectral-Regular.ttf","git_blob_sha1":"25a6c47f8050e4ea3c9713a02a4843a8d6c503d5"},
+    {"family":"Spectral","path":"ofl/spectral/Spectral-Medium.ttf","local":"Spectral-Medium.ttf","git_blob_sha1":"77420e8ea8155bd3a36960a94d6edd1fcc0e3661"},
+    {"family":"Spectral","path":"ofl/spectral/Spectral-LightItalic.ttf","local":"Spectral-LightItalic.ttf","git_blob_sha1":"0d3c3b6f92dd04b983a6c2703c36147f960443dd"},
+    {"family":"Spectral","path":"ofl/spectral/Spectral-Italic.ttf","local":"Spectral-Italic.ttf","git_blob_sha1":"99d6c2def129dea2daa47652c2168c271c7a59a7"},
+    {"family":"Albert Sans","path":"ofl/albertsans/AlbertSans%5Bwght%5D.ttf","local":"AlbertSans-wght.ttf","git_blob_sha1":"aa28110751a034a03ba84a7de12d069c3f652fe7"},
+    {"family":"Albert Sans","path":"ofl/albertsans/AlbertSans-Italic%5Bwght%5D.ttf","local":"AlbertSans-Italic-wght.ttf","git_blob_sha1":"e632b1c74e89d59bd1942d95a813e03530dfae7e"},
+    {"family":"Spline Sans Mono","path":"ofl/splinesansmono/SplineSansMono%5Bwght%5D.ttf","local":"SplineSansMono-wght.ttf","git_blob_sha1":"41f36d3500e0f4b559fc56b31d5fb4718b78690c"},
+    {"family":"Spline Sans Mono","path":"ofl/splinesansmono/SplineSansMono-Italic%5Bwght%5D.ttf","local":"SplineSansMono-Italic-wght.ttf","git_blob_sha1":"8ea9851d4e563d5f5ca7e51b68f6e04b60021f4f"}
+  ],
+  "licenses": [
+    {"family":"Spectral","path":"ofl/spectral/OFL.txt","local":"OFL-Spectral.txt","git_blob_sha1":"163d3a50c1666a69aac8b9f78dfc7142fb319a27"},
+    {"family":"Albert Sans","path":"ofl/albertsans/OFL.txt","local":"OFL-Albert-Sans.txt","git_blob_sha1":"958d457848e6ed0643d0092fe7d7740adb88971a"},
+    {"family":"Spline Sans Mono","path":"ofl/splinesansmono/OFL.txt","local":"OFL-Spline-Sans-Mono.txt","git_blob_sha1":"ebcad12ff04eb1323a4ae37494ee62289579b36a"}
+  ]
+}

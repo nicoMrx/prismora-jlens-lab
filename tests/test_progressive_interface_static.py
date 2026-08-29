@@ -136,11 +136,16 @@ def test_v41_session_and_import_shell_are_present_and_non_blocking():
     assert "/api/session/neuronpedia/test" in app
 
 
-def test_local_font_assets_and_licenses_are_packaged():
+def test_font_policy_is_local_pinned_and_keeps_graceful_fallbacks():
     styles = read(WEB / "styles.css")
+    assert "fonts.googleapis" not in styles and "fonts.gstatic" not in styles
     assert "@font-face" in styles
-    assert "fonts.googleapis" not in styles
-    for name in ("Spectral-Regular.woff2", "AlbertSans-Regular.woff2", "SplineSansMono-Regular.woff2", "OFL-Spectral.txt", "OFL-Albert-Sans.txt", "OFL-Spline-Sans-Mono.txt"):
+    for family in ("Spectral", "Albert Sans", "Spline Sans Mono"):
+        assert family in styles
+    assert "Georgia" in styles and "system-ui" in styles and "ui-monospace" in styles
+    assert (ROOT / "FONT_SOURCES.json").exists()
+    assert (ROOT / "scripts" / "restore_original_fonts.sh").exists()
+    for name in ("OFL-Spectral.txt", "OFL-Albert-Sans.txt", "OFL-Spline-Sans-Mono.txt"):
         assert (WEB / "assets" / "fonts" / name).exists()
         assert (PKG / "assets" / "fonts" / name).exists()
 
