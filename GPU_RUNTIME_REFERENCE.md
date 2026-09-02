@@ -53,3 +53,13 @@ in the base environment. Loading a real model/lens and numerical comparison
 require a CUDA worker and model downloads, which were unavailable during this
 build. The bundled `jlens` dependency is pinned to Anthropic commit
 `581d398613e5602a5af361e1c34d3a92ea82ba8e`.
+
+## Second runtime: interp-engine (added 2026-09-02, static review, not CUDA-validated)
+
+`prismora_worker/interp_engine_runtime.py` serves the same readout-only contract through
+Neuronpedia's `interp-engine` (eager / vllm / vllm-static) while keeping this module's request
+validation, the Anthropic `jlens` lens application and the Prismora word mask. It adds to `meta`:
+`engine`, `engine_backend`, `compute_path` (`recompute` | `incremental`), `lens_sha256`, `lens_shape`.
+Select it with `PRISMORA_WORKER_RUNTIME='prismora_worker.interp_engine_runtime:create_runtime'`;
+see `CLOUD_RUNBOOK_INTERP_ENGINE.md` and `BRIDGE_C05_PREREGISTRATION.md`. It must pass that bridge
+before any of its output is merged with Free Chat or HF-runtime corpora.

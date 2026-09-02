@@ -13,3 +13,4 @@
 11. **Causal Lab builds and executes interventions but does not classify task-level strategy changes.** Outcome classifiers and random-direction controls must be defined by each experiment.
 12. **The original cockpit HTML file is not copied from the File Library.** This release provides a new inspector plus a `cockpit.json` v1 compatibility endpoint based on the documented contract.
 13. **Legacy matching relies on filenames containing `test_id`.** Ambiguous matches are reported and preserved in the import report; they should be resolved before publication.
+14. **The interp-engine runtime (`interp_engine_runtime.py`) is a static-review implementation.** Its contract is unit-tested with fakes (`tests/test_interp_engine_runtime_contract.py`); it has not loaded a real model on CUDA and has no numerical parity result. `BRIDGE_C05_PREREGISTRATION.md` is the gate.
